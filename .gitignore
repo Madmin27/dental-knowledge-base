@@ -1,0 +1,41 @@
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Dependencies/build
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+coverage/
+
+# Env/secrets
+.env
+.env.*
+!.env.example
+
+# Local caches
+.cache/
+tmp/
+temp/
+
+# Quarantine / clinical data — NEVER COMMIT
+quarantine/
+data/quarantine/
+clinical-raw/
+patient-data/
+*.dcm
+*.dicom
+*.ima
+*.nii
+*.nii.gz
+*.nrrd
+*.mha
+*.mhd
+
+# Large local model/volume work products — review before allowing
+*.raw
+*.vol
