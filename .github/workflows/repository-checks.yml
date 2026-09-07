@@ -16,3 +16,5 @@ jobs:
         run: python3 scripts/check_clinical_data.py
       - name: Synthetic guard tests
         run: python3 -m unittest discover -s tests -v
+      - name: Domain tests
+        run: node tests/domain.test.mjs

@@ -24,6 +24,7 @@ After staging your intended changes, run from the repository root:
 ```sh
 python3 scripts/check_clinical_data.py
 python3 -m unittest discover -s tests -v
+node tests/domain.test.mjs
 git diff --cached --check
 ```
 
