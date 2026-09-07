@@ -56,6 +56,26 @@ class ClinicalDataGuardTests(unittest.TestCase):
                 self.git('rm', '--cached', '--', path)
         self.assertEqual(self.guard().returncode, 0)
 
+    def assert_ignored_and_rejected(self, path):
+        result = subprocess.run(['git', '-C', str(self.repo), 'check-ignore', '-q', path])
+        self.assertEqual(result.returncode, 0)
+        self.stage(path)
+        result = self.guard()
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn(path, result.stdout + result.stderr)
+
+    def test_dotfile_dcm_is_rejected(self):
+        self.assert_ignored_and_rejected('.dcm')
+
+    def test_uppercase_dotfile_dcm_is_rejected(self):
+        self.assert_ignored_and_rejected('.DCM')
+
+    def test_compressed_dotfile_is_rejected(self):
+        self.assert_ignored_and_rejected('.nii.gz')
+
+    def test_trailing_dot_is_rejected(self):
+        self.assert_ignored_and_rejected('scan.dcm.')
+
     def test_previously_committed_restricted_file_is_checked(self):
         self.stage('scan.dcm')
         self.git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
