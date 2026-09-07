@@ -23,7 +23,8 @@ def restricted(path):
             if index == 1 and parts[:2] == ('services', 'quarantine'):
                 continue
             return True
-    return bool(RESTRICTED_EXTENSIONS.intersection(PurePosixPath(parts[-1]).suffixes))
+    # Splitting at dots also covers dotfiles and trailing dots, unlike suffixes.
+    return any('.' + segment in RESTRICTED_EXTENSIONS for segment in parts[-1].split('.')[1:])
 
 
 def main():
