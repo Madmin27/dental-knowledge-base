@@ -18,6 +18,19 @@ export async function configureRuntimeRole(client, role = 'dental_runtime', sche
     if (Object.values(existing.rows[0]).some(Boolean)) throw new Error('Refusing an existing privileged/login/inheriting role');
     const memberships = await client.query('SELECT 1 FROM pg_auth_members WHERE member=$1::regrole', [role]);
     if (memberships.rowCount) throw new Error('Runtime role must not inherit memberships');
+    // Revoking ACLs cannot remove owner authority. Refuse before changing grants.
+    const ownership = await client.query(`SELECT EXISTS (
+      SELECT 1 FROM pg_database WHERE datname=current_database() AND datdba=$1::regrole
+      UNION ALL
+      SELECT 1 FROM pg_namespace WHERE nspname=$2 AND nspowner=$1::regrole
+      UNION ALL
+      SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+        WHERE n.nspname=$2 AND c.relowner=$1::regrole
+      UNION ALL
+      SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+        WHERE n.nspname=$2 AND p.proowner=$1::regrole
+    ) AS owns`, [role, schema]);
+    if (ownership.rows[0].owns) throw new Error('Runtime role owns protected database/schema/relation/function');
   } else {
     await client.query(`CREATE ROLE ${r} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS`);
   }

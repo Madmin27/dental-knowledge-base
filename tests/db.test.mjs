@@ -56,7 +56,7 @@ test('clean migration, all eight tables, repeat run is idempotent', async t => {
   await migrate(c); await migrate(c);
   const tables = (await c.query('SELECT tablename FROM pg_tables WHERE schemaname=$1 ORDER BY tablename',[schema])).rows.map(r=>r.tablename);
   assert.deepEqual(tables, ['audit_events','claim_assessments','claims','contributors','institutions','schema_migrations','structures','terminology_mappings']);
-  assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,1);
+  assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,2);
 });
 
 test('changed, removed and reordered migration history is rejected', async t => {
@@ -88,12 +88,12 @@ test('failed migration rolls back DDL/ledger and releases advisory lock', async 
   assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,2);
 });
 
-test('two simultaneous migration runners produce one ledger entry', async t => {
+test('two simultaneous migration runners produce one entry per migration', async t => {
   const { c,schema }=await fixture(t); const other=await connect();
   try {
     await other.query(`SET search_path TO ${identifier(schema)}, public`);
     await Promise.all([migrate(c),migrate(other)]);
-    assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,1);
+    assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,2);
   } finally { await other.end(); }
 });
 
@@ -128,10 +128,9 @@ test('assessment predecessor, audit binding and revision collisions are constrai
   const { c }=await fixture(t); await migrate(c); const data=await seed(c);
   await assessment(c,data,0,'proposed');
   await assert.rejects(assessment(c,data,0,'proposed'), e=>e.code==='23505');
-  await assert.rejects(assessment(c,data,2,'accepted'), e=>e.code==='23503');
-  await assert.rejects(assessment(c,data,1,'accepted','not-a-grade'), e=>e.code==='23514');
-  const audit=(await c.query('SELECT id FROM audit_events WHERE new_revision=0 LIMIT 1')).rows[0].id;
-  await assert.rejects(c.query("INSERT INTO claim_assessments(claim_id,revision,previous_revision,evidence_grade,consensus_state,audit_event_id) VALUES($1,1,0,'E0_OBSERVATION','accepted',$2)",[data.claim,audit]));
+  await assert.rejects(assessment(c,data,2,'accepted','E3_INDEPENDENTLY_VERIFIED','proposed'), e=>e.code==='23503');
+  await assert.rejects(assessment(c,data,1,'accepted','not-a-grade','proposed'), e=>e.code==='23514');
+
 });
 
 test('concurrent appends permit only one next revision; losing transaction rolls back audit', async t => {
@@ -169,4 +168,153 @@ test('runtime role can read but cannot write, truncate, disable triggers or crea
     await c.query(`DROP OWNED BY ${identifier(role)}`);
     await c.query(`DROP ROLE ${identifier(role)}`);
   }
+});
+
+
+async function event(c, data, revision = 1, to = 'under_review', from = 'proposed') {
+  return (await c.query(`INSERT INTO audit_events(actor_id,actor_kind,entity_type,entity_id,action,reason,
+    correlation_id,policy_decision_id,policy_version,from_state,to_state,previous_revision,new_revision)
+    VALUES($1,'human','claim',$2,'test','Synthetic','test','test','test',$3,$4,$5,$6) RETURNING id`,
+  [data.actor,data.claim,from,to,revision ? revision-1 : null,revision])).rows[0].id;
+}
+const insertAssessment = (c, claim, audit, revision=1) => c.query(`INSERT INTO claim_assessments
+  (claim_id,revision,previous_revision,evidence_grade,consensus_state,audit_event_id)
+  VALUES($1,$3,CASE WHEN $3::bigint=0 THEN NULL ELSE $3::bigint-1 END,'E0_OBSERVATION','under_review',$2)`,[claim,audit,revision]);
+const constraintError = name => e => e.code === '23514' && e.constraint === name;
+async function edges(c, data, rows, select = false) {
+  return c.query(`INSERT INTO claims(id,subject_structure_id,predicate,value,anatomical_class,author_id,supersedes_claim_id)
+    ${select ? 'SELECT * FROM (' : ''} VALUES ${rows.map((_,i)=>`($${3+i*2}::uuid,$1::uuid,'synthetic','{}'::jsonb,'variant',$2::uuid,$${4+i*2}::uuid)`).join(',')}
+    ${select ? ') AS batch' : ''}`, [data.structure,data.actor,...rows.flat()]);
+}
+
+test('R4 fresh audit bindings reject the intended FK; mutation invalidates the assertion', async t => {
+  const { c }=await fixture(t); await migrate(c); const data=await seed(c);
+  await assessment(c,data,0,'proposed');
+  const other=await seed(c);
+  const fk=(await c.query(`SELECT conname FROM pg_constraint WHERE conrelid='claim_assessments'::regclass
+    AND confrelid='audit_events'::regclass AND contype='f'`)).rows[0].conname;
+  const expected=e=>e.code==='23503' && e.constraint===fk;
+  for(const [d,rev,to] of [[other,1,'under_review'],[data,2,'under_review'],[data,1,'accepted']]) {
+    const id=await event(c,d,rev,to);
+    await assert.rejects(insertAssessment(c,data.claim,id),expected);
+  }
+  await c.query('BEGIN');
+  try {
+    await c.query(`ALTER TABLE claim_assessments DROP CONSTRAINT ${identifier(fk)}`);
+    const id=await event(c,data,1,'accepted');
+    await assert.rejects(assert.rejects(insertAssessment(c,data.claim,id),expected), /Missing expected rejection/);
+  } finally { await c.query('ROLLBACK'); }
+  await insertAssessment(c,data.claim,await event(c,data));
+});
+
+test('R1 rejects false or missing source state and invalid initial audit', async t => {
+  const { c }=await fixture(t); await migrate(c); const data=await seed(c);
+  await assert.rejects(event(c,data,0,'proposed','accepted'),constraintError('claim_audit_source_shape'));
+  await assessment(c,data,0,'proposed');
+  await assert.rejects(event(c,data,1,'under_review',null),constraintError('claim_audit_source_shape'));
+  await assert.rejects(insertAssessment(c,data.claim,await event(c,data,1,'under_review','accepted')),
+    constraintError('assessment_audit_source_matches'));
+  await insertAssessment(c,data.claim,await event(c,data));
+});
+
+test('R2 rejects two/three-node statement cycles and permits chains and branches', async t => {
+  const { c }=await fixture(t); await migrate(c); const data=await seed(c);
+  for(const n of [2,3]) for(const select of [false,true]) {
+    const ids=Array.from({length:n},()=>randomUUID());
+    await assert.rejects(edges(c,data,ids.map((id,i)=>[id,ids[(i+1)%n]]),select),constraintError('claims_supersession_acyclic'));
+  }
+  const [a,b,d]=Array.from({length:3},()=>randomUUID());
+  await edges(c,data,[[a,data.claim],[b,a],[d,a]]);
+  assert.equal((await c.query('SELECT count(*)::int n FROM claims')).rows[0].n,4);
+});
+
+test('R2 concurrent opposite edges cannot both commit; independent successors can', async t => {
+  const { c,schema }=await fixture(t); await migrate(c); const data=await seed(c);
+  const [a,b]=[randomUUID(),randomUUID()];
+  async function writer(rows) {
+    const w=await connect();
+    try {
+      await w.query(`SET search_path TO ${identifier(schema)}, public`);
+      await w.query("SET statement_timeout='5s'");
+      await w.query('BEGIN'); await edges(w,data,rows); await w.query('COMMIT');
+    } catch(e) { await w.query('ROLLBACK'); throw e; }
+    finally { await w.end(); }
+  }
+  const results=await Promise.allSettled([writer([[a,b]]),writer([[b,a]])]);
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,0);
+  for(const r of results) assert.ok(['23503','40P01'].includes(r.reason.code),r.reason.message);
+  await Promise.all([writer([[randomUUID(),data.claim]]),writer([[randomUUID(),data.claim]])]);
+});
+
+test('R3 rejects existing object owners before changing grants', async t => {
+  const { c,schema }=await fixture(t); await migrate(c);
+  const role='dkb_owner_'+suffix(); const r=identifier(role);
+  await c.query(`CREATE ROLE ${r} NOLOGIN NOINHERIT`);
+  try {
+    for(const target of [`TABLE ${identifier(schema)}.claims`,`SCHEMA ${identifier(schema)}`,
+      `FUNCTION ${identifier(schema)}.reject_history_mutation()`,
+      `DATABASE ${identifier((await c.query('SELECT current_database() AS name')).rows[0].name)}`]) {
+      await c.query('BEGIN');
+      try {
+        await c.query(`ALTER ${target} OWNER TO ${r}`);
+        await assert.rejects(configureRuntimeRole(c,role,schema),/owns protected/);
+        assert.equal((await c.query('SELECT has_schema_privilege($1,$2,\'USAGE\') AS allowed',[role,schema])).rows[0].allowed,
+          target.startsWith('SCHEMA'));
+      } finally { await c.query('ROLLBACK'); }
+    }
+    await configureRuntimeRole(c,role,schema); await configureRuntimeRole(c,role,schema);
+  } finally { await c.query(`DROP OWNED BY ${r}`); await c.query(`DROP ROLE ${r}`); }
+});
+
+test('002 rejects inconsistent old history atomically and upgrades valid history unchanged', async t => {
+  for(const bad of ['audit','cycle',null]) {
+    const { c }=await fixture(t); const { url }=await sources(t); await migrate(c,url);
+    const data=await seed(c); await assessment(c,data,0,'proposed');
+    if(bad==='audit') await assessment(c,data,1,'under_review','E0_OBSERVATION','accepted');
+    if(bad==='cycle') { const a=randomUUID(),b=randomUUID(); await edges(c,data,[[a,b],[b,a]]); }
+    const before=(await c.query('SELECT row_to_json(a) AS row FROM claim_assessments a ORDER BY revision')).rows;
+    if(bad) {
+      await assert.rejects(migrate(c), /source|cycle/i);
+      assert.equal((await c.query('SELECT count(*)::int n FROM schema_migrations')).rows[0].n,1);
+      assert.equal((await c.query("SELECT count(*)::int n FROM pg_constraint WHERE conrelid='audit_events'::regclass AND conname='claim_audit_source_shape'")).rows[0].n,0);
+    } else { await migrate(c); await migrate(c); }
+    assert.deepEqual((await c.query('SELECT row_to_json(a) AS row FROM claim_assessments a ORDER BY revision')).rows,before);
+  }
+});
+
+
+test('R2 COPY and writable CTE paths enforce cycle checks atomically', async t => {
+  const { c }=await fixture(t); await migrate(c); const data=await seed(c);
+  async function copy(rows) {
+    // Tiny synthetic COPY payload; use pg's Query protocol hook without a new dependency.
+    const sql='COPY claims(id,subject_structure_id,predicate,value,anatomical_class,author_id,supersedes_claim_id) FROM STDIN';
+    const input=rows.map(([id,parent])=>[id,data.structure,'synthetic','{}','variant',data.actor,parent].join('\t')).join('\n')+'\n';
+    await new Promise((resolve,reject)=>{
+      const query=new pg.Query(sql,[],error=>error ? reject(error) : resolve());
+      query.handleCopyInResponse=connection=>{
+        connection.sendCopyFromChunk(Buffer.from(input)); connection.endCopyFrom();
+      };
+      c.query(query);
+    });
+  }
+  const [a,b]=[randomUUID(),randomUUID()];
+  await assert.rejects(copy([[a,b],[b,a]]),constraintError('claims_supersession_acyclic'));
+  await copy([[a,data.claim],[b,a]]);
+  const [d,e]=[randomUUID(),randomUUID()];
+  await assert.rejects(c.query(`WITH batch AS (
+    INSERT INTO claims(id,subject_structure_id,predicate,value,anatomical_class,author_id,supersedes_claim_id)
+    VALUES($3,$1,'synthetic','{}','variant',$2,$4),($4,$1,'synthetic','{}','variant',$2,$3) RETURNING id
+  ) SELECT * FROM batch`,[data.structure,data.actor,d,e]),constraintError('claims_supersession_acyclic'));
+  assert.equal((await c.query('SELECT count(*)::int n FROM claims')).rows[0].n,3);
+});
+
+test('R1 statement-wide predecessor validation supports reverse-order batches', async t => {
+  const { c }=await fixture(t); await migrate(c); const data=await seed(c);
+  const initial=await event(c,data,0,'proposed',null);
+  const next=await event(c,data,1,'under_review','proposed');
+  await c.query(`INSERT INTO claim_assessments(claim_id,revision,previous_revision,evidence_grade,consensus_state,audit_event_id)
+    VALUES($1,1,0,'E0_OBSERVATION','under_review',$3),($1,0,NULL,'E0_OBSERVATION','proposed',$2)`,[data.claim,initial,next]);
+  const bad=await event(c,data,2,'under_review','proposed');
+  await assert.rejects(insertAssessment(c,data.claim,bad,2),constraintError('assessment_audit_source_matches'));
+  assert.equal((await c.query('SELECT count(*)::int n FROM claim_assessments')).rows[0].n,2);
 });

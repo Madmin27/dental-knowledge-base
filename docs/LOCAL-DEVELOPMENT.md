@@ -50,3 +50,25 @@ docker compose --env-file .env -f infra/compose.dev.yml stop
 Stopping retains the dedicated volume. Do not use `down -v` to roll back a schema
 on a database containing data. Revert code separately and use forward migrations
 when data needs to be retained.
+
+## History integrity (migration 002)
+
+`002_history_integrity.sql` locks the three history tables for the migration
+transaction, validates existing data, and installs statement-level INSERT checks.
+An inconsistent audit predecessor or existing supersession cycle aborts the
+migration; historical rows are never silently rewritten. Investigate invalid
+history before retrying. Migration 001 remains unchanged.
+
+Claim audit events require a NULL source only at revision zero. Each assessment's
+audit source must equal its actual predecessor state/revision. Supersession cycles
+are rejected, including multi-row INSERT, INSERT SELECT, writable CTE and COPY.
+Valid chains and branching successors are allowed. Cycle traversal terminates
+using UNION deduplication; its cost grows with batch size and ancestor count.
+This design relies on immutable edges and immediate, non-deferrable FKs. Revisit
+it before permitting edge updates or deferred references. It does not provide
+workflow authorization or impose a new global write lock at runtime.
+
+Runtime configuration refuses an existing role that owns the target database,
+schema, any relation or function in that schema, before changing grants. Run role
+configuration transactionally (as the CLI does). Administrative ownership changes
+remain outside the runtime threat model.
