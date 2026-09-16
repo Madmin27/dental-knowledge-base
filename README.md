@@ -2,7 +2,7 @@
 
 Open, education-first dental anatomy knowledge base with versioned 3D assets, claims, evidence, anatomical variants, academic peer review, provenance, rights management and AI-assisted — but human-approved — revisions.
 
-> Status: pre-implementation architecture phase.
+> Status: domain core and local PostgreSQL foundation; no public application yet.
 
 ## Start here
 
@@ -41,3 +41,8 @@ not privacy clearance. See [clinical data policy](docs/privacy/NO_CLINICAL_DATA_
 
 ORM, auth, queue, frontend framework, cloud and AI provider remain deferred.
 No database migration or deployment is needed for TASK-001.
+
+## Local database foundation
+
+See [local development](docs/LOCAL-DEVELOPMENT.md) for reproducible setup,
+synthetic integration tests, migration checks and the read-only runtime role.

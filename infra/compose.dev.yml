@@ -1,0 +1,20 @@
+name: dental-knowledge-base-development
+services:
+  db:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    environment:
+      POSTGRES_DB: dental_development
+      POSTGRES_USER: dental_dev
+      POSTGRES_PASSWORD: ${DENTAL_DB_PASSWORD:?Generate the local .env file first}
+    ports:
+      - '127.0.0.1:55432:5432'
+    volumes:
+      - dental-development-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U dental_dev -d dental_development']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+volumes:
+  dental-development-db:
