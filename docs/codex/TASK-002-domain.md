@@ -1,5 +1,12 @@
 # TASK-002 — Domain IDs, classifications and state machines
 
+Status (2026-09-16): architectural feedback from
+`CHATGPT-TASK002-DESIGN-REVIEW-20260916-01` applied; code review pending.
+TASK-001 has technical PASS but is not a merged baseline. See
+[the design and implementation contract](TASK-002-design-review.md), especially
+section 6. PostgreSQL/migrations remain TASK-003. This module is not a real
+policy/authorization provider; the trusted synchronous verifier is injected.
+
 Objective: implement the independent domain vocabulary and transition rules in
 Architecture v0.1. TASK-001 implementation and CI were inspected on 2026-09-07;
 PR #2 remains a draft. This task is a separate, stacked change.
@@ -11,7 +18,7 @@ Invariants: internal IDs are notation-independent; class, evidence grade and
 consensus are orthogonal; AI cannot approve or publish; terminal history is not
 rewritten. Domain transitions return a new object and an audit event.
 
-Acceptance: UUID IDs survive notation changes; accepted E3 variants are valid;
+Acceptance: opaque IDs survive notation changes (current generator: UUID v4); accepted E3 variants are valid;
 illegal state jumps fail; AI approval/publishing fails; issue-to-variant resolution
 retains history; frozen published releases cannot be edited by transitions.
 
