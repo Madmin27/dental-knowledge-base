@@ -24,6 +24,8 @@ temp/
 
 # Quarantine / clinical data — NEVER COMMIT
 quarantine/
+# Track service source; runtime data belongs outside the repository.
+!services/quarantine/
 data/quarantine/
 clinical-raw/
 patient-data/
@@ -39,3 +41,27 @@ patient-data/
 # Large local model/volume work products — review before allowing
 *.raw
 *.vol
+
+# Python repository tooling
+__pycache__/
+*.py[cod]
+
+# Case-insensitive clinical suffixes (including compressed files)
+*.[dD][cC][mM]
+*.[dD][cC][mM].*
+*.[dD][iI][cC][oO][mM]
+*.[dD][iI][cC][oO][mM].*
+*.[iI][mM][aA]
+*.[iI][mM][aA].*
+*.[nN][iI][iI]
+*.[nN][iI][iI].*
+*.[nN][rR][rR][dD]
+*.[nN][rR][rR][dD].*
+*.[mM][hH][aA]
+*.[mM][hH][aA].*
+*.[mM][hH][dD]
+*.[mM][hH][dD].*
+*.[rR][aA][wW]
+*.[rR][aA][wW].*
+*.[vV][oO][lL]
+*.[vV][oO][lL].*

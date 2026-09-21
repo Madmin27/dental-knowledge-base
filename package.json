@@ -1,0 +1,17 @@
+{
+  "name": "dental-knowledge-base",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/domain.test.mjs && node tests/rights.test.mjs",
+    "db:migrate": "node --env-file=.env packages/db/migrate.mjs",
+    "test:db": "node tests/db.test.mjs",
+    "db:init-env": "node infra/init-dev-env.mjs",
+    "db:up": "docker compose --env-file .env -f infra/compose.dev.yml up -d --wait",
+    "db:runtime-role": "node --env-file=.env packages/db/runtime-role.mjs",
+    "test:db:local": "node --env-file=.env --input-type=module -e 'process.env.TEST_DATABASE_URL=process.env.DATABASE_URL; await import(\"./tests/db.test.mjs\");'"
+  },
+  "dependencies": {
+    "pg": "8.23.0"
+  }
+}
