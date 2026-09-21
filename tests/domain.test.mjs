@@ -21,7 +21,7 @@ const entity = (kind, state) => ({ id: newId(), kind, state, revision: 2 });
 function fixture() {
   const registry = new Map();
   const run = createTransitionEngine({
-    policyVersion: 'test-policy-v1', clock: () => NOW,
+    policyVersion: 'test-policy-v1', clock: () => NOW, verifyReleaseRights: () => true,
     verifyPolicyDecision: d => registry.get(d.decision_id) === JSON.stringify(d),
   });
   const issue = (e, to, actor = human, references = refs, extra = {}) => {
@@ -244,7 +244,7 @@ test('untrusted or asynchronous verifier result does not grant permission', () =
   const { options } = fixture();
   const e = entity('issue', 'OPEN');
   for (const verifyPolicyDecision of [() => false, () => undefined, () => 'true', () => Promise.resolve(true)]) {
-    const run = createTransitionEngine({ policyVersion: 'test-policy-v1', clock: () => NOW, verifyPolicyDecision });
+    const run = createTransitionEngine({ policyVersion: 'test-policy-v1', clock: () => NOW, verifyReleaseRights: () => true, verifyPolicyDecision });
     assert.throws(() => run(e, 'TRIAGE', options(e, 'TRIAGE')), /Unverified/);
   }
 });

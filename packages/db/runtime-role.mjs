@@ -37,7 +37,7 @@ export async function configureRuntimeRole(client, role = 'dental_runtime', sche
   await client.query(`REVOKE CREATE ON SCHEMA ${s} FROM PUBLIC`);
   await client.query(`REVOKE ALL ON SCHEMA ${s} FROM ${r}`);
   await client.query(`GRANT USAGE ON SCHEMA ${s} TO ${r}`);
-  const tables = ['institutions', 'contributors', 'structures', 'terminology_mappings', 'claims', 'claim_assessments', 'audit_events', 'schema_migrations'];
+  const tables = ['institutions', 'contributors', 'structures', 'terminology_mappings', 'claims', 'claim_assessments', 'audit_events', 'schema_migrations', 'assets', 'asset_rights'];
   for (const table of tables) {
     await client.query(`REVOKE ALL ON TABLE ${s}.${identifier(table)} FROM ${r}`);
     await client.query(`REVOKE ALL ON TABLE ${s}.${identifier(table)} FROM PUBLIC`);

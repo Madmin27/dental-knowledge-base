@@ -72,3 +72,11 @@ Runtime configuration refuses an existing role that owns the target database,
 schema, any relation or function in that schema, before changing grants. Run role
 configuration transactionally (as the CLI does). Administrative ownership changes
 remain outside the runtime threat model.
+
+## Rights Registry (migration 003)
+
+`003_rights_registry.sql` adds immutable asset metadata and rights revision history
+(ten tables total including the migration ledger). Run `db:runtime-role` after
+migrating to refresh the read-only table grants. `npm test` now includes rights
+policy tests. The manifest, review adapter and transaction contract are documented
+in `packages/rights/README.md`. No real license decisions or assets are seeded.

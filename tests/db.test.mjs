@@ -51,12 +51,12 @@ async function assessment(c, { actor, claim }, revision, state, grade = 'E3_INDE
     VALUES($1,$2,$3,$4,$5,$6) RETURNING id`, [claim,revision,revision === 0 ? null : revision-1,grade,state,event]);
 }
 
-test('clean migration, all eight tables, repeat run is idempotent', async t => {
+test('clean migration, all ten tables, repeat run is idempotent', async t => {
   const { c, schema } = await fixture(t);
   await migrate(c); await migrate(c);
   const tables = (await c.query('SELECT tablename FROM pg_tables WHERE schemaname=$1 ORDER BY tablename',[schema])).rows.map(r=>r.tablename);
-  assert.deepEqual(tables, ['audit_events','claim_assessments','claims','contributors','institutions','schema_migrations','structures','terminology_mappings']);
-  assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,2);
+  assert.deepEqual(tables, ['asset_rights','assets','audit_events','claim_assessments','claims','contributors','institutions','schema_migrations','structures','terminology_mappings']);
+  assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,3);
 });
 
 test('changed, removed and reordered migration history is rejected', async t => {
@@ -93,7 +93,7 @@ test('two simultaneous migration runners produce one entry per migration', async
   try {
     await other.query(`SET search_path TO ${identifier(schema)}, public`);
     await Promise.all([migrate(c),migrate(other)]);
-    assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,2);
+    assert.equal((await c.query('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n,3);
   } finally { await other.end(); }
 });
 
@@ -160,7 +160,7 @@ test('runtime role can read but cannot write, truncate, disable triggers or crea
     await w.query(`SET search_path TO ${identifier(schema)}, public`);
     await w.query(`SET ROLE ${identifier(role)}`);
     assert.equal((await w.query('SELECT count(*)::int AS n FROM claims')).rows[0].n,1);
-    for(const sql of ["INSERT INTO institutions(name) VALUES('forbidden')",'UPDATE claims SET predicate=predicate','DELETE FROM claims','TRUNCATE claims CASCADE','ALTER TABLE claims DISABLE TRIGGER ALL','CREATE TABLE forbidden(id int)']) {
+    for(const sql of ["INSERT INTO institutions(name) VALUES('forbidden')",'UPDATE claims SET predicate=predicate','DELETE FROM claims','TRUNCATE claims CASCADE','ALTER TABLE claims DISABLE TRIGGER ALL','DELETE FROM assets','DELETE FROM asset_rights','CREATE TABLE forbidden(id int)']) {
       await assert.rejects(w.query(sql), e=>e.code==='42501');
     }
   } finally {
@@ -317,4 +317,76 @@ test('R1 statement-wide predecessor validation supports reverse-order batches', 
   const bad=await event(c,data,2,'under_review','proposed');
   await assert.rejects(insertAssessment(c,data.claim,bad,2),constraintError('assessment_audit_source_matches'));
   assert.equal((await c.query('SELECT count(*)::int n FROM claim_assessments')).rows[0].n,2);
+});
+
+test('TASK-004 rights history is immutable; latest revocation invalidates a pinned old approval', async t => {
+  const {rightsFixture}=await import('./rights-fixture.mjs');
+  const {rightsRepository}=await import('../packages/rights/repository.mjs');
+  const {createRightsGate}=await import('../packages/rights/index.mjs');
+  const {c,schema}=await fixture(t); await migrate(c);const data=await seed(c);
+  const f=rightsFixture();f.record.document.review.actorId=data.actor;
+  await c.query('INSERT INTO assets(id,sha256,origin,institution_owned) VALUES($1,$2,$3,$4)',
+    [f.asset.id,f.asset.sha256,f.asset.origin,f.asset.institutionOwned]);
+  const repo=rightsRepository(c,schema); await repo.append(f.record);
+  const check=createRightsGate({loadCurrent:repo.loadCurrent,verifyReview:()=>true});
+  assert.equal((await check(f.manifest)).allowed,true);
+  for(const table of ['assets','asset_rights']) {
+    for(const statement of [`UPDATE ${table} SET created_at=now()`,`DELETE FROM ${table}`,`TRUNCATE ${table} CASCADE`]) {
+      await assert.rejects(c.query(statement),/immutable/);
+    }
+  }
+  await repo.append({...f.record,id:randomUUID(),revision:1,document:{...f.record.document,status:'REVOKED'}});
+  const result=await check(f.manifest);assert.equal(result.allowed,false);
+  assert.equal(result.reasons[0].code,'STALE_OR_MISMATCHED_RIGHTS');
+  assert.equal((await c.query('SELECT count(*)::int n FROM asset_rights')).rows[0].n,2);
+  assert.equal((await c.query('SELECT status FROM asset_rights WHERE revision=0')).rows[0].status,'APPROVED');
+  await assert.rejects(repo.append({...f.record,id:randomUUID(),revision:3}),e=>e.code==='23503');
+  await assert.rejects(repo.append({...f.record,id:randomUUID(),revision:1}),e=>e.code==='23505');
+});
+
+test('TASK-004 DB rejects approved records without human rights review and missing assets', async t => {
+  const {rightsFixture}=await import('./rights-fixture.mjs');
+  const {c}=await fixture(t); await migrate(c); const data=await seed(c);const f=rightsFixture();
+  f.record.document.review.actorId=data.actor;
+  await c.query('INSERT INTO assets(id,sha256,origin,institution_owned) VALUES($1,$2,$3,$4)',[f.asset.id,f.asset.sha256,'synthetic',false]);
+  for(const review of [null,{actorId:data.actor,actorKind:'ai',role:'rights_reviewer',decisionId:'fake'},
+    {actorId:data.actor,actorKind:'human',role:'academic_reviewer',decisionId:'fake'}]) {
+    await assert.rejects(c.query('INSERT INTO asset_rights(id,asset_id,revision,document) VALUES($1,$2,0,$3)',
+      [randomUUID(),f.asset.id,{...f.record.document,review}]),e=>e.code==='23514');
+  }
+  await assert.rejects(c.query('INSERT INTO asset_rights(id,asset_id,revision,document) VALUES($1,$2,0,$3)',
+    [randomUUID(),randomUUID(),f.record.document]),e=>e.code==='23503');
+});
+
+test('TASK-004 registry lock prevents revocation racing a held release transaction', async t => {
+  const {rightsFixture}=await import('./rights-fixture.mjs');
+  const {rightsRepository}=await import('../packages/rights/repository.mjs');
+  const {c,schema}=await fixture(t); await migrate(c);const data=await seed(c);const f=rightsFixture();
+  f.record.document.review.actorId=data.actor;
+  await c.query('INSERT INTO assets(id,sha256,origin,institution_owned) VALUES($1,$2,$3,$4)',[f.asset.id,f.asset.sha256,'synthetic',false]);
+  const repo=rightsRepository(c,schema);await repo.append(f.record);
+  const other=await connect();const revoked={...f.record,id:randomUUID(),revision:1,document:{...f.record.document,status:'REVOKED'}};
+  try {
+    await c.query('BEGIN');await repo.loadCurrent(f.asset.id);
+    await other.query("SET lock_timeout='150ms'");
+    await assert.rejects(rightsRepository(other,schema).append(revoked),e=>e.code==='55P03');
+    await c.query('COMMIT');
+    await rightsRepository(other,schema).append(revoked);
+    assert.equal((await repo.loadCurrent(f.asset.id)).record.document.status,'REVOKED');
+  } finally {await c.query('ROLLBACK');await other.end();}
+});
+
+test('TASK-004 rights transaction commits callbacks or rolls back all writes on denial', async t => {
+  const {withRightsTransaction}=await import('../packages/rights/repository.mjs');
+  const {c,schema}=await fixture(t);await migrate(c);
+  await assert.rejects(withRightsTransaction(c,async()=>{
+    await c.query("INSERT INTO assets(sha256,origin,institution_owned) VALUES($1,'synthetic',false)",['a'.repeat(64)]);
+    throw new Error('Release denied');
+  },schema),/Release denied/);
+  assert.equal((await c.query('SELECT count(*)::int n FROM assets')).rows[0].n,0);
+  await withRightsTransaction(c,async()=>{
+    assert.equal((await c.query('SHOW transaction_isolation')).rows[0].transaction_isolation,'read committed');
+    await c.query("INSERT INTO assets(sha256,origin,institution_owned) VALUES($1,'synthetic',false)",['b'.repeat(64)]);
+  },schema);
+  assert.equal((await c.query('SELECT count(*)::int n FROM assets')).rows[0].n,1);
 });

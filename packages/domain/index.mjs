@@ -111,7 +111,7 @@ function validateReferences(entity, target, refs) {
  * Storage, credentials, quorum, QC, rights/privacy, replay protection and atomic
  * compare-and-swap persistence are intentionally outside TASK-002.
  */
-export function createTransitionEngine({ verifyPolicyDecision, policyVersion, clock = () => new Date() } = {}) {
+export function createTransitionEngine({ verifyPolicyDecision, verifyReleaseRights, policyVersion, clock = () => new Date() } = {}) {
   return function transition(entity, target, { actor, reason, correlationId, policyDecision, references = {} } = {}) {
     assertId(entity?.id);
     assertId(actor?.id);
@@ -151,6 +151,10 @@ export function createTransitionEngine({ verifyPolicyDecision, policyVersion, cl
     }
     const facts = freeze({ entity: snapshot, target, actor: structuredClone(actor), references: refs, at: instant.toISOString() });
     if (verifyPolicyDecision(decision, facts) !== true) throw new Error('Unverified policy decision');
+    if (entity.kind === 'release' && ['FROZEN_FOR_REVIEW','APPROVED','PUBLISHED'].includes(target)
+        && (typeof verifyReleaseRights !== 'function' || verifyReleaseRights(facts) !== true)) {
+      throw new Error('Release rights gate denied');
+    }
     const event = {
       id: newId(), entityId: entity.id, entityKind: entity.kind,
       actor: structuredClone(actor), reason: reason.trim(), correlationId,
