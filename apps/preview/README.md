@@ -1,4 +1,32 @@
-# Synthetic browser preview
+# Interactive atlas and synthetic preview
+
+The landing route `/` now serves the schematic 3D atlas. The previous status and
+rights-scenario screen remains at `/overview`. See ADR 0003 and the atlas research
+report for sources, limitations, tests and rollback. Geometry is generated locally;
+no clinical scan or actual age/sex-specific source has been ingested. The target
+persona (male in his thirties) is distinct from the generic adult model displayed.
+
+## Atlas verification
+
+`npm test` runs the domain, rights, HTTP preview and atlas geometry suites.
+`node scripts/vendor-three.mjs` refreshes local browser files from the exact
+Three.js dependency; its MIT license is retained alongside them.
+
+For browser replay, open the preview in a separate Chrome instance with remote
+debugging enabled. Pass its local debugging endpoint, preview URL and proof
+directory (Node 20 needs the experimental WebSocket flag):
+
+```sh
+node --experimental-websocket scripts/validate_atlas_browser.mjs \
+  http://127.0.0.1:9222 http://192.168.1.192:3057/ /tmp/dkb-atlas-proof
+```
+
+The replay exercises 15 flows and writes screenshots and browser-result.json.
+Mobile emulation verifies interaction/layout, not physical-device performance
+or anatomical correctness. Keep the debugging endpoint local and close that
+test browser after verification.
+
+## Previous rights-scenario preview
 
 A separate, read-only preview of project status and the existing rights engine.
 It is not TASK-010's 3D viewer or a public clinical/educational release. It accepts

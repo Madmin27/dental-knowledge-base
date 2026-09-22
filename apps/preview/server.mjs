@@ -3,7 +3,11 @@ import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {scenarios,evaluateScenario} from './scenarios.mjs';
-const files=new Map([['/',['index.html','text/html; charset=utf-8']],['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']]]);
+const files=new Map([['/',['atlas.html','text/html; charset=utf-8']],['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']]]);
+files.set('/overview',['index.html','text/html; charset=utf-8']);
+for(const name of ['atlas.js','atlas-geometry.js','atlas.css','vendor/three.module.js','vendor/three.core.js','vendor/OrbitControls.js','vendor/THREE-LICENSE.txt']) {
+  files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':name.endsWith('.txt')?'text/plain; charset=utf-8':'text/javascript; charset=utf-8']);
+}
 export function previewServer() {
   return createServer(async(req,res)=>{
     res.setHeader('X-Content-Type-Options','nosniff');
