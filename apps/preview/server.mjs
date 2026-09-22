@@ -10,7 +10,7 @@ for(const name of ['atlas.js','atlas-geometry.js','atlas.css','vendor/three.modu
 }
 files.set('/anatomy',['anatomy.html','text/html; charset=utf-8']);
 for (const name of ['anatomy.js','anatomy.css','vendor/RoomEnvironment.js']) files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8']);
-for (const name of ['dentition.json','dentition.bin','ATTRIBUTION.txt','UPSTREAM-NOTICE.txt','CC-BY-SA-4.0.txt']) files.set('/models/z-anatomy/'+name,['models/z-anatomy/'+name,name.endsWith('.json')?'application/json':name.endsWith('.bin')?'application/octet-stream':'text/plain; charset=utf-8']);
+for (const name of ['dentition.json','dentition.bin','neurovascular.json','neurovascular.bin','ATTRIBUTION.txt','UPSTREAM-NOTICE.txt','CC-BY-SA-4.0.txt']) files.set('/models/z-anatomy/'+name,['models/z-anatomy/'+name,name.endsWith('.json')?'application/json':name.endsWith('.bin')?'application/octet-stream':'text/plain; charset=utf-8']);
 export function previewServer() {
   return createServer(async(req,res)=>{
     res.setHeader('X-Content-Type-Options','nosniff');

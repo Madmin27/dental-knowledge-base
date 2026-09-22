@@ -72,3 +72,12 @@ the chosen hostname/path and corresponding proxy configuration. Health and HTTP
 scenario checks passed after service installation; desktop 1440px and mobile
 390px browser checks confirmed the approval/NC-denial interactions and no mobile
 overflow. Local screenshot proof: /tmp/dkb-preview-proof/desktop.png and mobile.png.
+
+## Tissue inspection
+
+Gingiva transparency runs from 0% (opaque) to 100% (hidden); partial transparency
+reveals the original root surfaces without removing the gingiva. Bone opacity is
+independent. The tissue preset turns on six source nerve and eight artery surfaces,
+80% gingiva transparency and 85% bone transparency. Nerves/arteries retain the
+source jaw pose (separation zero); no intrapulpal/venous/capillary network is implied.
+See docs/ATLAS-QUALITY-PLAN.md for remaining student-publication acceptance work.

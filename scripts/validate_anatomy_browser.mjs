@@ -26,7 +26,7 @@ await click('[data-fdi="36"]');await click('#focus');assert.equal((await snap())
 const gpu=[];for(let i=0;i<3;i++){await click('#home');await click('#focus');gpu.push((await snap()).geometryMemory);}assert.equal(new Set(gpu).size,1);passed.push('shared geometry survives focus cycles');
 const before=(await snap()).camera;await click('#zoom-in');await sleep(300);assert.ok(Math.hypot(...(await snap()).camera)<Math.hypot(...before));passed.push('zoom direction');
 await click('#home');await click('[data-jaw="both"]');await click('#roots');assert.equal((await snap()).roots,true);await shot('roots');await click('#bones');assert.equal((await snap()).bones,true);await shot('bones');passed.push('source roots and jaw bones');
-await click('#sources');assert.equal(await ev('document.querySelector("dialog").open'),true);assert.equal(await ev('document.querySelectorAll("dialog [download]").length'),2);await click('#close-sources');passed.push('attribution and downloadable derivative');
+await click('#sources');assert.equal(await ev('document.querySelector("dialog").open'),true);assert.equal(await ev('document.querySelectorAll("dialog [download]").length'),4);await click('#close-sources');passed.push('attribution and downloadable derivative');
 await click('#bones');await click('#roots');
 await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await call('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:2});await sleep(500);assert.ok(await ev('document.documentElement.scrollWidth<=innerWidth'));await shot('mobile');passed.push('mobile layout without overflow');
 const r=await ev('(()=>{const r=document.querySelector("#canvas").getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}})()');
@@ -34,5 +34,22 @@ const startCamera=(await snap()).camera;
 await call('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:r.x-25,y:r.y,id:1},{x:r.x+25,y:r.y,id:2}]});
 await call('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:r.x-60,y:r.y,id:1},{x:r.x+60,y:r.y,id:2}]});
 await call('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await sleep(300);assert.notDeepEqual((await snap()).camera,startCamera);passed.push('touch pinch');
+await call('Emulation.setDeviceMetricsOverride',{width:1600,height:1000,deviceScaleFactor:1,mobile:false});
+await call('Emulation.setTouchEmulationEnabled',{enabled:false});await click('#home');
+const slider=async(id,value)=>{await ev(`(()=>{const e=document.getElementById('${id}');e.value=${value};e.dispatchEvent(new Event('input'))})()`);await sleep(250);};
+for(const value of [25,60,100,0]){
+ await slider('gum-transparency',value);const s=await snap();
+ assert.equal(s.gingivaOpacity,1-value/100);
+ for(const g of s.gingiva){assert.equal(g.visible,value<100);assert.equal(g.opacity,1-value/100);assert.equal(g.depthWrite,value===0);assert.equal(g.castShadow,value===0);}
+}
+passed.push('gum transparency 0/25/60/100 and opaque restoration');
+await slider('gum-transparency',65);await shot('transparent-roots');
+await click('#tissue-preset');let layers=await snap();assert.equal(layers.visibleNerves,6);assert.equal(layers.visibleArteries,8);assert.equal(layers.opening,0);assert.equal(layers.gingivaOpacity,.2);assert.equal(layers.boneOpacity,.15);
+assert.equal(await ev('document.getElementById("opening").disabled'),true);await shot('neurovascular');passed.push('source nerve/artery preset and locked source pose');
+await click('[data-jaw="lower"]');layers=await snap();assert.equal(layers.visibleNerves,4);assert.equal(layers.visibleArteries,4);await shot('lower-tissues');
+await click('[data-jaw="upper"]');layers=await snap();assert.equal(layers.visibleNerves,2);assert.equal(layers.visibleArteries,4);passed.push('upper/lower source tissue filtering');
+await click('#focus');assert.equal((await snap()).visibleNerves,0);assert.equal(await ev('document.getElementById("gum-transparency").disabled'),true);await click('#home');assert.equal((await snap()).visibleNerves,2);passed.push('isolated tooth excludes unrelated tissue surfaces');
+await click('#nerves');await click('#arteries');assert.equal((await snap()).opening,10);passed.push('source pose restores previous jaw separation');
+await click('[data-jaw="both"]');await click('#tissue-preset');await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await sleep(300);assert.ok(await ev('document.documentElement.scrollWidth<=innerWidth'));await shot('mobile-tissues');passed.push('mobile transparency controls and legend');
 assert.equal(errors.length,0);passed.push('no runtime exceptions');
 await writeFile(output+'/browser-result.json',JSON.stringify({passed,gpu,errors,final:await snap()},null,2));console.log(JSON.stringify({passed,gpu,errors}));ws.close();

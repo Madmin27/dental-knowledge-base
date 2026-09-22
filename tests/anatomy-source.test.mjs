@@ -37,3 +37,32 @@ test('distribution keeps upstream notices, derivative terms and limitations toge
  assert.match(attribution,/no third molars, pulp, canals/i);assert.match(attribution,/Catmull-Clark/);
  assert.match(await readFile(new URL('CC-BY-SA-4.0.txt',base),'utf8'),/Attribution-ShareAlike 4.0 International/);
 });
+
+test('neurovascular subset preserves provenance, named coverage and dental coordinate scale',async()=>{
+ const m=JSON.parse(await readFile(new URL('neurovascular.json',base),'utf8'));
+ const raw=await readFile(new URL('neurovascular.bin',base));
+ assert.equal(createHash('sha256').update(raw).digest('hex'),m.binarySha256);
+ assert.equal(m.sourceRevision,manifest.sourceRevision);
+ assert.equal(m.structures.length,14);
+ assert.equal(m.structures.filter(s=>s.kind==='nerve').length,6);
+ assert.equal(m.structures.filter(s=>s.kind==='artery').length,8);
+ const expected=['Inferior alveolar nerve','Mental nerve','Maxillary nerve','Inferior alveolar artery','Mental branch of inferior alveolar artery','Posterior superior alveolar artery','Greater palatine artery'].flatMap(n=>[n+'.l',n+'.r']).sort();
+ assert.deepEqual(m.structures.map(s=>s.name).sort(),expected);
+ const buffer=raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength);
+ for(const s of m.structures){
+  const p=new Float32Array(buffer,s.positions.offset,s.positions.count),n=new Float32Array(buffer,s.normals.offset,s.normals.count),ix=new Uint32Array(buffer,s.indices.offset,s.indices.count);
+  assert.equal(p.length,n.length);assert.equal(p.length%3,0);assert.equal(ix.length%3,0);
+  assert.ok(s.jaw==='upper'||s.jaw==='lower');
+  let sumX=0;
+  for(let i=0;i<p.length;i+=3){
+   assert.ok(Number.isFinite(p[i]+p[i+1]+p[i+2]));sumX+=p[i];
+   assert.ok(Math.abs(p[i])<50&&p[i+1]>-40&&p[i+1]<80&&Math.abs(p[i+2])<70,'source should stay in the dental coordinate frame');
+   assert.ok(Math.abs(Math.hypot(n[i],n[i+1],n[i+2])-1)<.01);
+  }
+  assert.ok(s.name.endsWith('.l')?sumX>0:sumX<0);
+  for(const i of ix)assert.ok(i<p.length/3);
+ }
+ assert.ok(m.missing.includes('intrapulpal nerves and vessels'));
+ assert.ok(m.credits.some(c=>c.includes('Dundee')));
+ assert.match(await readFile(new URL('ATTRIBUTION.txt',base),'utf8'),/University of Dundee, CAHID/);
+});

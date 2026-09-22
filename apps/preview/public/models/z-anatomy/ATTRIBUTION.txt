@@ -11,7 +11,7 @@ https://github.com/LluisV/Z-Anatomy/tree/6c7f9016bd5899ac8edafd31b9900c151df42ed
 
 Derivative by DentalKnowledgeBase, 2026-09-22, under CC BY-SA 4.0.
 28 teeth, 3 disconnected gingiva components, mandible and 2 maxilla components.
-Only named dental structures extracted. No inner ear, kidney or neural structures.
+Only named dental structures extracted. No inner ear or kidney structures.
 Changes: subset extraction, rigid coordinate conversion and uniform unit scale,
 one Catmull-Clark subdivision for presentation, smooth normals, separate loose
 gingiva components, binary format, display materials. Jaw separation in the viewer
@@ -26,3 +26,18 @@ The manifest records source SHA-256 hashes, source URLs, revision and transforma
 Both derivative binary and manifest are downloadable without DRM.
 CC license covers this anatomical derivative, not unrelated application code.
 This engineering assessment is not a persisted rights approval or academic release.
+
+Neurovascular extension (2026-09-22): six named nerve surfaces and eight named
+arterial surfaces, from NervousSystem100.fbx and CardioVascular41.fbx at the same
+upstream revision. See neurovascular.json for exact names, source hashes and URLs.
+Cranial Nerves and Foramina - University of Dundee, CAHID - CC BY 4.0
+(as credited in Z-Anatomy model-specific license; no per-mesh authorship inferred).
+https://sketchfab.com/3d-models/cranial-nerves-and-foramina-a9358ee7a6dd4ea18a3622114405a4c7
+https://creativecommons.org/licenses/by/4.0/
+Nerve/artery additions: original mesh topology, same rigid coordinate/unit
+conversion as teeth, smooth normals, binary packing, illustrative yellow/red
+materials. No subdivision, generated terminals or inferred tooth connections.
+Not included: veins, capillaries, intrapulpal nerves/vessels, complete dental
+terminal branches. Preserve source jaw position while these layers are active.
+This attribution reflects the upstream distributor's license statement; it is
+not a new independent permission from Dundee or an academic release approval.

@@ -1,0 +1,444 @@
+{
+  "format": "dkb-mesh-v1",
+  "license": "CC-BY-SA-4.0",
+  "sourceRevision": "6c7f9016bd5899ac8edafd31b9900c151df42ed6",
+  "sourceFiles": [
+    {
+      "name": "NervousSystem100.fbx",
+      "sha256": "3ea1aad64956cad27348a27b8fb50494b7cc307c6bc77bee0810ec2a67dff2b1",
+      "url": "https://raw.githubusercontent.com/LluisV/Z-Anatomy/6c7f9016bd5899ac8edafd31b9900c151df42ed6/Resources/Models/FBX/NervousSystem100.fbx"
+    },
+    {
+      "name": "CardioVascular41.fbx",
+      "sha256": "ed7d049117cc944a8c47a416b16ade642cbd1392bbcce3c677450d3234dbf680",
+      "url": "https://raw.githubusercontent.com/LluisV/Z-Anatomy/6c7f9016bd5899ac8edafd31b9900c151df42ed6/Resources/Models/FBX/CardioVascular41.fbx"
+    }
+  ],
+  "binarySha256": "8af1a11d2b3bc90b9bbe3dce99e29294bd0e7838458ba9e9be65bb16ea067f55",
+  "structures": [
+    {
+      "name": "Greater palatine artery.l",
+      "label": "Sol Büyük damak atardamarı",
+      "kind": "artery",
+      "jaw": "upper",
+      "fdi": null,
+      "positions": {
+        "offset": 0,
+        "count": 1266,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 5064,
+        "count": 1266,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 10128,
+        "count": 2478,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 2478,
+          "material": "artery"
+        }
+      ]
+    },
+    {
+      "name": "Greater palatine artery.r",
+      "label": "Sağ Büyük damak atardamarı",
+      "kind": "artery",
+      "jaw": "upper",
+      "fdi": null,
+      "positions": {
+        "offset": 20040,
+        "count": 1266,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 25104,
+        "count": 1266,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 30168,
+        "count": 2478,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 2478,
+          "material": "artery"
+        }
+      ]
+    },
+    {
+      "name": "Inferior alveolar artery.l",
+      "label": "Sol Alt alveolar atardamar",
+      "kind": "artery",
+      "jaw": "lower",
+      "fdi": null,
+      "positions": {
+        "offset": 40080,
+        "count": 3222,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 52968,
+        "count": 3222,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 65856,
+        "count": 6372,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 6372,
+          "material": "artery"
+        }
+      ]
+    },
+    {
+      "name": "Inferior alveolar artery.r",
+      "label": "Sağ Alt alveolar atardamar",
+      "kind": "artery",
+      "jaw": "lower",
+      "fdi": null,
+      "positions": {
+        "offset": 91344,
+        "count": 3222,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 104232,
+        "count": 3222,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 117120,
+        "count": 6372,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 6372,
+          "material": "artery"
+        }
+      ]
+    },
+    {
+      "name": "Inferior alveolar nerve.l",
+      "label": "Sol Alt alveolar sinir",
+      "kind": "nerve",
+      "jaw": "lower",
+      "fdi": null,
+      "positions": {
+        "offset": 142608,
+        "count": 26352,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 248016,
+        "count": 26352,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 353424,
+        "count": 50832,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 50832,
+          "material": "nerve"
+        }
+      ]
+    },
+    {
+      "name": "Inferior alveolar nerve.r",
+      "label": "Sağ Alt alveolar sinir",
+      "kind": "nerve",
+      "jaw": "lower",
+      "fdi": null,
+      "positions": {
+        "offset": 556752,
+        "count": 26352,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 662160,
+        "count": 26352,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 767568,
+        "count": 50832,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 50832,
+          "material": "nerve"
+        }
+      ]
+    },
+    {
+      "name": "Maxillary nerve.l",
+      "label": "Sol Maksiller sinir",
+      "kind": "nerve",
+      "jaw": "upper",
+      "fdi": null,
+      "positions": {
+        "offset": 970896,
+        "count": 12204,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1019712,
+        "count": 12204,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1068528,
+        "count": 23628,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 23628,
+          "material": "nerve"
+        }
+      ]
+    },
+    {
+      "name": "Maxillary nerve.r",
+      "label": "Sağ Maksiller sinir",
+      "kind": "nerve",
+      "jaw": "upper",
+      "fdi": null,
+      "positions": {
+        "offset": 1163040,
+        "count": 12204,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1211856,
+        "count": 12204,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1260672,
+        "count": 23628,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 23628,
+          "material": "nerve"
+        }
+      ]
+    },
+    {
+      "name": "Mental branch of inferior alveolar artery.l",
+      "label": "Sol Alt alveolar atardamarın mental dalı",
+      "kind": "artery",
+      "jaw": "lower",
+      "fdi": null,
+      "positions": {
+        "offset": 1355184,
+        "count": 780,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1358304,
+        "count": 780,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1361424,
+        "count": 1416,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 1416,
+          "material": "artery"
+        }
+      ]
+    },
+    {
+      "name": "Mental branch of inferior alveolar artery.r",
+      "label": "Sağ Alt alveolar atardamarın mental dalı",
+      "kind": "artery",
+      "jaw": "lower",
+      "fdi": null,
+      "positions": {
+        "offset": 1367088,
+        "count": 780,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1370208,
+        "count": 780,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1373328,
+        "count": 1416,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 1416,
+          "material": "artery"
+        }
+      ]
+    },
+    {
+      "name": "Mental nerve.l",
+      "label": "Sol Mental sinir",
+      "kind": "nerve",
+      "jaw": "lower",
+      "fdi": null,
+      "positions": {
+        "offset": 1378992,
+        "count": 4212,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1395840,
+        "count": 4212,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1412688,
+        "count": 7956,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 7956,
+          "material": "nerve"
+        }
+      ]
+    },
+    {
+      "name": "Mental nerve.r",
+      "label": "Sağ Mental sinir",
+      "kind": "nerve",
+      "jaw": "lower",
+      "fdi": null,
+      "positions": {
+        "offset": 1444512,
+        "count": 4212,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1461360,
+        "count": 4212,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1478208,
+        "count": 7956,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 7956,
+          "material": "nerve"
+        }
+      ]
+    },
+    {
+      "name": "Posterior superior alveolar artery.l",
+      "label": "Sol Arka üst alveolar atardamar",
+      "kind": "artery",
+      "jaw": "upper",
+      "fdi": null,
+      "positions": {
+        "offset": 1510032,
+        "count": 1629,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1516548,
+        "count": 1629,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1523064,
+        "count": 3186,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 3186,
+          "material": "artery"
+        }
+      ]
+    },
+    {
+      "name": "Posterior superior alveolar artery.r",
+      "label": "Sağ Arka üst alveolar atardamar",
+      "kind": "artery",
+      "jaw": "upper",
+      "fdi": null,
+      "positions": {
+        "offset": 1535808,
+        "count": 1629,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1542324,
+        "count": 1629,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1548840,
+        "count": 3186,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 3186,
+          "material": "artery"
+        }
+      ]
+    }
+  ],
+  "changes": [
+    "named surface subset",
+    "same rigid coordinate transform as dentition",
+    "smooth normals",
+    "binary packing; no subdivision or invented branches"
+  ],
+  "credits": [
+    "BodyParts3D / DBCLS / CC BY-SA 2.1 Japan",
+    "Z-Anatomy / CC BY-SA 4.0",
+    "Cranial Nerves and Foramina / University of Dundee, CAHID / CC BY 4.0 as stated by Z-Anatomy"
+  ],
+  "missing": [
+    "intrapulpal nerves and vessels",
+    "capillaries",
+    "veins",
+    "complete dental terminal branches"
+  ],
+  "publicationStatus": "local source candidate; expert and rights review pending"
+}

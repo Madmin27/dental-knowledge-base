@@ -94,3 +94,46 @@ Before student publication: named dental/anatomy reviewer verifies FDI mapping,
 cusps, root morphology, gingival margins, source-to-display changes and limitations;
 record rights and academic decisions through the project's existing gates. These
 are human evidence, not values an AI should invent. No published DB status set.
+
+## 2026-09-22 — source nerve/artery extension
+
+Added a separate neurovascular.bin/json; the original dental geometry is unchanged.
+Pinned NervousSystem100.fbx and CardioVascular41.fbx at the same upstream revision
+were inspected in Blender. Exact source hashes and 14 selected names travel in
+the new manifest. Six nerve meshes: bilateral inferior alveolar, mental and
+maxillary nerves. Eight arterial meshes: bilateral inferior alveolar, mental
+branch, posterior superior alveolar and greater palatine arteries. No veins,
+capillaries, intrapulpal structures or inferred dental terminals.
+
+Nerves may contain adapted Dundee material. Preserve the additional credit:
+Cranial Nerves and Foramina — University of Dundee, CAHID — CC BY 4.0,
+as stated by the upstream model-specific license (not a newly obtained permission).
+No per-mesh attribution is guessed. Official upstream notice:
+https://github.com/Z-Anatomy/Models-of-human-anatomy/blob/master/License.txt
+Reference model:
+https://sketchfab.com/3d-models/cranial-nerves-and-foramina-a9358ee7a6dd4ea18a3622114405a4c7
+The license of the adapted distribution is the evidence used; the Sketchfab page
+alone is not treated as downloadable permission. Credits/limitations are in-app,
+in ATTRIBUTION.txt and in the manifest. No inner ear or kidney included.
+
+Build with Blender 4.0.2:
+
+    blender -b --threads 2 --python scripts/assets/build_neurovascular.py -- SOURCE_DIR OUTPUT_DIR
+
+The extractor checks original hashes and preserves mesh topology; only the same
+axis/unit transform as teeth, smooth normals and binary packing are applied.
+Yellow/red are illustrative display colors. Source nerve/artery positions remain
+registered to the dental coordinate frame; anatomy has not been independently
+validated. Jaw separation is set to zero and disabled while either layer is on.
+When both layers turn off, the previous separation is restored. This avoids
+presenting an invented movement of nerve/vessel attachments.
+
+The engineering permission/academic-publication boundary remains unchanged.
+
+Validation: 43 JavaScript + 10 clinical-path guard tests passed. Seventeen browser
+flows passed on both the isolated preview and installed LAN service, including
+opacity endpoints/restoration, source pose lock/restoration, 6/8 tissue counts,
+upper/lower filtering and mobile controls. Runtime exceptions: zero. Desktop
+transparent-root, tissue-preset and mobile captures were visually inspected; proof
+under /tmp/dkb-tissue-review/proof and live-proof. Not a physical-phone performance
+benchmark or expert anatomy acceptance. DB tests not rerun; DB unchanged.
