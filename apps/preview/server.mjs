@@ -12,7 +12,7 @@ for(const name of ['atlas.js','atlas-geometry.js','atlas.css','vendor/three.modu
   files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':name.endsWith('.txt')?'text/plain; charset=utf-8':'text/javascript; charset=utf-8']);
 }
 files.set('/anatomy',['anatomy.html','text/html; charset=utf-8']);
-for (const name of ['anatomy.js','anatomy.css','studio.css','studio.js','vendor/RoomEnvironment.js']) files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8']);
+for (const name of ['anatomy.js','anatomy.css','studio.css','studio.js','viewer-runtime.js','vendor/RoomEnvironment.js']) files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8']);
 for (const name of ['dentition.json','dentition.bin','neurovascular.json','neurovascular.bin','ATTRIBUTION.txt','UPSTREAM-NOTICE.txt','CC-BY-SA-4.0.txt']) files.set('/models/z-anatomy/'+name,['models/z-anatomy/'+name,name.endsWith('.json')?'application/json':name.endsWith('.bin')?'application/octet-stream':'text/plain; charset=utf-8']);
 for(const name of ['contributions.js','contributions.css','view-contract.js']) files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8']);
 files.set('/contributions',['contributions.html','text/html; charset=utf-8']);

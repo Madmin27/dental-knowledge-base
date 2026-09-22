@@ -142,3 +142,24 @@ an isolated temporary intake, never the installed service's real queue.
 
 See [product quality roadmap](../../docs/PRODUCT-QUALITY-ROADMAP.md) for
 internationalization, academic acceptance and public operation work still pending.
+
+## Graphics startup and recovery
+
+The default renderer lets the browser select its GPU. If antialiased context
+creation fails, a fresh canvas retries without antialiasing; the interior viewer
+preserves its required stencil buffer. `/?graphics=compat` and
+`/tooth-interior?graphics=compat` explicitly select the lighter profile (pixel ratio
+at most 1, no environment prefilter; anatomy shadow maps disabled). Source geometry
+and source-pose constraints remain unchanged.
+
+Errors now distinguish graphics, source files, geometry processing and interface
+startup. The collapsible diagnostic stays in the browser; it is not sent to an
+external service. A page cannot override disabled WebGL or GPU policies. A successful
+headless test is not proof of success in an existing MATE/XRDP browser profile.
+
+Regression suite (read-only service; failures injected only in the test browser):
+
+```sh
+node --experimental-websocket scripts/validate_viewer_recovery_browser.mjs \
+  http://127.0.0.1:9226 http://192.168.1.192:3057/ /tmp/dkb-recovery-proof
+```

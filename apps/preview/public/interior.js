@@ -1,4 +1,6 @@
 import {showModelError} from './studio.js';
+import {createCompatibleRenderer,viewerFailure} from './viewer-runtime.js';
+let loadingPhase='files';
 import {installContributions} from './contributions.js';
 import {validateInteriorView} from './view-contract.js';
 import * as THREE from './vendor/three.module.js';
@@ -71,12 +73,16 @@ function addLayer(meta,geometry,index){
 async function start(){
   const response=await fetch('/research/pulp/manifest.json');if(!response.ok)throw Error('Araştırma örneği bu sunucuda etkin değil. Tam ağız atlasını kullanabilirsiniz.');const manifest=await response.json();
   const buffers=await Promise.all(manifest.models.map(async m=>{const r=await fetch('/research/pulp/'+m.file);if(!r.ok)throw Error('Kaynak yüzey okunamadı.');return r.arrayBuffer();}));
-  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,stencil:true});renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));renderer.localClippingEnabled=true;renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;host.append(renderer.domElement);
+  loadingPhase='graphics';const graphics=createCompatibleRenderer(THREE.WebGLRenderer,{stencil:true,compatible:new URLSearchParams(location.search).get('graphics')==='compat'});renderer=graphics.renderer;renderer.setPixelRatio(Math.min(devicePixelRatio,graphics.compatible?1:1.8));
+  if(graphics.compatible){const note=document.createElement('p');note.className='graphics-notice';note.textContent='Uyumlu grafik modu · model ayrıntısı korunur';$('.stage-heading').append(note);}
+  renderer.localClippingEnabled=true;renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;host.append(renderer.domElement);
   scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(35,1,.1,2000);controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.addEventListener('change',mark);
-  const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment(),environment=pmrem.fromScene(room);scene.environment=environment.texture;room.dispose();pmrem.dispose();
+  if(!graphics.compatible){const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment(),environment=pmrem.fromScene(room);scene.environment=environment.texture;room.dispose();pmrem.dispose();}
   scene.add(new THREE.HemisphereLight(0xffffff,0x879185,1.2));const key=new THREE.DirectionalLight(0xffffff,2);key.position.set(20,30,45);scene.add(key);
+  loadingPhase='geometry';
   const geometries=manifest.models.map((m,i)=>createSurface(m,buffers[i]));const sourceBounds=new THREE.Box3();for(const g of geometries)sourceBounds.union(g.boundingBox);const center=sourceBounds.getCenter(new THREE.Vector3());bounds=new THREE.Box3();
   for(const [i,g] of geometries.entries()){g.translate(-center.x,-center.y,-center.z);g.computeBoundingBox();bounds.union(g.boundingBox);addLayer(manifest.models[i],g,i);}
+  loadingPhase='interface';
   const resize=()=>{const r=host.getBoundingClientRect();camera.aspect=r.width/r.height;camera.updateProjectionMatrix();renderer.setSize(r.width,r.height);mark();};new ResizeObserver(resize).observe(host);resize();frame();update();$('#loading').hidden=true;
   document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>preset(b.dataset.step));
   for(const id of ['tooth','pulp','pdl'])$('#'+id+'-visible').onchange=e=>{state[id]=e.target.checked;state.step='custom';update();};
@@ -88,7 +94,7 @@ async function start(){
   renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','3B araştırma modeli. Ok tuşlarıyla döndürün, artı ve eksiyle yakınlaştırın, Home ile sığdırın.');
   renderer.domElement.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const actions={ArrowLeft:()=>controls.rotateLeft(Math.PI/24),ArrowRight:()=>controls.rotateLeft(-Math.PI/24),ArrowUp:()=>controls.rotateUp(Math.PI/24),ArrowDown:()=>controls.rotateUp(-Math.PI/24),'+':()=>controls.dollyIn(.8),'-':()=>controls.dollyOut(.8),Home:()=>frame()};if(actions[e.key]){e.preventDefault();actions[e.key]();controls.update();}});
   let down;renderer.domElement.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];});renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>6)return;const r=host.getBoundingClientRect();const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);const hits=ray.intersectObjects([...objects.values()].map(o=>o.mesh).filter(m=>m.visible));const hit=hits.find(h=>(!state.cut||plane.distanceToPoint(h.point)>=0)&&!(h.object.name==='tooth'&&state.opacity<.5));if(hit){selectedStructure=hit.object.name;const d=descriptions[hit.object.name];$('#selection-title').textContent=d[0];$('#selection-description').textContent=d[1];}});
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError('3B görüntü bağlantısı kesildi. Modeli yeniden yükleyebilirsiniz.');});
+  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError('3B görüntü bağlantısı kesildi. Yeniden yükleyin veya uyumlu grafik modunu deneyin.',{code:'GRAPHICS_CONTEXT_LOST',graphics:true});});
   const render=()=>{requestAnimationFrame(render);if(document.hidden)return;controls.update();if(dirty){renderer.render(scene,camera);dirty=false;frames++;}};render();
   const catalog={research:{id:manifest.id,assets:Object.fromEntries(manifest.models.map(m=>[m.id,m.sha256]))},structures:manifest.models.map(m=>({name:m.id,label:m.label}))};
   const captureView=()=>validateInteriorView({kind:'tooth-interior',version:1,source:manifest.id,assets:catalog.research.assets,structure:selectedStructure,state,camera:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()},catalog);
@@ -97,4 +103,4 @@ async function start(){
   window.__interior=Object.freeze({captureView,restoreView,snapshot:()=>({...state,frames,source:manifest.id,reviewStatus:manifest.reviewStatus,camera:camera.position.toArray(),target:controls.target.toArray(),geometries:renderer.info.memory.geometries,layers:[...objects].map(([id,o])=>({id,visible:o.mesh.visible,cap:o.cap.visible,closed:o.closed,opacity:o.mesh.material.opacity,triangles:o.mesh.geometry.index.count/3}))})});
 }
 $('#sources').onclick=()=>$('#source-dialog').showModal();$('#close-sources').onclick=()=>$('#source-dialog').close();
-start().catch(error=>{document.querySelectorAll('main button,main input').forEach(e=>e.disabled=true);showModelError(error.message);});
+start().catch(error=>{document.querySelectorAll('main button,main input').forEach(e=>e.disabled=true);const failure=viewerFailure(error,loadingPhase);showModelError(failure.message,failure);});

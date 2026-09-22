@@ -157,3 +157,11 @@ dialog{padding:20px}
 #loading[data-state=error]::before{display:none}
 #loading p{margin:0 0 12px}
 #loading button{background:#edf4fa;color:#172b42;border-color:#a7b8ca}
+#loading{max-height:80%;overflow:auto;overflow-wrap:anywhere}
+#loading details{text-align:left;color:#e0edf8;margin-bottom:0}
+#loading summary{color:#e0edf8}
+#loading pre{white-space:pre-wrap;font-size:12px;user-select:text}
+.error-compatible{display:inline-block;padding:8px 12px;margin:8px;color:#a1efe6;text-decoration:underline}
+.stage-heading .graphics-notice{font-size:10px;color:#a1efe6;margin-top:6px}
+#loading[data-state=error]{top:50%;transform:translateY(-50%);max-height:calc(100% - 40px)}
+.atlas-page .stage-heading .graphics-notice{position:absolute;top:128px;left:0;margin:0}

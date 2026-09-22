@@ -1,4 +1,5 @@
 import {showModelError} from './studio.js';
+import {createCompatibleRenderer,viewerFailure} from './viewer-runtime.js';
 import {validateView} from './view-contract.js';
 import {installContributions} from './contributions.js';
 import * as THREE from './vendor/three.module.js';
@@ -11,6 +12,8 @@ const state = {selected:16, jaw:'both', mode:'mouth', roots:false, bones:true, o
 const names = ['','orta kesici','yan kesici','köpek dişi','birinci küçük azı','ikinci küçük azı','birinci büyük azı','ikinci büyük azı'];
 const objects = [], teeth = new Map();
 let selectedStructure;
+let loadingPhase='graphics';
+const compatibleRequested=new URLSearchParams(location.search).get('graphics')==='compat';
 let renderer, controls, scene, camera, dirty = true, frames = 0, savedOpening = 0;
 const upper = new THREE.Group(), lower = new THREE.Group(), isolated = new THREE.Group();
 const pointer = new THREE.Vector2(), raycaster = new THREE.Raycaster();
@@ -141,13 +144,15 @@ function materialFor(name,kind) {
 }
 
 async function start() {
-  renderer = new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+  const graphics=createCompatibleRenderer(THREE.WebGLRenderer,{compatible:compatibleRequested});
+  renderer=graphics.renderer;
+  if(graphics.compatible){const note=document.createElement('p');note.className='graphics-notice';note.textContent='Uyumlu grafik modu · model ayrıntısı korunur';$('.stage-heading').append(note);}
+  renderer.setPixelRatio(Math.min(devicePixelRatio,graphics.compatible?1:1.6));
   renderer.setClearColor(0x000000,0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = !graphics.compatible;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   host.append(renderer.domElement);
   renderer.domElement.tabIndex=0;
   renderer.domElement.setAttribute('aria-label','3B ağız modeli. Ok tuşlarıyla döndürün, artı ve eksiyle yakınlaştırın, Home ile sığdırın.');
@@ -160,22 +165,26 @@ async function start() {
   camera = new THREE.PerspectiveCamera(36,1,.2,900);
   controls = new OrbitControls(camera,renderer.domElement);
   controls.enableDamping = true;controls.dampingFactor=.09;controls.addEventListener('change',mark);
+  if(!graphics.compatible){
   const environment = new RoomEnvironment();
   const pmrem = new THREE.PMREMGenerator(renderer);
   const env = pmrem.fromScene(environment,.04);
   scene.environment = env.texture;scene.environmentIntensity=.45;
   environment.dispose();pmrem.dispose();
+  }
   const ambient = new THREE.HemisphereLight(0xffffff,0x657b6a,.7);scene.add(ambient);
   const key = new THREE.DirectionalLight(0xfff5e7,1.8);key.position.set(-65,80,95);key.castShadow=true;
   key.shadow.mapSize.set(2048,2048);Object.assign(key.shadow.camera,{left:-75,right:75,top:80,bottom:-80,near:1,far:300});key.shadow.bias=-.0004;key.shadow.normalBias=.08;scene.add(key);
   const fill = new THREE.DirectionalLight(0xe9f4ff,.7);fill.position.set(65,20,15);scene.add(fill);
   const rim = new THREE.DirectionalLight(0xffffff,1.3);rim.position.set(-10,40,-70);scene.add(rim);
+  loadingPhase='files';
   const [manifestResponse,binaryResponse] = await Promise.all([fetch('/models/z-anatomy/dentition.json'),fetch('/models/z-anatomy/dentition.bin')]);
   if (!manifestResponse.ok || !binaryResponse.ok) throw Error('Kaynak model dosyası okunamadı.');
   const manifest = await manifestResponse.json(), binary = await binaryResponse.arrayBuffer();
   const [extraMeta,extraData] = await Promise.all([fetch('/models/z-anatomy/neurovascular.json'),fetch('/models/z-anatomy/neurovascular.bin')]);
   if (!extraMeta.ok || !extraData.ok) throw Error('Sinir/damar kaynak dosyası okunamadı.');
   const extra = await extraMeta.json(), extraBinary = await extraData.arrayBuffer();
+  loadingPhase='geometry';
   for (const s of [...manifest.structures,...extra.structures]) {
     const data = s.kind === 'nerve' || s.kind === 'artery' ? extraBinary : binary;
     const geometry = new THREE.BufferGeometry();
@@ -190,6 +199,7 @@ async function start() {
     (s.jaw === 'upper' ? upper : lower).add(mesh);objects.push(mesh);
     if (s.fdi) teeth.set(s.fdi,mesh);
   }
+  loadingPhase='interface';
   const order = [17,16,15,14,13,12,11,21,22,23,24,25,26,27,47,46,45,44,43,42,41,31,32,33,34,35,36,37];
   for (const id of order) {
     const b = document.createElement('button');b.dataset.fdi=id;b.textContent=id;b.title=toothName(id);b.setAttribute('aria-label',`${id} ${toothName(id)}`);
@@ -226,7 +236,7 @@ async function start() {
     else if(hit?.object.name){selectedStructure=hit.object.name;$('#selected-label').textContent=(hit.object.userData.label??hit.object.name)+' · kaynak yüzeyi';}
   });
   renderer.domElement.addEventListener('dblclick',focusTooth);
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError('3B görüntü bağlantısı kesildi. Modeli yeniden yükleyebilirsiniz.');});
+  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError('3B görüntü bağlantısı kesildi. Yeniden yükleyin veya uyumlu grafik modunu deneyin.',{code:'GRAPHICS_CONTEXT_LOST',graphics:true});});
   document.querySelectorAll('[data-jaw]').forEach(b=>b.onclick=()=>{
     state.jaw=b.dataset.jaw;
     if(state.jaw==='upper'&&state.selected>30)state.selected=state.selected<40?state.selected-10:state.selected-30;
@@ -281,4 +291,4 @@ async function start() {
   window.__anatomy = Object.freeze({captureView,restoreView,snapshot:()=>({...state,frames,teeth:teeth.size,visibleTeeth:objects.filter(o=>o.userData.fdi&&o.visible&&o.parent.visible).length,triangles:renderer.info.render.triangles,geometryMemory:renderer.info.memory.geometries,camera:camera.position.toArray(),source:'Z-Anatomy',pulpAvailable:false,visibleNerves:objects.filter(o=>o.userData.kind==='nerve'&&o.visible&&o.parent.visible).length,visibleArteries:objects.filter(o=>o.userData.kind==='artery'&&o.visible&&o.parent.visible).length,gingiva:objects.filter(o=>o.userData.kind==='gingiva').map(o=>({visible:o.visible,opacity:o.material[0].opacity,depthWrite:o.material[0].depthWrite,castShadow:o.castShadow}))}),project:fdi=>{const m=teeth.get(fdi);const p=new THREE.Vector3();const g=m.userData.groups.find(g=>g.material.startsWith('Teeth.')&&!g.material.includes('roots'));const indices=m.geometry.index.array,positions=m.geometry.attributes.position;const ids=new Set(indices.slice(g.start,g.start+g.count));for(const i of ids)p.add(new THREE.Vector3().fromBufferAttribute(positions,i));p.divideScalar(ids.size);m.localToWorld(p);p.project(camera);const r=host.getBoundingClientRect();return{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};}});
 }
 $('#sources').onclick=()=>$('#source-dialog').showModal();$('#close-sources').onclick=()=>$('#source-dialog').close();
-start().catch(error=>{console.error(error);showModelError('3B model açılamadı. WebGL destekli güncel bir tarayıcıyla yeniden deneyin.');});
+start().catch(error=>{console.error(error);const failure=viewerFailure(error,loadingPhase);showModelError(failure.message,failure);});

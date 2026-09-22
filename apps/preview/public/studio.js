@@ -57,15 +57,25 @@ document.querySelector('[data-open-sources]')?.addEventListener('click', () => {
   source.showModal();
 });
 
-export function showModelError(message) {
+export function showModelError(message, {code,details,graphics=false} = {}) {
   const loading = document.querySelector('#loading');
   if (!loading) return;
   loading.hidden = false;
   loading.dataset.state = 'error';
+  if(code)loading.dataset.errorCode=code;
   loading.setAttribute('role', 'alert');
   loading.replaceChildren();
   const text = document.createElement('p');text.textContent = message;
   const retry = document.createElement('button');retry.id = 'retry-model';retry.type = 'button';retry.textContent = 'Yeniden yükle';
   retry.addEventListener('click', () => location.reload());
   loading.append(text, retry);
+  if(graphics){
+    const compatible=document.createElement('a');compatible.className='error-compatible';compatible.textContent='Uyumlu grafik modunda dene';
+    const url=new URL(location.href);url.searchParams.set('graphics','compat');compatible.href=url.href;loading.append(compatible);
+  }
+  if(code||details){
+    const disclosure=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Hata ayrıntısını göster';
+    const report=document.createElement('pre');report.textContent=[code,details].filter(Boolean).join('\n');
+    disclosure.append(summary,report);loading.append(disclosure);
+  }
 }
