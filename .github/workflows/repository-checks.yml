@@ -17,7 +17,7 @@ jobs:
       - name: Synthetic guard tests
         run: python3 -m unittest discover -s tests -v
       - name: Domain tests
-        run: node tests/domain.test.mjs && node tests/rights.test.mjs
+        run: node tests/domain.test.mjs && node tests/rights.test.mjs && node tests/preview.test.mjs
 
   database:
     runs-on: ubuntu-latest
