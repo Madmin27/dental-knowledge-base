@@ -77,3 +77,12 @@ otomatik test sayısı akademik kabulün yerine geçmez.
 - Ayrı kabul gerektirir: isimli anatomi uzmanı değerlendirmesi, eksik iç doku
   kaynakları, canonical Issue import/yetki denetimi (CONTRIB-001), halka açık
   HTTPS/hesap/abuse/off-site yedek hazırlığı (CONTRIB-002). ADR0005 sınırları geçerli.
+
+## 2026-09-22 — Varyasyon ve gerekçeli inceleme altyapısı
+
+- [x] ADR0006 + çalıştırılabilir profil/inceleme sözleşmeleri: kaynakla bağlı yaş/cinsiyet bağlamı, süt/karma/kalıcı dişlenme, çoklu popülasyon tanımları, kanıt ve ölçüt bazlı gerekçe.
+- [ ] TASK-005: kalıcı specimen/variant/claim/evidence entegrasyonu.
+- [ ] TASK-006: kimlik/yetki doğrulaması, dondurulmuş heyet, %80 + uzman/kurum quorum ve gerekçeli itiraz.
+- [ ] TASK-011: denetmen başvurusu, ölçüt formu, isim/rıza ve sürümlü karar kartı.
+- [ ] Yayın izni verilmiş özetten GitHub issue taslağı ve bağlantı takibi.
+- [ ] Yeni pediatrik/demografik koleksiyonlar için gerçek kaynak ve bağımsız inceleme; kaynaksız model çoğaltma yok.

@@ -1077,3 +1077,8 @@ First baseline:
 4. repository safety rules (`.gitignore`, no-clinical-data policy)
 
 Only after that baseline exists should implementation begin.
+
+
+## 32. Versioned variant and reasoned-review extension — 2026-09-22
+
+ADR0006 (`docs/adr/0006-variant-context-and-reasoned-review.md`) defines separate specimen context/population claims, evidence-bound demographic metadata, primary/mixed/permanent dentition, per-criterion reasoned review and the approved 80% frozen-eligible-roster policy in addition to the existing qualified quorum and independent release gates. Executable data contracts exist in `packages/contracts/anatomical-review.mjs`. This does not complete TASK-005, TASK-006 or TASK-011; persistent storage, trusted eligibility and the review portal remain to be integrated.

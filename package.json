@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/domain.test.mjs && node tests/rights.test.mjs && node tests/preview.test.mjs && node tests/atlas.test.mjs && node tests/anatomy-source.test.mjs && node tests/contributions.test.mjs",
+    "test": "node tests/domain.test.mjs && node tests/rights.test.mjs && node tests/preview.test.mjs && node tests/atlas.test.mjs && node tests/anatomy-source.test.mjs && node tests/contributions.test.mjs && node tests/anatomical-review.test.mjs",
     "db:migrate": "node --env-file=.env packages/db/migrate.mjs",
     "test:db": "node tests/db.test.mjs",
     "db:init-env": "node infra/init-dev-env.mjs",
