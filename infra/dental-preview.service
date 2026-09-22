@@ -11,6 +11,8 @@ BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/apps/preview:/srv/dental-pr
 BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/packages/domain:/srv/dental-preview/packages/domain
 BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/packages/rights:/srv/dental-preview/packages/rights
 ExecStart=/usr/bin/node /srv/dental-preview/apps/preview/server.mjs
+BindReadOnlyPaths=/root/.local/share/dental-research/pulp-kang-v1:/srv/dental-preview/research/pulp
+Environment=RESEARCH_ASSET_DIR=/srv/dental-preview/research/pulp
 Environment=PREVIEW_PORT=3057
 Environment=PREVIEW_HOST=192.168.1.192
 Environment=PREVIEW_ORIGIN=http://192.168.1.192:3057

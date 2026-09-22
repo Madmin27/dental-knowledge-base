@@ -86,3 +86,16 @@ otomatik test sayısı akademik kabulün yerine geçmez.
 - [ ] TASK-011: denetmen başvurusu, ölçüt formu, isim/rıza ve sürümlü karar kartı.
 - [ ] Yayın izni verilmiş özetten GitHub issue taslağı ve bağlantı takibi.
 - [ ] Yeni pediatrik/demografik koleksiyonlar için gerçek kaynak ve bağımsız inceleme; kaynaksız model çoğaltma yok.
+
+## 2026-09-22 — Kaynaklı diş içi araştırma ekranı
+
+- [x] Özgün CC BY4 CAD kaynağı ve makalenin tam metni doğrulandı; kaynak PDL
+  kalınlığı tutarsızlığı kaydedildi. Akademik doğruluk onayı verilmedi.
+- [x] Ana ağızdan ayrı `/tooth-interior`: dış yüzey, pulpa boşluğu, isteğe bağlı
+  şematik PDL, üç yönde kesit, saydamlık ve dört öğrenme adımı.
+- [x] Kaynak hashlerine bağlı katkı/görünüm geri yükleme, mobil dokunma, klavye,
+  idle render; CAD/mesh teknik kontrolleri. Kaynak meshler Git dışında.
+- [ ] İsimli uzmanla kaynak örneğin iç boşluk/kök gelişimi ve kesit açıklamalarının
+  doğrulanması; bu örnek erişkin28 dişe genellenmez.
+- [ ] Bağımsız mine/dentin, apikal açıklık ve yan kanal kaynakları; gerçek cihaz
+  performans profili. Kaynakta yoksa üretilmiş gibi gösterilmez.

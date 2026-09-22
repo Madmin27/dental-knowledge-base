@@ -2,6 +2,7 @@ import {isIP} from 'node:net';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
+import {loadResearchAssets} from './research-assets.mjs';
 import {createIntake,loadCatalog} from './contributions.mjs';
 import {scenarios,evaluateScenario} from './scenarios.mjs';
 const files=new Map([['/',['anatomy.html','text/html; charset=utf-8']],['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']]]);
@@ -14,7 +15,9 @@ for (const name of ['anatomy.js','anatomy.css','vendor/RoomEnvironment.js']) fil
 for (const name of ['dentition.json','dentition.bin','neurovascular.json','neurovascular.bin','ATTRIBUTION.txt','UPSTREAM-NOTICE.txt','CC-BY-SA-4.0.txt']) files.set('/models/z-anatomy/'+name,['models/z-anatomy/'+name,name.endsWith('.json')?'application/json':name.endsWith('.bin')?'application/octet-stream':'text/plain; charset=utf-8']);
 for(const name of ['contributions.js','contributions.css','view-contract.js']) files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8']);
 files.set('/contributions',['contributions.html','text/html; charset=utf-8']);
-export function previewServer({intake}={}) {
+files.set('/tooth-interior',['interior.html','text/html; charset=utf-8']);
+for(const name of ['interior.js','interior.css'])files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8']);
+export function previewServer({intake,researchAssets}={}) {
   return createServer(async(req,res)=>{
     res.setHeader('X-Content-Type-Options','nosniff');
     res.setHeader('Referrer-Policy','no-referrer');
@@ -26,12 +29,14 @@ export function previewServer({intake}={}) {
     if(req.method!=='GET') {res.setHeader('Allow','GET');return json(405,{error:'Read-only preview'});}
     try {
       const url=new URL(req.url,'http://localhost');
-      if(url.pathname==='/health') return json(200,{ok:true,mode:'anatomy-preview',databaseConnected:false,contributionsEnabled:Boolean(intake)});
+      if(url.pathname==='/health') return json(200,{ok:true,mode:'anatomy-preview',databaseConnected:false,contributionsEnabled:Boolean(intake),interiorResearchEnabled:Boolean(researchAssets)});
       if(url.pathname==='/api/scenarios') return json(200,{demo:true,scenarios});
       if(url.pathname==='/api/check') {
         const result=await evaluateScenario(url.searchParams.get('scenario'));
         return json(result?200:404,result??{error:'Unknown scenario'});
       }
+      const research=researchAssets?.get(url.pathname);
+      if(research){res.writeHead(200,{'Content-Type':research.type});res.end(research.body);return;}
       const file=files.get(url.pathname);
       if(!file) return json(404,{error:'Not found'});
       const body=await readFile(new URL('./public/'+file[0],import.meta.url));
@@ -44,6 +49,8 @@ if(process.argv[1]===fileURLToPath(import.meta.url)) {
   if(!Number.isInteger(port)||port<1024||port>65535) throw new Error('Invalid preview port');
   const host=process.env.PREVIEW_HOST ?? '127.0.0.1';
   if(isIP(host)!==4 || host==='0.0.0.0') throw new Error('A specific IPv4 preview address is required');
-  const intake=process.env.CONTRIBUTIONS_DIR?await createIntake({directory:process.env.CONTRIBUTIONS_DIR,origin:process.env.PREVIEW_ORIGIN,adminKey:(await readFile(process.env.CREDENTIALS_DIRECTORY+'/moderator.key','utf8')).trim(),catalog:await loadCatalog()}):undefined;
-  previewServer({intake}).listen(port,host,()=>console.log(`Dental preview http://${host}:${port}`));
+  const researchAssets=process.env.RESEARCH_ASSET_DIR?await loadResearchAssets(process.env.RESEARCH_ASSET_DIR):undefined;
+  const researchManifest=researchAssets?JSON.parse(researchAssets.get('/research/pulp/manifest.json').body):undefined;
+  const intake=process.env.CONTRIBUTIONS_DIR?await createIntake({directory:process.env.CONTRIBUTIONS_DIR,origin:process.env.PREVIEW_ORIGIN,adminKey:(await readFile(process.env.CREDENTIALS_DIRECTORY+'/moderator.key','utf8')).trim(),catalog:await loadCatalog({researchManifest})}):undefined;
+  previewServer({intake,researchAssets}).listen(port,host,()=>console.log(`Dental preview http://${host}:${port}`));
 }

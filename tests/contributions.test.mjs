@@ -41,3 +41,12 @@ test('abrupt writer death preserves every acknowledged record and leaves only co
   const stopped=new Promise(r=>child.once('exit',r));child.kill('SIGKILL');await stopped;assert.ok(acknowledged.length>=1);
 });
 test('optional evidence, stripped untrusted view text and maintainer comment-only',async t=>{const s=await setup(t),p=payload(),key=hex(32);delete p.evidence;p.view.untrusted='MUST_NOT_PERSIST';p.view.state.untrusted='MUST_NOT_PERSIST';assert.equal((await s.call('',key,p)).status,201);const comment=await s.call('/'+p.id+'/events',s.adminKey,{revision:0,note:'Synthetic maintainer comment only'});assert.equal(comment.status,200);assert.equal(comment.data.status,'received');assert.deepEqual(comment.data.submission.evidence,[]);assert.ok(!(await readFile(join(s.directory,p.id+'.json'),'utf8')).includes('MUST_NOT_PERSIST'));assert.equal((await s.call('/'+p.id+'/redact',s.adminKey,{revision:1})).data.revision,2);assert.equal((await s.call('/'+p.id+'/redact',s.adminKey,{revision:1})).data.revision,2);});
+test('research contributions bind all source hashes and cut/camera state independently of whole-mouth atlas',async t=>{
+ const research={id:'kang-2024-pulp-v1',assets:{tooth:'a'.repeat(64),pulp:'b'.repeat(64),pdl:'c'.repeat(64)}};
+ const s=await setup(t,{catalog:{...catalog,research}}),p=payload(),key=hex(32);
+ p.view={kind:'tooth-interior',version:1,source:research.id,assets:research.assets,structure:'pulp',state:{step:'section',cut:true,axis:'y',position:40,flipped:false,tooth:true,pulp:true,pdl:false,opacity:1},camera:[0,-50,1],target:[0,0,0],up:[0,1,0]};
+ assert.equal((await s.call('',key,p)).status,201);const record=(await s.call('/'+p.id,key)).data;assert.deepEqual(record.submission.view,p.view);
+ const stale=structuredClone(p);stale.id=hex(16);stale.view.assets.pulp='d'.repeat(64);assert.equal((await s.call('',hex(32),stale)).status,422);
+ const invalid=structuredClone(p);invalid.id=hex(16);invalid.view.state.position=101;assert.equal((await s.call('',hex(32),invalid)).status,422);
+ const disabled=await setup(t);assert.equal((await disabled.call('',hex(32),p)).status,422);
+});

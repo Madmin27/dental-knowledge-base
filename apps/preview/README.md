@@ -97,3 +97,20 @@ signed or treated as academic acceptance.
 ## Atlas katkı kuyruğu
 
 Üst menüde **Katkıda bulun**: sürümlü yapı/görünümle bildirim, özel takip, ek açıklama, bakımcı geçmişi. Kurulum, bakımcı CLI, gizlilik ve yedek: [katkı rehberi](../../docs/CONTRIBUTING-ATLAS.md). Ayrı StateDirectory ve systemd credential gerekir; yapılandırılmadığında katkı yazımı kapalıdır. Akademik kabul/yayın yetkisi vermez.
+
+## Diş içi araştırma modülü
+
+`/tooth-interior`: ayrı CC BY4 araştırma örneği; dış yüzey, pulpa boşluğu ve kaynakta
+oluşturulmuş şematik periodontal katman. Tam ağız modeliyle kayıt/hizalama yapılmaz.
+Kaynak ve işletim sınırı: [Kang kaynak kaydı](../../docs/assets/KANG-PULP-REVIEW.md).
+
+Modül varsayılan olarak veri sunmaz. `RESEARCH_ASSET_DIR` repo dışındaki dönüştürülmüş
+manifest/3binary/atıf dizinini gösterir. `infra/dental-preview.service` mevcut yerel
+kurulum için isteğe bağlı bind içerir; başka sunucuda bu dizin yoksa araştırma bind
+ve env satırlarını kaldırın. Kaynak hash/boyut/indeks doğrulaması olmadan dosya sunulmaz.
+Dönüşüm: izole ortamda `cadquery-ocp==8.0.1.0.0` ve `numpy` kurup
+`python scripts/assets/extract_kang_pulp.py SOURCE_ZIP EXTERNAL_OUTPUT` çalıştırın.
+Özgün CAD, ZIP veya meshleri Git'e eklemeyin. Public akademik yayın ayrı karardır.
+
+Tarayıcı kanıtı: `node --experimental-websocket scripts/validate_interior_browser.mjs
+CDP_URL PAGE_URL OUTPUT [intake]`. `intake` yalnız izole localhost test deposunda.
