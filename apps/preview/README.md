@@ -114,3 +114,31 @@ Dönüşüm: izole ortamda `cadquery-ocp==8.0.1.0.0` ve `numpy` kurup
 
 Tarayıcı kanıtı: `node --experimental-websocket scripts/validate_interior_browser.mjs
 CDP_URL PAGE_URL OUTPUT [intake]`. `intake` yalnız izole localhost test deposunda.
+
+## Studio interface
+
+The source viewers and contribution/project pages share `public/studio.css` and
+`public/studio.js`. These assets are explicitly allowlisted by the server. Both
+themes run without remote fonts, trackers or new package dependencies. The saved
+preference only changes UI appearance; anatomical materials and source coordinates
+are independent. The existing source documents remain authoritative.
+
+FDI/name search can switch back to both jaws when the selected tooth is outside
+the current jaw filter. Third molars remain absent. Focus the canvas for arrow-key
+rotation, +/- zoom and Home to fit. Fullscreen includes a viewport fallback for
+browsers without the Fullscreen API. The question-mark button exposes controls
+and mobile source access. Failure/context-loss states expose a reload action.
+
+New UI browser regression suite (uses no contribution writes):
+
+```sh
+node --experimental-websocket scripts/validate_studio_browser.mjs \
+  http://127.0.0.1:9226 http://127.0.0.1:3058/ /tmp/dkb-studio-proof
+```
+
+The existing anatomy, interior and contribution suites are also required when
+changing the viewer layouts. Run synthetic contribution submissions only against
+an isolated temporary intake, never the installed service's real queue.
+
+See [product quality roadmap](../../docs/PRODUCT-QUALITY-ROADMAP.md) for
+internationalization, academic acceptance and public operation work still pending.

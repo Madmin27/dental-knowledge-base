@@ -99,3 +99,15 @@ otomatik test sayısı akademik kabulün yerine geçmez.
   doğrulanması; bu örnek erişkin28 dişe genellenmez.
 - [ ] Bağımsız mine/dentin, apikal açıklık ve yan kanal kaynakları; gerçek cihaz
   performans profili. Kaynakta yoksa üretilmiş gibi gösterilmez.
+
+## 2026-09-22 — Ortak arayüz ve kullanılabilirlik
+
+- [x] Atlas, bağımsız diş içi, proje ve katkı ekranlarında ortak modern tasarım.
+- [x] Aydınlık/koyu görünüm, FDI/ad araması, tam ekran, mobil gezinme ve klavye ile döndürme.
+- [x] Kaynak ve sınırlar erişilebilir; proje sayfasındaki eski "3B model yok" bilgisi düzeltildi.
+- [x] 3B bağlantı kaybında açıklama ve yeniden yükleme eylemi.
+- [ ] Tam erişilebilirlik incelemesi ve fiziksel cihaz kabulü.
+- [ ] İngilizce arayüz ve uzman doğrulamalı Latince anatomi terimleri.
+
+Uygulanan arayüz iyileştirmeleri bağımsız anatomik doğruluk onayı değildir.
+Öncelik ve kabul kanıtları: `PRODUCT-QUALITY-ROADMAP.md`.

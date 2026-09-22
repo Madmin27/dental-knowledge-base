@@ -1,0 +1,52 @@
+// Run against an isolated preview; this suite never submits contributions.
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+const [endpoint,target,output]=process.argv.slice(2);
+if(!endpoint||!target||!output)throw Error('Usage: CDP_URL PREVIEW_URL OUTPUT');
+await mkdir(output,{recursive:true});
+const pages=await(await fetch(endpoint+'/json/list')).json();
+const ws=new WebSocket(pages.find(p=>p.type==='page').webSocketDebuggerUrl);
+await new Promise(resolve=>ws.onopen=resolve);
+let seq=0;const jobs=new Map(),errors=[],passed=[];
+ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const job=jobs.get(m.id);jobs.delete(m.id);m.error?job.reject(m.error):job.resolve(m.result);}if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.text);};
+const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;jobs.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}));});
+const ev=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,userGesture:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const wait=async expression=>{for(let i=0;i<200;i++){if(await ev(expression))return;await sleep(100);}throw Error('Timeout: '+expression);};
+const click=async selector=>{await ev(`document.querySelector(${JSON.stringify(selector)}).click()`);await sleep(180);};
+const shot=async name=>{await sleep(400);await writeFile(`${output}/${name}.png`,Buffer.from((await call('Page.captureScreenshot')).data,'base64'));};
+const size=async(width,height=1000)=>{await call('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<760});await sleep(300);};
+const search=async value=>{await ev(`(()=>{const el=document.querySelector('#tooth-search');el.value=${JSON.stringify(value)};el.dispatchEvent(new Event('input'));})()`);};
+try{
+ await call('Runtime.enable');await call('Page.enable');await size(1600);
+ await call('Page.navigate',{url:target});await wait('window.__anatomy?.snapshot().frames>0');
+ await ev("localStorage.removeItem('dental-ui-theme')");await call('Page.reload');await wait('window.__anatomy?.snapshot().frames>0');await sleep(600);
+ assert.equal(await ev('document.documentElement.dataset.theme'),'light');await shot('atlas-light');
+ await click('[data-jaw=upper]');await search('36');assert.equal(await ev('document.querySelectorAll("#search-results button").length'),1);
+ await click('#search-results button');assert.equal(await ev('__anatomy.snapshot().selected'),36);assert.equal(await ev('__anatomy.snapshot().jaw'),'both');passed.push('search selects FDI across jaw filters');
+ await search('kopek');assert.equal(await ev('document.querySelectorAll("#search-results button").length'),4);passed.push('search accepts unaccented Turkish tooth names');
+ await search('18');assert.equal(await ev('document.querySelectorAll("#search-results button").length'),0);assert.ok(await ev('document.querySelector("#search-results").textContent.includes("kaynakta bulunmuyor")'));await search('');passed.push('missing third molars are explained, never fabricated');
+ await ev('document.querySelector("canvas").focus()');const before=await ev('__anatomy.snapshot().camera');
+ await call('Input.dispatchKeyEvent',{type:'keyDown',key:'ArrowLeft',code:'ArrowLeft'});await call('Input.dispatchKeyEvent',{type:'keyUp',key:'ArrowLeft',code:'ArrowLeft'});await sleep(400);assert.notDeepEqual(await ev('__anatomy.snapshot().camera'),before);passed.push('atlas rotates with keyboard on focused canvas');
+ await click('#theme-toggle');assert.equal(await ev('document.documentElement.dataset.theme'),'dark');await shot('atlas-dark');
+ await call('Page.reload');await wait('window.__anatomy?.snapshot().frames>0');assert.equal(await ev('document.documentElement.dataset.theme'),'dark');passed.push('theme survives reload');
+ await click('#viewer-help');assert.equal(await ev('document.querySelector("#help-dialog").open'),true);await click('[data-open-sources]');assert.equal(await ev('document.querySelector("#source-dialog").open'),true);await click('#close-sources');passed.push('help and source dialog remain reachable');
+ await click('#viewer-fullscreen');await wait('document.querySelector("#viewer-fullscreen").getAttribute("aria-pressed")==="true"');await click('#viewer-help');assert.equal(await ev('document.querySelector("#help-dialog").open'),true);await click('#close-help');await click('#viewer-fullscreen');await wait('document.querySelector("#viewer-fullscreen").getAttribute("aria-pressed")==="false"');passed.push('fullscreen enters/exits and help works inside it');
+ await click('#theme-toggle');
+ await ev('document.querySelector("canvas").dispatchEvent(new Event("webglcontextlost",{cancelable:true}))');
+ assert.equal(await ev('document.querySelector("#loading").getAttribute("role")'),'alert');
+ assert.equal(await ev('document.querySelector("#retry-model").disabled'),false);
+ await click('#retry-model');await wait('window.__anatomy?.snapshot().frames>0');
+ assert.equal(await ev('document.querySelector("#loading").hidden'),true);passed.push('context-loss message offers successful reload');
+ for(const width of [360,390,768,1024]){await size(width,844);assert.ok(await ev('document.documentElement.scrollWidth<=innerWidth'));assert.ok(await ev('[...document.querySelectorAll(".app-header nav a")].every(a=>a.getBoundingClientRect().height>=32)'));}
+ await size(390,844);await shot('atlas-mobile');passed.push('360/390/768/1024px layouts and mobile navigation');
+ await size(1600);await call('Page.navigate',{url:new URL('/tooth-interior',target).href});await wait('window.__interior?.snapshot().frames>0');await click('[data-step=section]');await shot('interior-section');
+ await click('#theme-toggle');assert.equal(await ev('document.documentElement.dataset.theme'),'dark');await shot('interior-dark');
+ await size(390,844);assert.ok(await ev('document.documentElement.scrollWidth<=innerWidth'));assert.ok(await ev('getComputedStyle(document.querySelector(".inspection")).display!=="none"'));await shot('interior-mobile');passed.push('interior section controls remain available on mobile');
+ await size(1440);await call('Page.navigate',{url:new URL('/overview',target).href});await wait('document.querySelector("#scenario")?.disabled===false');assert.equal(await ev('document.documentElement.dataset.theme'),'dark');await click('#theme-toggle');await shot('overview');
+ assert.ok(await ev('document.body.textContent.includes("Denetmen doğrulaması")'));assert.equal(await ev('document.body.textContent.includes("Henüz gerçek diş modelleri")'),false);
+ await click('#check');await wait('document.querySelector("#result-title").textContent!=="Bir senaryo seçin"');passed.push('overview shows current scope and working rights example');
+ await size(390,844);assert.ok(await ev('document.documentElement.scrollWidth<=innerWidth'));await shot('overview-mobile');
+ assert.deepEqual(errors,[]);passed.push('no runtime exceptions');
+ await writeFile(`${output}/result.json`,JSON.stringify({passed,errors},null,2));console.log(JSON.stringify({passed,errors}));
+}finally{ws.close();}

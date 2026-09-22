@@ -1,3 +1,4 @@
+import {showModelError} from './studio.js';
 import {validateView} from './view-contract.js';
 import {installContributions} from './contributions.js';
 import * as THREE from './vendor/three.module.js';
@@ -148,6 +149,13 @@ async function start() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   host.append(renderer.domElement);
+  renderer.domElement.tabIndex=0;
+  renderer.domElement.setAttribute('aria-label','3B ağız modeli. Ok tuşlarıyla döndürün, artı ve eksiyle yakınlaştırın, Home ile sığdırın.');
+  renderer.domElement.addEventListener('keydown',e=>{
+    if(e.ctrlKey||e.metaKey||e.altKey)return;
+    const actions={ArrowLeft:()=>controls.rotateLeft(Math.PI/24),ArrowRight:()=>controls.rotateLeft(-Math.PI/24),ArrowUp:()=>controls.rotateUp(Math.PI/24),ArrowDown:()=>controls.rotateUp(-Math.PI/24),'+':()=>controls.dollyIn(.8),'-':()=>controls.dollyOut(.8),Home:()=>frame()};
+    if(actions[e.key]){e.preventDefault();actions[e.key]();controls.update();mark();}
+  });
   scene = new THREE.Scene();scene.add(upper,lower,isolated);
   camera = new THREE.PerspectiveCamera(36,1,.2,900);
   controls = new OrbitControls(camera,renderer.domElement);
@@ -187,6 +195,23 @@ async function start() {
     const b = document.createElement('button');b.dataset.fdi=id;b.textContent=id;b.title=toothName(id);b.setAttribute('aria-label',`${id} ${toothName(id)}`);
     b.addEventListener('click',()=>{selection(id);if(state.mode==='tooth')focusTooth();});$('#tooth-chart').append(b);
   }
+  const search=$('#tooth-search'), results=$('#search-results');
+  const normalize=s=>s.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+  search.addEventListener('input',()=>{
+    const query=normalize(search.value.trim());results.replaceChildren();results.hidden=!query;
+    if(!query)return;
+    const matches=order.filter(id=>normalize(`${id} ${toothName(id)}`).includes(query));
+    for(const id of matches){
+      const button=document.createElement('button');button.type='button';button.textContent=`${id} · ${toothName(id)}`;
+      button.addEventListener('click',()=>{
+        if((state.jaw==='upper'&&id>30)||(state.jaw==='lower'&&id<30)){state.jaw='both';home();}
+        selection(id);if(state.mode==='tooth')focusTooth();
+        search.value='';results.replaceChildren();results.hidden=true;
+        document.querySelector(`[data-fdi="${id}"]`).focus({preventScroll:true});
+      });results.append(button);
+    }
+    if(!matches.length){const note=document.createElement('p');note.textContent='Bu koleksiyonda eşleşen diş yok. 18, 28, 38 ve 48 kaynakta bulunmuyor.';results.append(note);}
+  });
   const resize = () => {const {width,height}=host.getBoundingClientRect();renderer.setSize(width,height);const changed=Math.abs(camera.aspect-width/height)>.15;camera.aspect=width/height;camera.updateProjectionMatrix();if(changed&&teeth.size)frame();mark();};
   new ResizeObserver(resize).observe(host);resize();
   updateVisibility();selection(16);frame();$('#loading').hidden=true;
@@ -201,7 +226,7 @@ async function start() {
     else if(hit?.object.name){selectedStructure=hit.object.name;$('#selected-label').textContent=(hit.object.userData.label??hit.object.name)+' · kaynak yüzeyi';}
   });
   renderer.domElement.addEventListener('dblclick',focusTooth);
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();$('#loading').hidden=false;$('#loading').textContent='3B görüntü bağlantısı kesildi. Sayfayı yenileyin.';});
+  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError('3B görüntü bağlantısı kesildi. Modeli yeniden yükleyebilirsiniz.');});
   document.querySelectorAll('[data-jaw]').forEach(b=>b.onclick=()=>{
     state.jaw=b.dataset.jaw;
     if(state.jaw==='upper'&&state.selected>30)state.selected=state.selected<40?state.selected-10:state.selected-30;
@@ -256,4 +281,4 @@ async function start() {
   window.__anatomy = Object.freeze({captureView,restoreView,snapshot:()=>({...state,frames,teeth:teeth.size,visibleTeeth:objects.filter(o=>o.userData.fdi&&o.visible&&o.parent.visible).length,triangles:renderer.info.render.triangles,geometryMemory:renderer.info.memory.geometries,camera:camera.position.toArray(),source:'Z-Anatomy',pulpAvailable:false,visibleNerves:objects.filter(o=>o.userData.kind==='nerve'&&o.visible&&o.parent.visible).length,visibleArteries:objects.filter(o=>o.userData.kind==='artery'&&o.visible&&o.parent.visible).length,gingiva:objects.filter(o=>o.userData.kind==='gingiva').map(o=>({visible:o.visible,opacity:o.material[0].opacity,depthWrite:o.material[0].depthWrite,castShadow:o.castShadow}))}),project:fdi=>{const m=teeth.get(fdi);const p=new THREE.Vector3();const g=m.userData.groups.find(g=>g.material.startsWith('Teeth.')&&!g.material.includes('roots'));const indices=m.geometry.index.array,positions=m.geometry.attributes.position;const ids=new Set(indices.slice(g.start,g.start+g.count));for(const i of ids)p.add(new THREE.Vector3().fromBufferAttribute(positions,i));p.divideScalar(ids.size);m.localToWorld(p);p.project(camera);const r=host.getBoundingClientRect();return{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};}});
 }
 $('#sources').onclick=()=>$('#source-dialog').showModal();$('#close-sources').onclick=()=>$('#source-dialog').close();
-start().catch(error=>{console.error(error);$('#loading').hidden=false;$('#loading').textContent='3B model açılamadı. WebGL destekli güncel bir tarayıcıyla yeniden deneyin.';});
+start().catch(error=>{console.error(error);showModelError('3B model açılamadı. WebGL destekli güncel bir tarayıcıyla yeniden deneyin.');});

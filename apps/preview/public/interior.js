@@ -1,3 +1,4 @@
+import {showModelError} from './studio.js';
 import {installContributions} from './contributions.js';
 import {validateInteriorView} from './view-contract.js';
 import * as THREE from './vendor/three.module.js';
@@ -87,7 +88,7 @@ async function start(){
   renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','3B araştırma modeli. Ok tuşlarıyla döndürün, artı ve eksiyle yakınlaştırın, Home ile sığdırın.');
   renderer.domElement.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const actions={ArrowLeft:()=>controls.rotateLeft(Math.PI/24),ArrowRight:()=>controls.rotateLeft(-Math.PI/24),ArrowUp:()=>controls.rotateUp(Math.PI/24),ArrowDown:()=>controls.rotateUp(-Math.PI/24),'+':()=>controls.dollyIn(.8),'-':()=>controls.dollyOut(.8),Home:()=>frame()};if(actions[e.key]){e.preventDefault();actions[e.key]();controls.update();}});
   let down;renderer.domElement.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];});renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>6)return;const r=host.getBoundingClientRect();const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);const hits=ray.intersectObjects([...objects.values()].map(o=>o.mesh).filter(m=>m.visible));const hit=hits.find(h=>(!state.cut||plane.distanceToPoint(h.point)>=0)&&!(h.object.name==='tooth'&&state.opacity<.5));if(hit){selectedStructure=hit.object.name;const d=descriptions[hit.object.name];$('#selection-title').textContent=d[0];$('#selection-description').textContent=d[1];}});
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();$('#loading').hidden=false;$('#loading').textContent='3B bağlantısı kesildi. Sayfayı yenileyin.';});
+  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError('3B görüntü bağlantısı kesildi. Modeli yeniden yükleyebilirsiniz.');});
   const render=()=>{requestAnimationFrame(render);if(document.hidden)return;controls.update();if(dirty){renderer.render(scene,camera);dirty=false;frames++;}};render();
   const catalog={research:{id:manifest.id,assets:Object.fromEntries(manifest.models.map(m=>[m.id,m.sha256]))},structures:manifest.models.map(m=>({name:m.id,label:m.label}))};
   const captureView=()=>validateInteriorView({kind:'tooth-interior',version:1,source:manifest.id,assets:catalog.research.assets,structure:selectedStructure,state,camera:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()},catalog);
@@ -96,4 +97,4 @@ async function start(){
   window.__interior=Object.freeze({captureView,restoreView,snapshot:()=>({...state,frames,source:manifest.id,reviewStatus:manifest.reviewStatus,camera:camera.position.toArray(),target:controls.target.toArray(),geometries:renderer.info.memory.geometries,layers:[...objects].map(([id,o])=>({id,visible:o.mesh.visible,cap:o.cap.visible,closed:o.closed,opacity:o.mesh.material.opacity,triangles:o.mesh.geometry.index.count/3}))})});
 }
 $('#sources').onclick=()=>$('#source-dialog').showModal();$('#close-sources').onclick=()=>$('#source-dialog').close();
-start().catch(error=>{$('#loading').textContent=error.message;document.querySelectorAll('main button,main input').forEach(e=>e.disabled=true);});
+start().catch(error=>{document.querySelectorAll('main button,main input').forEach(e=>e.disabled=true);showModelError(error.message);});
