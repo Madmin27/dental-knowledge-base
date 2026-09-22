@@ -81,3 +81,15 @@ independent. The tissue preset turns on six source nerve and eight artery surfac
 80% gingiva transparency and 85% bone transparency. Nerves/arteries retain the
 source jaw pose (separation zero); no intrapulpal/venous/capillary network is implied.
 See docs/ATLAS-QUALITY-PLAN.md for remaining student-publication acceptance work.
+
+## Root / tissue context correction
+
+The initial assembly now includes bone at the source pose (jaw separation zero).
+Gingiva transparency brings in bony context and adjusts its transparency on a
+5-percent step; the separate bone slider remains available. Whole-mouth root
+inspection cannot hide bone completely (minimum opacity 15%). No anatomy mesh
+was reshaped. A permanent explanation distinguishes layered inspection from a
+complete external mouth. The three study presets reset only display state.
+The former 15-percent gingiva / hidden-bone case is a browser regression case.
+An expert review scenario pack is in docs/EXPERT-REVIEW-PACK.md; it has not been
+signed or treated as academic acceptance.

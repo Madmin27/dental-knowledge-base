@@ -54,3 +54,17 @@ dişinin kayıtlı dış ve iç yapısını birlikte gösterebilmektir.
 "Mükemmel" etiketi yerine bu somut kabul koşulları izlenir. Kaynakta olmayan
 mikroskobik damarlar, toplardamar ağı veya yaşa/cinsiyete özgü doğruluk iddiası
 ışıklandırma, renk veya yapay geometriyle tamamlanmış sayılmaz.
+
+## Kök uçlarının açıkta görünmesi — düzeltme ve kabul
+
+Kullanıcının %15 diş eti saydamlığında bildirdiği görünüm ayrıca test edildi.
+Varsayılan artık kaynak konumunda diş–diş eti–kemik birleşimidir. Kök incelemesinde
+kemik katmanı kapatılamaz; görünürlüğü en az %15 korunur. Diş eti saydamlığı
+kemiği de kademeli saydamlaştırır; kemik sürgüsü ayrıca kullanılabilir. Bu bir
+sunum düzeltmesidir; kaynak geometrinin olası anatomik kusurlarını gidermiş sayılmaz.
+Kök kısaltma, diş eti şişirme, sahte doku, kaynaklar arası uydurma bağlantı yapılmadı.
+
+Üç yönlendirmeli inceleme adımı ve görünümün kapsamını açıklayan kalıcı metin
+eklendi. Somut uzman inceleme senaryoları ve bulgu formu:
+`docs/EXPERT-REVIEW-PACK.md`. İnsan incelemesi bekleyen maddeler işaretli kalır;
+otomatik test sayısı akademik kabulün yerine geçmez.

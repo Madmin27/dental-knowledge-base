@@ -4,10 +4,10 @@ import { RoomEnvironment } from './vendor/RoomEnvironment.js';
 
 const $ = selector => document.querySelector(selector);
 const host = $('#canvas');
-const state = {selected:16, jaw:'both', mode:'mouth', roots:false, bones:false, opening:10, gingivaOpacity:1, boneOpacity:1, nerves:false, arteries:false};
+const state = {selected:16, jaw:'both', mode:'mouth', roots:false, bones:true, opening:0, gingivaOpacity:1, boneOpacity:1, nerves:false, arteries:false};
 const names = ['','orta kesici','yan kesici','köpek dişi','birinci küçük azı','ikinci küçük azı','birinci büyük azı','ikinci büyük azı'];
 const objects = [], teeth = new Map();
-let renderer, controls, scene, camera, dirty = true, frames = 0, savedOpening = 10;
+let renderer, controls, scene, camera, dirty = true, frames = 0, savedOpening = 0;
 const upper = new THREE.Group(), lower = new THREE.Group(), isolated = new THREE.Group();
 const pointer = new THREE.Vector2(), raycaster = new THREE.Raycaster();
 const mark = () => {dirty = true;};
@@ -37,6 +37,11 @@ function removeIsolated() {
   }
 }
 function updateVisibility() {
+  // A whole-mouth root view must retain a visible bony context. No mesh is deformed.
+  if (state.mode === 'mouth' && (state.gingivaOpacity < 1 || state.nerves || state.arteries)) {
+    state.bones = true;
+    state.boneOpacity = Math.max(.15,state.boneOpacity);
+  }
   upper.visible = state.mode === 'mouth' && state.jaw !== 'lower';
   lower.visible = state.mode === 'mouth' && state.jaw !== 'upper';
   lower.position.y = -state.opening;
@@ -60,16 +65,21 @@ function updateVisibility() {
   }
   $('#gum-transparency').value = Math.round((1-state.gingivaOpacity)*100);
   $('#gum-transparency-value').textContent = `%${$('#gum-transparency').value}`;
+  $('#bones').checked = state.bones;
+  $('#bone-transparency').value = Math.round((1-state.boneOpacity)*100);
   $('#bone-transparency-value').textContent = `%${Math.round((1-state.boneOpacity)*100)}`;
   $('#bone-opacity-controls').hidden = !state.bones;
   $('#roots').checked = state.gingivaOpacity === 0;
   state.roots = state.gingivaOpacity === 0;
   for (const id of ['gum-transparency','roots','bones','bone-transparency','opening','nerves','arteries','tissue-preset']) $('#'+id).disabled = state.mode === 'tooth';
+  $('#bones').disabled = state.mode === 'tooth' || state.gingivaOpacity < 1 || state.nerves || state.arteries;
+  $('#bone-transparency').max = 85;
+  $('#study-context').textContent = state.mode === 'tooth' ? 'İzole diş: çevre dokular gösterilmiyor. Kökün dış yüzeyi incelenir.' : state.gingivaOpacity < 1 || state.boneOpacity < 1 ? 'Katman incelemesi: saydam dokuların arkasındaki kökler görünür. Pembe yüzey tüm çeneyi sarmaz; kök–kemik ilişkisini kemik katmanıyla izleyin.' : !state.bones ? 'Yalnız diş ve diş eti alt kümesi. Çene kemiği gizli; bu görünüm tam ağız anatomisi değildir.' : 'Kaynak birleşimi: dişler, diş eti ve çene kemiği birlikte. Modelin üst ve arka sınırları tam baş anatomisini içermez.';
   $('#opening').disabled = state.mode === 'tooth' || state.nerves || state.arteries;
   $('#opening-help').textContent = state.nerves || state.arteries ? 'Sinir/damar görünümünde kaynak çene konumu korunur.' : 'İnceleme için ayırma; çene hareketi simülasyonu değildir.';
   $('#tissue-legend').hidden = !(state.nerves || state.arteries) || state.mode === 'tooth';
   $('#layer-status').textContent = [state.nerves ? 'Sarı: kaynak sinir yüzeyleri' : '', state.arteries ? 'Kırmızı: kaynak atardamar yüzeyleri' : ''].filter(Boolean).join(' · ');
-  $('#gum-help').textContent = state.mode === 'tooth' ? 'Diş eti ayarı için tüm ağza dönün.' : '%0 opak · %100 gizli. Saydamlaştırınca kaynak kökleri görünür.';
+  $('#gum-help').textContent = state.mode === 'tooth' ? 'Diş eti ayarı için tüm ağza dönün.' : '%0 opak · %100 gizli. Kökleri incelerken kemik katmanı korunur; saydamlığı ayrıca ayarlanabilir.';
   $('#mode-label').textContent = state.mode === 'tooth' ? `FDI ${state.selected} / TEK DİŞ` : 'TAM AĞIZ';
   $('#view-title').textContent = state.mode === 'tooth' ? toothName(state.selected) : state.jaw === 'upper' ? 'Üst diş dizilimi' : state.jaw === 'lower' ? 'Alt diş dizilimi' : 'Kalıcı diş dizilimi';
   $('#model-status').textContent = state.mode === 'tooth' ? 'Kaynak kron ve kök yüzeyleri · iç doku yok' : `${state.jaw === 'both' ? 28 : 14} diş · kaynak modeli`;
@@ -194,9 +204,9 @@ async function start() {
     if(state.jaw==='lower'&&state.selected<30)state.selected=state.selected<20?state.selected+30:state.selected+10;
     home();
   });
-  $('#roots').onchange=e=>{state.gingivaOpacity=e.target.checked?0:1;updateVisibility();};
-  $('#gum-transparency').oninput=e=>{state.gingivaOpacity=1-Number(e.target.value)/100;updateVisibility();};
-  $('#bone-transparency').oninput=e=>{state.boneOpacity=1-Number(e.target.value)/100;updateVisibility();};
+  $('#roots').onchange=e=>{state.gingivaOpacity=e.target.checked?0:1;if(state.gingivaOpacity<1){state.bones=true;state.boneOpacity=.45;}updateVisibility();frame();};
+  $('#gum-transparency').oninput=e=>{state.gingivaOpacity=1-Number(e.target.value)/100;const needsFrame=!state.bones;state.bones=true;state.boneOpacity=1-Math.round(Number(e.target.value)*.7/5)*.05;updateVisibility();if(needsFrame)frame();};
+  $('#bone-transparency').oninput=e=>{state.boneOpacity=Math.max(.15,1-Number(e.target.value)/100);updateVisibility();};
   function tissueLayers() {
     const hadLayer = state.nerves || state.arteries;
     state.nerves = $('#nerves').checked;state.arteries = $('#arteries').checked;
@@ -210,6 +220,13 @@ async function start() {
     state.gingivaOpacity=.2;state.boneOpacity=.15;state.bones=true;$('#bones').checked=true;$('#bone-transparency').value=85;
     $('#nerves').checked=true;$('#arteries').checked=true;tissueLayers();
   };
+  function preset(kind) {
+    state.mode='mouth';removeIsolated();state.jaw='both';state.opening=0;savedOpening=0;state.nerves=false;state.arteries=false;state.bones=true;
+    state.gingivaOpacity=kind==='roots'?.25:1;state.boneOpacity=kind==='roots'?.45:1;
+    $('#nerves').checked=false;$('#arteries').checked=false;$('#opening').value=0;$('#opening-value').textContent=0;
+    updateVisibility();selection(state.selected);frame();
+  }
+  $('#source-preset').onclick=()=>preset('source');$('#root-preset').onclick=()=>preset('roots');
   $('#bones').onchange=e=>{state.bones=e.target.checked;updateVisibility();if(state.mode==='mouth')frame();};
   $('#opening').oninput=e=>{state.opening=Number(e.target.value);$('#opening-value').textContent=state.opening;updateVisibility();};
   $('#focus').onclick=focusTooth;$('#detail').onclick=focusTooth;$('#home').onclick=home;$('#reset').onclick=()=>frame();

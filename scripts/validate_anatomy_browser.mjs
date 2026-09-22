@@ -17,7 +17,7 @@ const snap=()=>ev('__anatomy.snapshot()');
 const shot=async name=>writeFile(output+'/'+name+'.png',Buffer.from((await call('Page.captureScreenshot')).data,'base64'));
 await call('Runtime.enable');await call('Page.enable');await call('Emulation.setDeviceMetricsOverride',{width:1600,height:1000,deviceScaleFactor:1,mobile:false});
 await call('Page.navigate',{url:target});await wait('window.__anatomy?.snapshot().frames>0');await sleep(1500);
-assert.equal((await snap()).visibleTeeth,28);assert.equal((await snap()).pulpAvailable,false);passed.push('28 source teeth; no invented pulp');await shot('mouth-final');
+assert.equal((await snap()).visibleTeeth,28);assert.equal((await snap()).pulpAvailable,false);assert.equal((await snap()).bones,true);assert.equal((await snap()).opening,0);passed.push('28 source teeth; no invented pulp');await shot('mouth-final');
 await click('[data-view="front"]');const point=await ev('__anatomy.project(11)');
 await call('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',clickCount:1});
 assert.equal((await snap()).selected,11);passed.push('raycast source tooth selection');
@@ -44,12 +44,17 @@ for(const value of [25,60,100,0]){
 }
 passed.push('gum transparency 0/25/60/100 and opaque restoration');
 await slider('gum-transparency',65);await shot('transparent-roots');
-await click('#tissue-preset');let layers=await snap();assert.equal(layers.visibleNerves,6);assert.equal(layers.visibleArteries,8);assert.equal(layers.opening,0);assert.equal(layers.gingivaOpacity,.2);assert.equal(layers.boneOpacity,.15);
+await slider('opening',10);await click('#tissue-preset');let layers=await snap();assert.equal(layers.visibleNerves,6);assert.equal(layers.visibleArteries,8);assert.equal(layers.opening,0);assert.equal(layers.gingivaOpacity,.2);assert.equal(layers.boneOpacity,.15);
 assert.equal(await ev('document.getElementById("opening").disabled'),true);await shot('neurovascular');passed.push('source nerve/artery preset and locked source pose');
 await click('[data-jaw="lower"]');layers=await snap();assert.equal(layers.visibleNerves,4);assert.equal(layers.visibleArteries,4);await shot('lower-tissues');
 await click('[data-jaw="upper"]');layers=await snap();assert.equal(layers.visibleNerves,2);assert.equal(layers.visibleArteries,4);passed.push('upper/lower source tissue filtering');
 await click('#focus');assert.equal((await snap()).visibleNerves,0);assert.equal(await ev('document.getElementById("gum-transparency").disabled'),true);await click('#home');assert.equal((await snap()).visibleNerves,2);passed.push('isolated tooth excludes unrelated tissue surfaces');
 await click('#nerves');await click('#arteries');assert.equal((await snap()).opening,10);passed.push('source pose restores previous jaw separation');
 await click('[data-jaw="both"]');await click('#tissue-preset');await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await sleep(300);assert.ok(await ev('document.documentElement.scrollWidth<=innerWidth'));await shot('mobile-tissues');passed.push('mobile transparency controls and legend');
+await call('Emulation.setDeviceMetricsOverride',{width:1600,height:1000,deviceScaleFactor:1,mobile:false});await click('#source-preset');
+assert.equal((await snap()).gingivaOpacity,1);assert.equal((await snap()).boneOpacity,1);assert.equal((await snap()).opening,0);assert.equal((await snap()).visibleNerves,0);await shot('source-context');
+await slider('gum-transparency',15);assert.equal((await snap()).bones,true);assert.equal(await ev('document.getElementById("bones").disabled'),true);assert.ok((await snap()).boneOpacity>.8);await shot('reported-15-percent');passed.push('reported 15-percent case retains bone context');
+await click('#root-preset');assert.equal((await snap()).bones,true);assert.equal((await snap()).boneOpacity,.45);assert.equal((await snap()).gingivaOpacity,.25);await shot('root-context');passed.push('guided source and root inspection preserves source geometry');
+await slider('bone-transparency',100);assert.ok((await snap()).boneOpacity>=.15);passed.push('bone context cannot disappear in whole-mouth root inspection');
 assert.equal(errors.length,0);passed.push('no runtime exceptions');
 await writeFile(output+'/browser-result.json',JSON.stringify({passed,gpu,errors,final:await snap()},null,2));console.log(JSON.stringify({passed,gpu,errors}));ws.close();
