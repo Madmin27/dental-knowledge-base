@@ -1,5 +1,5 @@
 [Unit]
-Description=DentalKnowledgeBase synthetic preview
+Description=DentalKnowledgeBase anatomy and contribution preview
 After=network-online.target
 Wants=network-online.target
 
@@ -13,6 +13,11 @@ BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/packages/rights:/srv/dental
 ExecStart=/usr/bin/node /srv/dental-preview/apps/preview/server.mjs
 Environment=PREVIEW_PORT=3057
 Environment=PREVIEW_HOST=192.168.1.192
+Environment=PREVIEW_ORIGIN=http://192.168.1.192:3057
+Environment=CONTRIBUTIONS_DIR=/var/lib/dental-preview/contributions
+StateDirectory=dental-preview
+StateDirectoryMode=0700
+LoadCredential=moderator.key:/etc/dental-preview/moderator.key
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=yes

@@ -1,3 +1,5 @@
+import {validateView} from './view-contract.js';
+import {installContributions} from './contributions.js';
 import * as THREE from './vendor/three.module.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { RoomEnvironment } from './vendor/RoomEnvironment.js';
@@ -7,6 +9,7 @@ const host = $('#canvas');
 const state = {selected:16, jaw:'both', mode:'mouth', roots:false, bones:true, opening:0, gingivaOpacity:1, boneOpacity:1, nerves:false, arteries:false};
 const names = ['','orta kesici','yan kesici','köpek dişi','birinci küçük azı','ikinci küçük azı','birinci büyük azı','ikinci büyük azı'];
 const objects = [], teeth = new Map();
+let selectedStructure;
 let renderer, controls, scene, camera, dirty = true, frames = 0, savedOpening = 0;
 const upper = new THREE.Group(), lower = new THREE.Group(), isolated = new THREE.Group();
 const pointer = new THREE.Vector2(), raycaster = new THREE.Raycaster();
@@ -18,6 +21,7 @@ function toothName(fdi) {
 function selection(fdi) {
   if (!teeth.has(fdi)) return;
   state.selected = fdi;
+  selectedStructure=teeth.get(fdi).name;
   $('#fdi').textContent = fdi;
   $('#tooth-name').textContent = toothName(fdi);
   $('#selected-label').textContent = `${fdi} · ${toothName(fdi)}`;
@@ -194,7 +198,7 @@ async function start() {
     const candidates=objects.filter(o=>o.visible&&o.parent.visible && !(o.userData.kind==='gingiva'&&state.gingivaOpacity<1) && !(o.userData.kind==='bone'&&state.boneOpacity<1));
     const hit=raycaster.intersectObjects(candidates,false).find(h=>h.object.material[h.face.materialIndex]?.visible);
     if(hit?.object.userData.fdi)selection(hit.object.userData.fdi);
-    else if(hit?.object.userData.label) $('#selected-label').textContent=hit.object.userData.label+' · kaynak yüzeyi';
+    else if(hit?.object.name){selectedStructure=hit.object.name;$('#selected-label').textContent=(hit.object.userData.label??hit.object.name)+' · kaynak yüzeyi';}
   });
   renderer.domElement.addEventListener('dblclick',focusTooth);
   renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();$('#loading').hidden=false;$('#loading').textContent='3B görüntü bağlantısı kesildi. Sayfayı yenileyin.';});
@@ -233,9 +237,23 @@ async function start() {
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>frame(b.dataset.view));
   $('#zoom-in').onclick=()=>{controls.dollyIn(1/1.25);controls.update();};
   $('#zoom-out').onclick=()=>{controls.dollyOut(1/1.25);controls.update();};
-  document.addEventListener('keydown',e=>{if($('#source-dialog').open||['INPUT','BUTTON'].includes(e.target.tagName))return;if(e.key==='Escape')home();if(e.key.toLowerCase()==='f')focusTooth();if(e.key.toLowerCase()==='r')frame();});
+  document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||['INPUT','BUTTON','TEXTAREA','SELECT'].includes(e.target.tagName))return;if(e.key==='Escape')home();if(e.key.toLowerCase()==='f')focusTooth();if(e.key.toLowerCase()==='r')frame();});
   const loop = () => {requestAnimationFrame(loop);if(document.hidden)return;controls.update();if(dirty){renderer.render(scene,camera);frames++;dirty=false;}};loop();
-  window.__anatomy = Object.freeze({snapshot:()=>({...state,frames,teeth:teeth.size,visibleTeeth:objects.filter(o=>o.userData.fdi&&o.visible&&o.parent.visible).length,triangles:renderer.info.render.triangles,geometryMemory:renderer.info.memory.geometries,camera:camera.position.toArray(),source:'Z-Anatomy',pulpAvailable:false,visibleNerves:objects.filter(o=>o.userData.kind==='nerve'&&o.visible&&o.parent.visible).length,visibleArteries:objects.filter(o=>o.userData.kind==='artery'&&o.visible&&o.parent.visible).length,gingiva:objects.filter(o=>o.userData.kind==='gingiva').map(o=>({visible:o.visible,opacity:o.material[0].opacity,depthWrite:o.material[0].depthWrite,castShadow:o.castShadow}))}),project:fdi=>{const m=teeth.get(fdi);const p=new THREE.Vector3();const g=m.userData.groups.find(g=>g.material.startsWith('Teeth.')&&!g.material.includes('roots'));const indices=m.geometry.index.array,positions=m.geometry.attributes.position;const ids=new Set(indices.slice(g.start,g.start+g.count));for(const i of ids)p.add(new THREE.Vector3().fromBufferAttribute(positions,i));p.divideScalar(ids.size);m.localToWorld(p);p.project(camera);const r=host.getBoundingClientRect();return{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};}});
+  const catalog={assets:{dentition:manifest.binarySha256,neurovascular:extra.binarySha256},teeth:[...teeth.keys()],structures:[...manifest.structures,...extra.structures].map(s=>({name:s.name,label:s.fdi?toothName(s.fdi):(s.label??s.name),fdi:s.fdi??null}))};
+  const captureView=()=>validateView({version:1,assets:catalog.assets,structure:selectedStructure,state,camera:camera.position.toArray(),target:controls.target.toArray()},catalog);
+  function restoreView(value) {
+    const view=validateView(value,catalog);
+    Object.assign(state,view.state);removeIsolated();
+    if(state.mode==='tooth')focusTooth();else {updateVisibility();selection(state.selected);frame();}
+    selectedStructure=view.structure;
+    $('#selected-label').textContent=catalog.structures.find(x=>x.name===view.structure).label;
+    $('#nerves').checked=state.nerves;$('#arteries').checked=state.arteries;
+    $('#opening').value=state.opening;$('#opening-value').textContent=state.opening;savedOpening=0;
+    controls.enableDamping=false;controls.update();
+    camera.position.fromArray(view.camera);controls.target.fromArray(view.target);controls.update();controls.enableDamping=true;mark();
+  }
+  installContributions({captureView,restoreView,catalog});
+  window.__anatomy = Object.freeze({captureView,restoreView,snapshot:()=>({...state,frames,teeth:teeth.size,visibleTeeth:objects.filter(o=>o.userData.fdi&&o.visible&&o.parent.visible).length,triangles:renderer.info.render.triangles,geometryMemory:renderer.info.memory.geometries,camera:camera.position.toArray(),source:'Z-Anatomy',pulpAvailable:false,visibleNerves:objects.filter(o=>o.userData.kind==='nerve'&&o.visible&&o.parent.visible).length,visibleArteries:objects.filter(o=>o.userData.kind==='artery'&&o.visible&&o.parent.visible).length,gingiva:objects.filter(o=>o.userData.kind==='gingiva').map(o=>({visible:o.visible,opacity:o.material[0].opacity,depthWrite:o.material[0].depthWrite,castShadow:o.castShadow}))}),project:fdi=>{const m=teeth.get(fdi);const p=new THREE.Vector3();const g=m.userData.groups.find(g=>g.material.startsWith('Teeth.')&&!g.material.includes('roots'));const indices=m.geometry.index.array,positions=m.geometry.attributes.position;const ids=new Set(indices.slice(g.start,g.start+g.count));for(const i of ids)p.add(new THREE.Vector3().fromBufferAttribute(positions,i));p.divideScalar(ids.size);m.localToWorld(p);p.project(camera);const r=host.getBoundingClientRect();return{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};}});
 }
 $('#sources').onclick=()=>$('#source-dialog').showModal();$('#close-sources').onclick=()=>$('#source-dialog').close();
 start().catch(error=>{console.error(error);$('#loading').hidden=false;$('#loading').textContent='3B model açılamadı. WebGL destekli güncel bir tarayıcıyla yeniden deneyin.';});

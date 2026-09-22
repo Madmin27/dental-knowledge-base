@@ -93,3 +93,7 @@ complete external mouth. The three study presets reset only display state.
 The former 15-percent gingiva / hidden-bone case is a browser regression case.
 An expert review scenario pack is in docs/EXPERT-REVIEW-PACK.md; it has not been
 signed or treated as academic acceptance.
+
+## Atlas katkı kuyruğu
+
+Üst menüde **Katkıda bulun**: sürümlü yapı/görünümle bildirim, özel takip, ek açıklama, bakımcı geçmişi. Kurulum, bakımcı CLI, gizlilik ve yedek: [katkı rehberi](../../docs/CONTRIBUTING-ATLAS.md). Ayrı StateDirectory ve systemd credential gerekir; yapılandırılmadığında katkı yazımı kapalıdır. Akademik kabul/yayın yetkisi vermez.

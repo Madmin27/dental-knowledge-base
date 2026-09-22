@@ -68,3 +68,12 @@ Kök kısaltma, diş eti şişirme, sahte doku, kaynaklar arası uydurma bağlan
 eklendi. Somut uzman inceleme senaryoları ve bulgu formu:
 `docs/EXPERT-REVIEW-PACK.md`. İnsan incelemesi bekleyen maddeler işaretli kalır;
 otomatik test sayısı akademik kabulün yerine geçmez.
+
+## 2026-09-22 — İnceleyenlerin katkısı
+
+- Tamamlandı: yapı ve model sürümüne bağlı özel katkı formu, kamera/katman kaydı,
+  takip bağlantısı, ek kanıt, bakımcı ön inceleme geçmişi, gizlilik kaldırma ve
+  doğrulanabilir yerel yedek aracı. Rehber: `docs/CONTRIBUTING-ATLAS.md`.
+- Ayrı kabul gerektirir: isimli anatomi uzmanı değerlendirmesi, eksik iç doku
+  kaynakları, canonical Issue import/yetki denetimi (CONTRIB-001), halka açık
+  HTTPS/hesap/abuse/off-site yedek hazırlığı (CONTRIB-002). ADR0005 sınırları geçerli.
