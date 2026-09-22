@@ -16,8 +16,8 @@ jobs:
         run: python3 scripts/check_clinical_data.py
       - name: Synthetic guard tests
         run: python3 -m unittest discover -s tests -v
-      - name: Domain tests
-        run: node tests/domain.test.mjs && node tests/rights.test.mjs && node tests/preview.test.mjs && node tests/atlas.test.mjs && node tests/anatomy-source.test.mjs && node tests/contributions.test.mjs && node tests/anatomical-review.test.mjs && node tests/interior.test.mjs
+      - name: Application and viewer runtime tests
+        run: npm test
 
   database:
     runs-on: ubuntu-latest

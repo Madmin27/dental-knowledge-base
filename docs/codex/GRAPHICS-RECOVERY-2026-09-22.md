@@ -1,7 +1,8 @@
 # Reported MATE Chromium model-start failure
 
 User reported the generic startup error on MATE Chromium after the studio revision.
-The root cause in that user's browser session has not yet been established.
+The follow-up desktop test reproduced a Chrome WebGL2 blocklist failure in the
+MATE/XRDP session; the user subsequently confirmed the atlas opens on another PC.
 
 ## Evidence
 
@@ -30,5 +31,14 @@ uncaught exceptions. Browser faults were locally injected, not service faults.
 
 Proof: `/tmp/dkb-load-fix/proof/`; logs: `/tmp/dkb-load-fix/`.
 Installed `dental-preview.service` restarted on the unchanged LAN address; health
-reported OK with both contributions and interior enabled. User's MATE session
-confirmation remains pending. No claim that GPU policy can be bypassed by this fix.
+reported OK with both contributions and interior enabled. The MATE-specific blocklist is not fixed by these application changes. No claim
+that GPU policy can be bypassed by this fix.
+
+## Follow-up desktop evidence
+
+A separate Google Chrome profile on the same MATE/XRDP display reproduced
+`ContextResult::kFatalFailure: WebGL2 blocklisted`. `glxinfo -B` reported Mesa
+llvmpipe, without hardware acceleration. Explicit ANGLE OpenGL selection did not
+resolve that blocklist. Existing browser profiles and GPU policies were not changed.
+The user confirmed successful access from another PC; this is functional access
+confirmation, not anatomical or academic acceptance.
