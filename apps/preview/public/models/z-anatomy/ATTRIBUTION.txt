@@ -1,0 +1,28 @@
+Dental subset of Z-Anatomy / BodyParts3D — engineering candidate
+
+BodyParts3D - The Database Center for Life Science - CC-BY-SA 2.1 Japan
+https://lifesciencedb.jp/bp3d/
+https://creativecommons.org/licenses/by-sa/2.1/jp/
+Z-Anatomy - The open source atlas of anatomy - CC-BY-SA 4.0
+https://www.z-anatomy.com/
+https://creativecommons.org/licenses/by-sa/4.0/
+FBX distribution: Lluís Vinent Juanico, Z-Anatomy PC-Version
+https://github.com/LluisV/Z-Anatomy/tree/6c7f9016bd5899ac8edafd31b9900c151df42ed6/Resources/Models
+
+Derivative by DentalKnowledgeBase, 2026-09-22, under CC BY-SA 4.0.
+28 teeth, 3 disconnected gingiva components, mandible and 2 maxilla components.
+Only named dental structures extracted. No inner ear, kidney or neural structures.
+Changes: subset extraction, rigid coordinate conversion and uniform unit scale,
+one Catmull-Clark subdivision for presentation, smooth normals, separate loose
+gingiva components, binary format, display materials. Jaw separation in the viewer
+is an illustrative translation and NOT a physiological movement simulation.
+
+The model has no third molars, pulp, canals or separate enamel/dentin volumes.
+Do not interpret external crown/root material boundaries as volumetric segmentation.
+No verified age/sex cohort, dimensional accuracy or expert approval is claimed.
+The authors have not endorsed this adaptation. Original source notice included.
+
+The manifest records source SHA-256 hashes, source URLs, revision and transformations.
+Both derivative binary and manifest are downloadable without DRM.
+CC license covers this anatomical derivative, not unrelated application code.
+This engineering assessment is not a persisted rights approval or academic release.

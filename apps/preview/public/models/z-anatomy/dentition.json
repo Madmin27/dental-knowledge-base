@@ -1,0 +1,1219 @@
+{
+  "format": "dkb-mesh-v1",
+  "license": "CC-BY-SA-4.0",
+  "upstream": "BodyParts3D / Z-Anatomy",
+  "sourceRevision": "6c7f9016bd5899ac8edafd31b9900c151df42ed6",
+  "displayUnits": "source metres converted to millimetres; not for measurement",
+  "structures": [
+    {
+      "name": "Gingiva",
+      "fdi": null,
+      "kind": "gingiva",
+      "jaw": "upper",
+      "positions": {
+        "offset": 0,
+        "count": 74550,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 298200,
+        "count": 74550,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 596400,
+        "count": 149088,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 149088,
+          "material": "Mucosa"
+        }
+      ]
+    },
+    {
+      "name": "Gingiva.001",
+      "fdi": null,
+      "kind": "gingiva",
+      "jaw": "upper",
+      "positions": {
+        "offset": 1192752,
+        "count": 990,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1196712,
+        "count": 990,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1200672,
+        "count": 1968,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 1968,
+          "material": "Mucosa"
+        }
+      ]
+    },
+    {
+      "name": "Gingiva.002",
+      "fdi": null,
+      "kind": "gingiva",
+      "jaw": "lower",
+      "positions": {
+        "offset": 1208544,
+        "count": 72054,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 1496760,
+        "count": 72054,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 1784976,
+        "count": 144096,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 144096,
+          "material": "Mucosa"
+        }
+      ]
+    },
+    {
+      "name": "Lower canine.l",
+      "fdi": 33,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 2361360,
+        "count": 11490,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 2407320,
+        "count": 11490,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 2453280,
+        "count": 22968,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 11232,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 11232,
+          "count": 11736,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower canine.r",
+      "fdi": 43,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 2545152,
+        "count": 11490,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 2591112,
+        "count": 11490,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 2637072,
+        "count": 22968,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 11232,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 11232,
+          "count": 11736,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower first molar tooth.l",
+      "fdi": 36,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 2728944,
+        "count": 40392,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 2890512,
+        "count": 40392,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 3052080,
+        "count": 80748,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 32268,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 32268,
+          "count": 16764,
+          "material": "Teeth-roots.001"
+        },
+        {
+          "start": 49032,
+          "count": 31716,
+          "material": "Dentine.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower first molar tooth.r",
+      "fdi": 46,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 3375072,
+        "count": 40392,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 3536640,
+        "count": 40392,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 3698208,
+        "count": 80748,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 32268,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 32268,
+          "count": 16764,
+          "material": "Teeth-roots.001"
+        },
+        {
+          "start": 49032,
+          "count": 31716,
+          "material": "Dentine.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower first premolar.l",
+      "fdi": 34,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 4021200,
+        "count": 10914,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 4064856,
+        "count": 10914,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 4108512,
+        "count": 21816,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 13206,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 13206,
+          "count": 8610,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower first premolar.r",
+      "fdi": 44,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 4195776,
+        "count": 10914,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 4239432,
+        "count": 10914,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 4283088,
+        "count": 21816,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 13206,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 13206,
+          "count": 8610,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower lateral incisor.l",
+      "fdi": 32,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 4370352,
+        "count": 9324,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 4407648,
+        "count": 9324,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 4444944,
+        "count": 18636,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 10014,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 10014,
+          "count": 8622,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower lateral incisor.r",
+      "fdi": 42,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 4519488,
+        "count": 9324,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 4556784,
+        "count": 9324,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 4594080,
+        "count": 18636,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 10014,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 10014,
+          "count": 8622,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower medial incisor.l",
+      "fdi": 31,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 4668624,
+        "count": 8862,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 4704072,
+        "count": 8862,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 4739520,
+        "count": 17712,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 8712,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 8712,
+          "count": 9000,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower medial incisor.r",
+      "fdi": 41,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 4810368,
+        "count": 8862,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 4845816,
+        "count": 8862,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 4881264,
+        "count": 17712,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 8712,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 8712,
+          "count": 9000,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower second molar tooth.l",
+      "fdi": 37,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 4952112,
+        "count": 14964,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 5011968,
+        "count": 14964,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 5071824,
+        "count": 29916,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 15648,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 15648,
+          "count": 14268,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower second molar tooth.r",
+      "fdi": 47,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 5191488,
+        "count": 14964,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 5251344,
+        "count": 14964,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 5311200,
+        "count": 29916,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 15648,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 15648,
+          "count": 14268,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower second premolar.l",
+      "fdi": 35,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 5430864,
+        "count": 10626,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 5473368,
+        "count": 10626,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 5515872,
+        "count": 21240,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 13104,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 13104,
+          "count": 8136,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Lower second premolar.r",
+      "fdi": 45,
+      "kind": "tooth",
+      "jaw": "lower",
+      "positions": {
+        "offset": 5600832,
+        "count": 10626,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 5643336,
+        "count": 10626,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 5685840,
+        "count": 21240,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 13104,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 13104,
+          "count": 8136,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Mandible",
+      "fdi": null,
+      "kind": "bone",
+      "jaw": "lower",
+      "positions": {
+        "offset": 5770800,
+        "count": 169350,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 6448200,
+        "count": 169350,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 7125600,
+        "count": 339012,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 137070,
+          "material": "Suture-1.001"
+        },
+        {
+          "start": 137070,
+          "count": 2304,
+          "material": "Cartilage.001"
+        },
+        {
+          "start": 139374,
+          "count": 199638,
+          "material": "Bone.001"
+        }
+      ]
+    },
+    {
+      "name": "Maxilla.l",
+      "fdi": null,
+      "kind": "bone",
+      "jaw": "upper",
+      "positions": {
+        "offset": 8481648,
+        "count": 43182,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 8654376,
+        "count": 43182,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 8827104,
+        "count": 86364,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 414,
+          "material": "Suture-2.001"
+        },
+        {
+          "start": 414,
+          "count": 2538,
+          "material": "Suture-3.001"
+        },
+        {
+          "start": 2952,
+          "count": 2772,
+          "material": "Suture-4.001"
+        },
+        {
+          "start": 5724,
+          "count": 810,
+          "material": "Suture-6.001"
+        },
+        {
+          "start": 6534,
+          "count": 2538,
+          "material": "Suture-7.001"
+        },
+        {
+          "start": 9072,
+          "count": 3294,
+          "material": "Suture-5.001"
+        },
+        {
+          "start": 12366,
+          "count": 46530,
+          "material": "Bone-5.001"
+        },
+        {
+          "start": 58896,
+          "count": 27468,
+          "material": "Suture.001"
+        }
+      ]
+    },
+    {
+      "name": "Maxilla.r",
+      "fdi": null,
+      "kind": "bone",
+      "jaw": "upper",
+      "positions": {
+        "offset": 9172560,
+        "count": 43182,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 9345288,
+        "count": 43182,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 9518016,
+        "count": 86364,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 414,
+          "material": "Suture-2.001"
+        },
+        {
+          "start": 414,
+          "count": 2538,
+          "material": "Suture-3.001"
+        },
+        {
+          "start": 2952,
+          "count": 2772,
+          "material": "Suture-4.001"
+        },
+        {
+          "start": 5724,
+          "count": 810,
+          "material": "Suture-6.001"
+        },
+        {
+          "start": 6534,
+          "count": 2538,
+          "material": "Suture-7.001"
+        },
+        {
+          "start": 9072,
+          "count": 3294,
+          "material": "Suture-5.001"
+        },
+        {
+          "start": 12366,
+          "count": 46530,
+          "material": "Bone-5.001"
+        },
+        {
+          "start": 58896,
+          "count": 27468,
+          "material": "Suture.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper canine.l",
+      "fdi": 23,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 9863472,
+        "count": 13020,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 9915552,
+        "count": 13020,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 9967632,
+        "count": 26028,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 14316,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 14316,
+          "count": 11712,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper canine.r",
+      "fdi": 13,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 10071744,
+        "count": 13020,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 10123824,
+        "count": 13020,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 10175904,
+        "count": 26028,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 14316,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 14316,
+          "count": 11712,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper first molar tooth.l",
+      "fdi": 26,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 10280016,
+        "count": 19542,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 10358184,
+        "count": 19542,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 10436352,
+        "count": 39072,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 18528,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 18528,
+          "count": 20544,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper first molar tooth.r",
+      "fdi": 16,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 10592640,
+        "count": 19542,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 10670808,
+        "count": 19542,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 10748976,
+        "count": 39072,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 18528,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 18528,
+          "count": 20544,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper first premolar.l",
+      "fdi": 24,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 10905264,
+        "count": 14964,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 10965120,
+        "count": 14964,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 11024976,
+        "count": 29916,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 13914,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 13914,
+          "count": 16002,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper first premolar.r",
+      "fdi": 14,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 11144640,
+        "count": 14964,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 11204496,
+        "count": 14964,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 11264352,
+        "count": 29916,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 13914,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 13914,
+          "count": 16002,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper lateral incisor.l",
+      "fdi": 22,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 11384016,
+        "count": 12798,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 11435208,
+        "count": 12798,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 11486400,
+        "count": 25584,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 14760,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 14760,
+          "count": 10824,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper lateral incisor.r",
+      "fdi": 12,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 11588736,
+        "count": 12798,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 11639928,
+        "count": 12798,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 11691120,
+        "count": 25584,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 14760,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 14760,
+          "count": 10824,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper medial incisor.l",
+      "fdi": 21,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 11793456,
+        "count": 12318,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 11842728,
+        "count": 12318,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 11892000,
+        "count": 24624,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 16074,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 16074,
+          "count": 8550,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper medial incisor.r",
+      "fdi": 11,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 11990496,
+        "count": 12318,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 12039768,
+        "count": 12318,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 12089040,
+        "count": 24624,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 16074,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 16074,
+          "count": 8550,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper second molar tooth.l",
+      "fdi": 27,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 12187536,
+        "count": 16596,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 12253920,
+        "count": 16596,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 12320304,
+        "count": 33180,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 13416,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 13416,
+          "count": 19764,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper second molar tooth.r",
+      "fdi": 17,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 12453024,
+        "count": 16596,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 12519408,
+        "count": 16596,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 12585792,
+        "count": 33180,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 13416,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 13416,
+          "count": 19764,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper second premolar.l",
+      "fdi": 25,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 12718512,
+        "count": 13734,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 12773448,
+        "count": 13734,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 12828384,
+        "count": 27456,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 11844,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 11844,
+          "count": 15612,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    },
+    {
+      "name": "Upper second premolar.r",
+      "fdi": 15,
+      "kind": "tooth",
+      "jaw": "upper",
+      "positions": {
+        "offset": 12938208,
+        "count": 13734,
+        "type": "f"
+      },
+      "normals": {
+        "offset": 12993144,
+        "count": 13734,
+        "type": "f"
+      },
+      "indices": {
+        "offset": 13048080,
+        "count": 27456,
+        "type": "I"
+      },
+      "groups": [
+        {
+          "start": 0,
+          "count": 11844,
+          "material": "Teeth.001"
+        },
+        {
+          "start": 11844,
+          "count": 15612,
+          "material": "Teeth-roots.001"
+        }
+      ]
+    }
+  ],
+  "missing": [
+    "third molars",
+    "pulp",
+    "canals",
+    "separate enamel/dentin volumes"
+  ],
+  "changes": [
+    "dental subset extraction",
+    "rigid coordinate transform and metre-to-millimetre conversion",
+    "one Catmull-Clark subdivision for presentation",
+    "smooth normals",
+    "separate loose gingiva components",
+    "binary packing"
+  ],
+  "sourceFiles": [
+    {
+      "name": "SkeletalSystem100.fbx",
+      "sha256": "294a649765cd060a62a4095da52b9c8ef2d97769aa447e196448aa5f7d596dea",
+      "url": "https://raw.githubusercontent.com/LluisV/Z-Anatomy/6c7f9016bd5899ac8edafd31b9900c151df42ed6/Resources/Models/FBX/SkeletalSystem100.fbx"
+    },
+    {
+      "name": "VisceralSystem100.fbx",
+      "sha256": "22b301c93327929c9a14ee582d1848b550a950376e221a6d1078c7256bb83d0e",
+      "url": "https://raw.githubusercontent.com/LluisV/Z-Anatomy/6c7f9016bd5899ac8edafd31b9900c151df42ed6/Resources/Models/FBX/VisceralSystem100.fbx"
+    }
+  ],
+  "binarySha256": "71d3e99887a901f7ec1191e000f2eef18b13b63531b32f806b06ef8513c486fd",
+  "publicationStatus": "local engineering candidate; no academic or persisted rights approval"
+}

@@ -1,30 +1,35 @@
-# Interactive atlas and synthetic preview
+# Source anatomy candidate and rights preview
 
-The landing route `/` now serves the schematic 3D atlas. The previous status and
-rights-scenario screen remains at `/overview`. See ADR 0003 and the atlas research
-report for sources, limitations, tests and rollback. Geometry is generated locally;
-no clinical scan or actual age/sex-specific source has been ingested. The target
-persona (male in his thirties) is distinct from the generic adult model displayed.
+The landing route `/` (also `/anatomy`) now uses a pinned Z-Anatomy dental subset
+extracted in Blender: 28 teeth, gingiva and jaw bones. The procedural atlas was
+rejected for visual quality; ADR0004 supersedes its use as the landing screen.
+The previous status/rights screen stays at `/overview`.
 
-## Atlas verification
+This source has no pulp/canal volumes, no third molars and no independently
+verified 30s-male demographic. The viewer does not invent them. Local engineering
+candidate, not an approved student release. See docs/assets/Z-ANATOMY-REVIEW.md
+and docs/research/REALISM-RECOVERY-2026-09-22.md.
 
-`npm test` runs the domain, rights, HTTP preview and atlas geometry suites.
-`node scripts/vendor-three.mjs` refreshes local browser files from the exact
-Three.js dependency; its MIT license is retained alongside them.
+`npm test` includes source hash, geometry, FDI, license distribution and HTTP
+checks alongside the existing suites. `node scripts/vendor-three.mjs` refreshes
+pinned local Three.js, OrbitControls and RoomEnvironment with its MIT license.
 
-For browser replay, open the preview in a separate Chrome instance with remote
-debugging enabled. Pass its local debugging endpoint, preview URL and proof
-directory (Node 20 needs the experimental WebSocket flag):
+Model conversion is reproducible from hash-checked external source files:
 
 ```sh
-node --experimental-websocket scripts/validate_atlas_browser.mjs \
-  http://127.0.0.1:9222 http://192.168.1.192:3057/ /tmp/dkb-atlas-proof
+blender -b --threads 2 --python scripts/assets/build_z_anatomy.py -- SOURCE_DIR OUTPUT_DIR
 ```
 
-The replay exercises 15 flows and writes screenshots and browser-result.json.
-Mobile emulation verifies interaction/layout, not physical-device performance
-or anatomical correctness. Keep the debugging endpoint local and close that
-test browser after verification.
+With a separate local debugging Chrome instance open to the preview, replay the
+source-model browser checks (Node 20 requires the WebSocket flag):
+
+```sh
+node --experimental-websocket scripts/validate_anatomy_browser.mjs \
+  http://127.0.0.1:9222 http://192.168.1.192:3057/ /tmp/dkb-anatomy-proof
+```
+
+Browser emulation is not physical-device performance or academic verification.
+Close the isolated debugging browser after validation.
 
 ## Previous rights-scenario preview
 
@@ -34,7 +39,8 @@ only six fixed scenario IDs, uses synthetic in-memory fixtures, and imports the
 real rights gate. The synthetic review registry recognizes only the locally
 constructed fixture digest; it cannot grant rights to a caller-provided record.
 
-No database, `.env`, uploads, assets, filesystem browsing or external AI calls.
+No database, `.env`, uploads, filesystem browsing or external AI calls.
+Only the named reviewed-source anatomy files are allowlisted for local preview.
 `/health` explicitly reports `databaseConnected: false`. Only GET is supported;
 static files are allowlisted. The 64-test figure on the page is a dated TASK-004
 verification record, not a real-time CI indicator. Two additional preview tests

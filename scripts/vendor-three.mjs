@@ -6,3 +6,6 @@ for(const name of ['three.module.js','three.core.js']) await copyFile(new URL('b
 await copyFile(new URL('LICENSE',src),new URL('THREE-LICENSE.txt',dest));
 const orbit=await readFile(new URL('examples/jsm/controls/OrbitControls.js',src),'utf8');
 await writeFile(new URL('OrbitControls.js',dest),orbit.replace("from 'three'","from './three.module.js'"));
+
+const room=await readFile(new URL('examples/jsm/environments/RoomEnvironment.js',src),'utf8');
+await writeFile(new URL('RoomEnvironment.js',dest),room.replace("from 'three'","from './three.module.js'"));
