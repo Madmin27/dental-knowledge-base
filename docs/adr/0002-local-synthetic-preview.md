@@ -20,3 +20,11 @@ code directories mounted read-only. No DB/environment credentials are available.
 The preview may be removed when the actual application becomes ready. It does not
 constitute production publication, clinical validation, TASK-010 completion or an
 approved asset release.
+
+## LAN access amendment — 2026-09-22
+
+The user requested access from another browser on the same LAN. The installed
+service now binds 192.168.1.192:3057; UFW allows 192.168.1.0/24 and denies other
+sources on that port. No router forwarding or public hostname is configured.
+Standalone invocation still defaults to localhost. Synthetic-only and isolated
+runtime boundaries remain unchanged.

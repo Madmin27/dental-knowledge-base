@@ -1,3 +1,4 @@
+import {isIP} from 'node:net';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -29,5 +30,7 @@ export function previewServer() {
 if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const port=Number(process.env.PREVIEW_PORT ?? 3057);
   if(!Number.isInteger(port)||port<1024||port>65535) throw new Error('Invalid preview port');
-  previewServer().listen(port,'127.0.0.1',()=>console.log(`Dental preview http://127.0.0.1:${port}`));
+  const host=process.env.PREVIEW_HOST ?? '127.0.0.1';
+  if(isIP(host)!==4 || host==='0.0.0.0') throw new Error('A specific IPv4 preview address is required');
+  previewServer().listen(port,host,()=>console.log(`Dental preview http://${host}:${port}`));
 }

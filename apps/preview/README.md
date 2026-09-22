@@ -17,9 +17,11 @@ node apps/preview/server.mjs
 node tests/preview.test.mjs
 ```
 
-The server binds **127.0.0.1:3057**. For remote SSH development in VS Code, open the
-Ports panel, forward port 3057, then choose Open in Browser. Use the local address
-VS Code assigns if 3057 is already occupied on your own machine.
+The standalone command defaults to **127.0.0.1:3057**. The installed service uses
+`PREVIEW_HOST=192.168.1.192`, so LAN clients open **http://192.168.1.192:3057/**.
+UFW permits only 192.168.1.0/24 to this TCP port and denies other sources. No router
+port forwarding is configured. Set PREVIEW_HOST to a specific IPv4 address to
+change the binding; wildcard binding is rejected.
 
 The installed `dental-preview.service` is defined in `infra/dental-preview.service`.
 It uses DynamicUser, a read-only filesystem, and explicit read-only bindings for
@@ -31,7 +33,7 @@ systemctl restart dental-preview
 systemctl disable --now dental-preview  # stop and remove startup activation
 ```
 
-No public hostname, Nginx route or firewall port was configured. A public URL needs
+No public hostname or Nginx route was configured; port 3057 is allowed only on LAN. A public URL needs
 the chosen hostname/path and corresponding proxy configuration. Health and HTTP
 scenario checks passed after service installation; desktop 1440px and mobile
 390px browser checks confirmed the approval/NC-denial interactions and no mobile

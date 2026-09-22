@@ -1,6 +1,7 @@
 [Unit]
 Description=DentalKnowledgeBase synthetic preview
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
@@ -11,6 +12,7 @@ BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/packages/domain:/srv/dental
 BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/packages/rights:/srv/dental-preview/packages/rights
 ExecStart=/usr/bin/node /srv/dental-preview/apps/preview/server.mjs
 Environment=PREVIEW_PORT=3057
+Environment=PREVIEW_HOST=192.168.1.192
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=yes
