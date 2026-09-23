@@ -1,7 +1,13 @@
 import {t} from './i18n.js';
+import {hasUnsavedDraft} from './drafts.js';
 // UI preferences never alter anatomical geometry or versioned review state.
 const root = document.documentElement;
 document.querySelector('#language-select')?.addEventListener('change',event=>{
+  if(hasUnsavedDraft()){
+    event.target.value=document.documentElement.lang;
+    alert(t('Dil değiştirmeden önce taslağınızı gönderin veya açıkça vazgeçin.'));
+    return;
+  }
   const url=new URL(location.href);url.searchParams.set('lang',event.target.value);
   location.assign(url.href);
 });

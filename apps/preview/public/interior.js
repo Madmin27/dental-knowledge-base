@@ -104,4 +104,4 @@ async function start(){
   window.__interior=Object.freeze({captureView,restoreView,snapshot:()=>({...state,frames,source:manifest.id,reviewStatus:manifest.reviewStatus,camera:camera.position.toArray(),target:controls.target.toArray(),geometries:renderer.info.memory.geometries,layers:[...objects].map(([id,o])=>({id,visible:o.mesh.visible,cap:o.cap.visible,closed:o.closed,opacity:o.mesh.material.opacity,triangles:o.mesh.geometry.index.count/3}))})});
 }
 $('#sources').onclick=()=>$('#source-dialog').showModal();$('#close-sources').onclick=()=>$('#source-dialog').close();
-start().catch(error=>{document.querySelectorAll('main button,main input').forEach(e=>e.disabled=true);const failure=viewerFailure(error,loadingPhase);showModelError(failure.message,failure);});
+start().catch(error=>{document.querySelectorAll('main button,main input').forEach(e=>e.disabled=true);const failure=viewerFailure(error,loadingPhase);showModelError(failure.message,failure);installContributions();});

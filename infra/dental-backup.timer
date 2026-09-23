@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily private Dental contribution backup
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

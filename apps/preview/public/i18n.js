@@ -1,5 +1,22 @@
 // Explicit UI catalog. Source records, identifiers and contributor prose are never translated.
 export const english = Object.fromEntries(`
+Güvenilmeyen ağ geçidi.|Untrusted ingress
+Teknik bildirim için teknik kategori gerekli.|Technical context requires technical category
+Yalnız kapatılmış bildirimler arşivlenebilir.|Only closed records can be archived
+Geçersiz işlem kimliği.|Invalid event ID
+İşlem kimliği farklı içerikle kullanılmış.|Event ID already used with different content
+Arşivlenmiş bildirimler salt okunurdur.|Archived records are read-only
+Yorum kapasitesine ulaşıldı; bakımcı işlemleri için yer ayrılmıştır.|Comment capacity reached; moderator space is reserved
+Dil değiştirmeden önce taslağınızı gönderin veya açıkça vazgeçin.|Submit or explicitly discard your draft before changing language.
+Teknik bildirim|Technical report
+Teknik bildirim · Dental Open Source|Technical report · Dental Open Source
+3B model açılmasa da buradan sorun bildirebilirsiniz.|You can report a problem here even when the 3D model cannot load.
+Taslağı sil|Discard draft
+Bu taslağı silmek istediğinizden emin misiniz?|Discard this draft?
+Teknik bildirim: 3B görünüm eklenmez.|Technical report: no 3D view will be attached.
+Takip bağlantısını kaydettim|I have saved the tracking link
+Önce takip bağlantısını kaydedin.|Save your tracking link first.
+Önce belirsiz gönderimi yeniden deneyin.|Retry the unconfirmed submission first.
 Katkı ve tartışmaların ortak dili İngilizcedir. Lütfen gözlemlerinizi, önerilerinizi ve tartışma yanıtlarınızı İngilizce yazın. Kaynakları özgün dilinde paylaşabilirsiniz. İngilizce yazılması tek başına bilimsel kabul anlamına gelmez.|English is the shared language for contributions and discussions. Please write observations, suggestions and discussion replies in English. References may be shared in their original language. Writing in English does not by itself constitute scientific acceptance.
 İçeriğe geç|Skip to content
 Ana gezinme|Main navigation

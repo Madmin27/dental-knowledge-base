@@ -13,12 +13,13 @@ try:
     manifest={}
     with os.fdopen(fd,'wb') as output:
         with tarfile.open(fileobj=output,mode='w:gz') as tar:
-            for path in sorted(a.source.glob('*.json')):
+            for path in sorted([*a.source.glob('*.json'),*(a.source/'archive').glob('*.json')]):
                 if not re.fullmatch(r'[a-f0-9]{32}\.json',path.name):continue
+                if path.is_symlink():raise ValueError('Symlinked receipt rejected')
                 data=path.read_bytes();record=json.loads(data)
                 if record['id']+'.json'!=path.name:raise ValueError('Record ID mismatch')
-                manifest[path.name]=hashlib.sha256(data).hexdigest()
-                info=tarfile.TarInfo(path.name);info.size=len(data);info.mode=0o600;tar.addfile(info,io.BytesIO(data))
+                name=path.relative_to(a.source).as_posix();manifest[name]=hashlib.sha256(data).hexdigest()
+                info=tarfile.TarInfo(name);info.size=len(data);info.mode=0o600;tar.addfile(info,io.BytesIO(data))
             data=json.dumps(manifest,sort_keys=True).encode();info=tarfile.TarInfo('manifest.json');info.size=len(data);info.mode=0o600;tar.addfile(info,io.BytesIO(data))
         output.flush();os.fsync(output.fileno())
     with tarfile.open(tmp,'r:gz') as tar:

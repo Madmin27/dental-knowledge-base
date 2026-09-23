@@ -29,6 +29,7 @@ quarantine/
 data/quarantine/
 clinical-raw/
 patient-data/
+apps/preview/private-backups/
 *.dcm
 *.dicom
 *.ima

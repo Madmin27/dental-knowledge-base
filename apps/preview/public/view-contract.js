@@ -1,5 +1,9 @@
 // Shared, strict snapshot contract. Surface coordinates are deliberately not invented.
 export function validateView(v, catalog) {
+  if(v?.kind==='technical'){
+    if(v.version!==1||!['anatomy','interior','report'].includes(v.page))throw Error('Invalid technical report context');
+    return {kind:'technical',version:1,page:v.page,structure:'viewer'};
+  }
   if(v?.kind==='tooth-interior')return validateInteriorView(v,catalog);
   const fail=()=>{throw Error('Görünüm veya model sürümü geçersiz. Güncel atlası yeniden açın.');};
   if(!v||v.version!==1||v.assets?.dentition!==catalog.assets.dentition||v.assets?.neurovascular!==catalog.assets.neurovascular) fail();

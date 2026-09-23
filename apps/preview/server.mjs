@@ -9,6 +9,8 @@ import {requestLanguage,localizedHTML} from './localization.mjs';
 const files=new Map([['/',['anatomy.html','text/html; charset=utf-8']],['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']]]);
 files.set('/favicon.svg',['favicon.svg','image/svg+xml']);
 files.set('/i18n.js',['i18n.js','text/javascript; charset=utf-8']);
+files.set('/drafts.js',['drafts.js','text/javascript; charset=utf-8']);
+files.set('/report',['report.html','text/html; charset=utf-8']);
 files.set('/overview',['index.html','text/html; charset=utf-8']);
 for(const name of ['atlas.js','atlas-geometry.js','atlas.css','vendor/three.module.js','vendor/three.core.js','vendor/OrbitControls.js','vendor/THREE-LICENSE.txt']) {
   files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':name.endsWith('.txt')?'text/plain; charset=utf-8':'text/javascript; charset=utf-8']);
@@ -60,6 +62,6 @@ if(process.argv[1]===fileURLToPath(import.meta.url)) {
   if(isIP(host)!==4 || host==='0.0.0.0') throw new Error('A specific IPv4 preview address is required');
   const researchAssets=process.env.RESEARCH_ASSET_DIR?await loadResearchAssets(process.env.RESEARCH_ASSET_DIR):undefined;
   const researchManifest=researchAssets?JSON.parse(researchAssets.get('/research/pulp/manifest.json').body):undefined;
-  const intake=process.env.CONTRIBUTIONS_DIR?await createIntake({directory:process.env.CONTRIBUTIONS_DIR,origin:process.env.PREVIEW_ORIGIN,adminKey:(await readFile(process.env.CREDENTIALS_DIRECTORY+'/moderator.key','utf8')).trim(),catalog:await loadCatalog({researchManifest})}):undefined;
+  const intake=process.env.CONTRIBUTIONS_DIR?await createIntake({directory:process.env.CONTRIBUTIONS_DIR,origin:process.env.PREVIEW_ORIGIN,adminKey:(await readFile(process.env.CREDENTIALS_DIRECTORY+'/moderator.key','utf8')).trim(),catalog:await loadCatalog({researchManifest}),trustedProxy:process.env.PREVIEW_TRUSTED_PROXY}):undefined;
   previewServer({intake,researchAssets}).listen(port,host,()=>console.log(`Dental preview http://${host}:${port}`));
 }

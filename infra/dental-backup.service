@@ -1,0 +1,16 @@
+[Unit]
+Description=Encrypted Dental contribution backup and restore verification
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/usr/bin/python3 /root/projeler/DentalKnowledgeBase/scripts/encrypted_backup.py /var/lib/dental-preview/contributions /root/projeler/DentalKnowledgeBase/apps/preview/private-backups /root/.config/dental-backup/encryption.key
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/root/projeler/DentalKnowledgeBase/apps/preview/private-backups
+RestrictAddressFamilies=AF_UNIX
+MemoryMax=512M
+TimeoutStartSec=10min
+

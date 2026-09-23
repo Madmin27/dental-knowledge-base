@@ -3,3 +3,4 @@
 [Service]
 Environment=PREVIEW_HOST=127.0.0.1
 Environment=PREVIEW_ORIGIN=https://dentalopensource.org
+Environment=PREVIEW_TRUSTED_PROXY=127.0.0.1

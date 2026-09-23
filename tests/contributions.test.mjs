@@ -68,3 +68,44 @@ test('research contributions bind all source hashes and cut/camera state indepen
  const invalid=structuredClone(p);invalid.id=hex(16);invalid.view.state.position=101;assert.equal((await s.call('',hex(32),invalid)).status,422);
  const disabled=await setup(t);assert.equal((await disabled.call('',hex(32),p)).status,422);
 });
+
+test('technical reports need no loaded model, cannot impersonate anatomical snapshots',async t=>{
+ const s=await setup(t),p={...payload(),category:'technical',view:{kind:'technical',version:1,page:'report',structure:'untrusted'}};
+ const r=await s.call('',hex(32),p);assert.equal(r.status,201);assert.deepEqual(r.data.submission.view,{kind:'technical',version:1,page:'report',structure:'viewer'});
+ assert.equal((await s.call('',hex(32),{...p,id:hex(16),category:'anatomy'})).status,422);
+});
+test('followup idempotency survives a lost response and rejects changed reuse',async t=>{
+ const s=await setup(t),p=payload(),key=hex(32);await s.call('',key,p);
+ const event={eventId:hex(16),revision:0,note:'A repeatable synthetic observation',evidence:[]};
+ assert.equal((await s.call('/'+p.id+'/events',key,event)).data.revision,1);
+ await s.restart();const retry=await s.call('/'+p.id+'/events',key,event);assert.equal(retry.status,200);assert.equal(retry.data.revision,1);assert.equal(retry.data.events[0].eventKeyHash,undefined);
+ assert.equal((await s.call('/'+p.id+'/events',key,{...event,note:'Changed event contents'})).status,409);
+});
+test('trusted proxy isolates client quotas and refuses forged ingress',async t=>{
+ const s=await setup(t,{trustedProxy:'127.0.0.1',rateLimit:3}),p=payload(),key=hex(32);
+ assert.equal((await s.call('',key,p)).status,403);
+ const client={'X-Dental-Client':'192.0.2.10'};assert.equal((await s.call('',key,p,client)).status,201);
+ for(let i=0;i<4;i++)await s.call('/invalid',hex(32),undefined,{'X-Dental-Client':'192.0.2.11'});
+ assert.equal((await s.call('/'+p.id,key,undefined,client)).status,200);
+ assert.equal((await s.call('/'+p.id,key,undefined,{'X-Dental-Client':'192.0.2.11'})).status,429);
+ assert.equal((await s.call('/'+p.id,key,undefined,{'X-Dental-Client':'not-an-IP'})).status,403);
+});
+test('moderators retain room after contributor comment limit',async t=>{
+ const s=await setup(t,{rateLimit:1000}),p=payload(),key=hex(32);await s.call('',key,p);
+ for(let revision=0;revision<100;revision++)assert.equal((await s.call('/'+p.id+'/events',key,{revision,note:'Synthetic bounded followup'})).status,200);
+ assert.equal((await s.call('/'+p.id+'/events',key,{revision:100,note:'One excess comment'})).status,409);
+ assert.equal((await s.call('/'+p.id+'/events',s.adminKey,{revision:100,status:'closed',note:'Moderator closure retains scientific discussion'})).status,200);
+});
+test('archive reclaims active capacity, preserves access and anti-replay, redacts both lifecycles',async t=>{
+ const s=await setup(t,{maxRecords:1,maxStoredRecords:2}),p=payload(),key=hex(32);await s.call('',key,p);
+ assert.equal((await s.call('/'+p.id+'/archive',s.adminKey,{revision:0})).status,409);
+ await s.call('/'+p.id+'/events',s.adminKey,{revision:0,status:'closed',note:'Completed synthetic review'});
+ assert.equal((await s.call('/'+p.id+'/archive',key,{revision:1})).status,404);
+ assert.equal((await s.call('/'+p.id+'/archive',s.adminKey,{revision:1})).status,200);
+ await s.restart();assert.equal((await s.call('/'+p.id,key)).status,200);
+ assert.equal((await s.call('',hex(32),payload())).status,201);
+ assert.equal((await s.call('',key,p)).status,200);
+ assert.equal((await s.call('/'+p.id+'/redact',s.adminKey,{revision:1})).status,200);
+ await s.restart();assert.equal((await s.call('',key,p)).status,409);
+ const archived=await readFile(join(s.directory,'archive',p.id+'.json'),'utf8');assert.ok(!archived.includes(p.description));
+});

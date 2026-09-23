@@ -1,0 +1,30 @@
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const [endpoint,target,output,keyFile]=process.argv.slice(2);
+const turkish=new URL(target).searchParams.get('lang')==='tr';
+if(!endpoint||!target||!output||!keyFile)throw Error('Usage: endpoint target output test-admin-key-file (isolated test service only)');
+if(new URL(target).hostname!=='127.0.0.1')throw Error('Synthetic submissions must use isolated localhost service');
+await mkdir(output,{recursive:true});
+const pages=await(await fetch(endpoint+'/json/list')).json();const page=pages.find(p=>p.type==='page');
+const ws=new WebSocket(page.webSocketDebuggerUrl);await new Promise(r=>ws.addEventListener('open',r,{once:true}));let seq=0;const pending=new Map(),errors=[],passed=[];
+ws.addEventListener('message',e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(m.error):p.resolve(m.result);}if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails.text);});
+const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}));});
+const ev=async expression=>{const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));const wait=async expression=>{for(let i=0;i<300;i++){if(await ev(expression))return;await sleep(100);}throw Error('Timeout: '+expression);};
+const click=selector=>ev(`document.querySelector(${JSON.stringify(selector)}).click()`);
+const shot=async name=>writeFile(output+'/'+name+'.png',Buffer.from((await call('Page.captureScreenshot')).data,'base64'));
+try{
+await call('Runtime.enable');await call('Page.enable');await call('Page.navigate',{url:new URL('/report',target).href});await wait('document.querySelector("#contribute") && !document.querySelector("#contribute").disabled');
+await click('#contribute');
+await ev(`const field=document.querySelector('[name=description]');field.value='Synthetic technical report draft';field.dispatchEvent(new Event('input',{bubbles:true}));`);
+assert.equal(await ev(`(async()=> (await import('/drafts.js')).hasUnsavedDraft())()`),true);
+await click('.contribution-close');await click('#contribute');
+assert.equal(await ev(`document.querySelector('[name=description]').value`),'Synthetic technical report draft');passed.push('closing and reopening retains unsent draft');
+await ev(`document.querySelector('[name=consent]').checked=true;document.querySelector('#contribution-form').requestSubmit()`);await wait('document.querySelector("#receipt-saved")');
+const link=await ev('document.querySelector("#contribution-dialog a[href*=contributions]").href');
+await click('#receipt-saved');assert.equal(await ev(`(async()=> (await import('/drafts.js')).hasUnsavedDraft())()`),false);passed.push('confirmed receipt clears navigation guard');
+await call('Page.navigate',{url:link});await wait('document.querySelector("[name=note]")');assert.equal(await ev('document.querySelector("#replay-view")'),null);passed.push('technical report works independently of 3D and has no invented view');
+await ev(`const f=document.querySelector('[name=note]');f.value='Unsaved additional explanation';f.dispatchEvent(new Event('input',{bubbles:true}));`);
+await ev(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Refresh status').click()`);await sleep(500);assert.equal(await ev(`document.querySelector('[name=note]').value`),'Unsaved additional explanation');passed.push('refresh preserves comment draft');
+assert.deepEqual(errors,[]);await writeFile(output+'/technical-result.json',JSON.stringify({passed,errors},null,2));console.log(JSON.stringify({passed,errors}));
+}finally{ws.close();}
