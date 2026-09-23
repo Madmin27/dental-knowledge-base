@@ -2,12 +2,12 @@
 
 *A community for open dental knowledge, anatomy and education.*
 
-Public domain: **dentalopensource.org**. Let's Encrypt TLS is installed;
-external web reachability still needs router/NAT verification.
+Public preview: **https://dentalopensource.org/**. Let's Encrypt TLS is installed;
+the owner has confirmed external access. Public access is not academic approval.
 The internal project directory and repository retain the DentalKnowledgeBase /
 dental-knowledge-base identifiers so existing deployments and links keep working.
 
-GitHub is for code only. Contributions, academic discussion, dissent, voting
+GitHub holds code and public implementation-review findings. Contributions, academic discussion, dissent, voting
 and reasoned decisions will remain on our own platform. See
 [self-hosted governance design](docs/adr/0007-self-hosted-academic-governance.md)
 for the delivery plan and the distinction between current intake and planned portal.
@@ -18,15 +18,24 @@ Open, education-first dental anatomy knowledge base with versioned 3D assets, cl
 > domain/rights foundation and local PostgreSQL. Public academic release and
 > qualified human anatomy review remain pending.
 
-## Explore the local preview
+## Explore the preview
 
-The installed LAN service is **http://192.168.1.192:3057/**. It includes a
+The installed preview is **https://dentalopensource.org/**; Nginx proxies to a
+loopback-only backend. The former direct LAN `:3057` endpoint is retired. It includes a
 28-tooth source atlas, an independent research tooth interior, source/license
 records and private contribution tracking. `/overview` explains current scope.
 
 See [preview setup](apps/preview/README.md),
 [product quality roadmap](docs/PRODUCT-QUALITY-ROADMAP.md), and
 [contribution guide](docs/CONTRIBUTING-ATLAS.md).
+
+## Independent review
+
+Follow the [advisory review policy](docs/INDEPENDENT-REVIEW.md) established by
+[issue #4](https://github.com/Madmin27/dental-knowledge-base/issues/4).
+The implementer leaves a dated handoff after substantial milestones; a separate
+reviewer reports findings and human maintainers decide closure.
+Latest: [2026-09-23 handoff](docs/codex/REVIEW-HANDOFF-2026-09-23.md).
 
 ## Start here
 

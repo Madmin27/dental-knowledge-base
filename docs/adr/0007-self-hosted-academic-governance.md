@@ -226,3 +226,12 @@ bağımsız itiraz kurulu, kimlik/yetki ayrımı ve geri yükleme kanıtı. Bunl
 somutlaştırıldı. Takımın UI'den önce tüm oy motorunu bitirme sırasını aynen
 almıyoruz: moderasyon pilotu daha erken kullanılabilir; oylama açılışı yine
 yetki ve kural testleri tamamlandıktan sonra. AI görüşü akademik oy değildir.
+
+## 2026-09-23 — Bağımsız teknik inceleme açıklaması
+
+[Issue #4](https://github.com/Madmin27/dental-knowledge-base/issues/4) kapsamında
+GitHub'da kamuya açık kod, kaynak sunumu ve uygulama denetimi bulguları tutulabilir.
+Bu kanal katkıların GitHub'a aktarımı veya akademik oylama değildir. Katılımcı
+görüşleri, özel kayıtlar ve bilimsel kararlar kendi platformumuzda kalır.
+AI denetçisi danışmandır; kendi işini onaylayamaz ve bilimsel bulguları yetkili
+insan değerlendirmesi olmadan kapatamaz. Ayrıntı: [inceleme politikası](../INDEPENDENT-REVIEW.md).
