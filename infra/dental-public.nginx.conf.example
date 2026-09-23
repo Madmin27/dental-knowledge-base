@@ -1,15 +1,15 @@
-# Replace dental.example.org and certificate paths before installing.
+# Replace dentalopensource.org and certificate paths before installing.
 # Include in nginx http context. Not installed automatically.
 server {
     listen 80;
-    server_name dental.example.org;
-    return 308 https://dental.example.org$request_uri;
+    server_name dentalopensource.org;
+    return 308 https://dentalopensource.org$request_uri;
 }
 server {
     listen 443 ssl;
-    server_name dental.example.org;
-    ssl_certificate /etc/letsencrypt/live/dental.example.org/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/dental.example.org/privkey.pem;
+    server_name dentalopensource.org;
+    ssl_certificate /etc/letsencrypt/live/dentalopensource.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/dentalopensource.org/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     client_max_body_size 24k;
     client_body_timeout 15s;

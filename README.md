@@ -1,4 +1,10 @@
-# DentalKnowledgeBase
+# Dental Open Source
+
+*A community for open dental knowledge, anatomy and education.*
+
+Public domain: **dentalopensource.org** (DNS and HTTPS activation pending).
+The internal project directory and repository retain the DentalKnowledgeBase /
+dental-knowledge-base identifiers so existing deployments and links keep working.
 
 Open, education-first dental anatomy knowledge base with versioned 3D assets, claims, evidence, anatomical variants, academic peer review, provenance, rights management and AI-assisted — but human-approved — revisions.
 

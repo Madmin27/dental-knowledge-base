@@ -1,7 +1,8 @@
 # DentalKnowledgeBase — product quality roadmap
 
 Date: 2026-09-22. This is a delivery plan, not a claim of academic acceptance.
-Public branding/domain is still undecided; the implementation keeps the project name.
+Public branding is **Dental Open Source**, domain **dentalopensource.org**.
+Internal project identifiers remain unchanged; DNS/HTTPS activation is pending.
 
 ## Delivered in the studio interface revision
 

@@ -1,7 +1,32 @@
 # HTTPS uzman pilotu geçişi
 
+## 23 Eylül — Dental Open Source adı ve Nginx hazırlığı
+
+Kamuya dönük ad **Dental Open Source**, seçilen adres **dentalopensource.org**.
+Arayüz başlıkları, marka ve indirilmiş katkı makbuzu adı güncellendi. İç repo,
+servis ve kaynak provenance kimlikleri korunuyor.
+
+Yerel DNS ve 1.1.1.1 sorguları NXDOMAIN döndü. Geçerli dentalopensource.org
+sertifikası yok. `infra/dentalopensource.org.bootstrap.conf` sunucuda
+`/etc/nginx/sites-available/dentalopensource.org.conf` olarak kuruldu ve
+sites-enabled içine bağlandı. `nginx -t` ve reload başarılı; Host başlığıyla
+yerel kontrol beklenen HTTP 503 hazırlık mesajını döndürdü. ACME challenge
+yolu hazır; HTTPS sertifikası henüz talep edilmedi. Mevcut 3057 servisi çalışıyor.
+
+DNS yönetiminde `@ A 85.96.191.197` gerekli. `www` bu ilk kurulumun kapsamına
+dahil değil. DNS çözüldükten sonra port 80/443 dış erişimi doğrulanıp sertifika
+alınacak ve TLS proxy/drop-in dosyaları uygulanacak. Nginx hazırlık kaydını
+kurmak alan adının internetten erişilebilir olduğu anlamına gelmez.
+
+Marka değişikliği sonrası `npm test` geçti; canlı health ve yeni HTML başlığı
+doğrulandı. GitHub depo yolu mevcut bağlantıları korumak için değiştirilmiyor.
+
+## Önceki geçiş hazırlığı
+
 23 Eylül 2026: Hazırlık dosyaları; henüz uygulanmış HTTPS yayını değildir.
-Seçilecek gerçek alan adı kullanıcıdan bekleniyor. Mevcut servis çalışır durumda,
+Seçilen alan adı **dentalopensource.org**. 23 Eylül sorgusunda DNS NXDOMAIN
+dönüyor; A kaydı `85.96.191.197` olmalı. Alan adı kayıt/DNS işlemi bekleniyor.
+Mevcut servis çalışır durumda,
 `PREVIEW_ORIGIN=http://192.168.1.192:3057`. Nginx sözdizimi kontrolü başarılı;
 mevcut başka sitelerde yinelenen server_name uyarıları var, bu işte değiştirilmedi.
 
