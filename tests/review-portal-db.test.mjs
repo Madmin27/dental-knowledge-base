@@ -395,6 +395,43 @@ test(
         },
       );
       await t.test(
+        "access waiting on an erasure lock rechecks the journal after rollback",
+        async () => {
+          const extra = await repo.create(b, { ...input, id: randomUUID() });
+          const lock = await db.connect();
+          let entered;
+          const waiting = new Promise((resolve) => (entered = resolve));
+          await lock.query("BEGIN");
+          await lock.query("SELECT id FROM packages WHERE id=$1 FOR UPDATE", [
+            extra.id,
+          ]);
+          const access = repo.tx((c) =>
+            repo.access(
+              {
+                query(...args) {
+                  const result = c.query(...args);
+                  if (args[0].includes("SELECT * FROM packages")) entered();
+                  return result;
+                },
+              },
+              b,
+              extra.id,
+              { receipt: true },
+            ),
+          );
+          const rejected = assert.rejects(access, /not_found/);
+          try {
+            await waiting;
+            await erasures.append(extra.id);
+          } finally {
+            await lock.query("ROLLBACK");
+            lock.release();
+          }
+          await rejected;
+          await erasures.apply(runtime);
+        },
+      );
+      await t.test(
         "late processor completion cannot resurrect a deleted photo",
         async () => {
           const extra = await repo.create(b, { ...input, id: randomUUID() }),

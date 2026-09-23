@@ -74,6 +74,14 @@ export class Repository {
       "SELECT * FROM packages WHERE id=$1 AND deleted_at IS NULL FOR UPDATE",
       [id(packageId)],
     );
+    // A deletion may have appended its durable journal entry while this query
+    // waited for the row lock, even if that deletion's SQL transaction failed.
+    requireThat(!this.erasures?.failed, "erasure_journal_unavailable", 503);
+    requireThat(
+      !this.erasures?.rows.some((x) => x.packageId === packageId),
+      "not_found",
+      404,
+    );
     requireThat(r.rowCount, "not_found", 404);
     const p = r.rows[0];
     if (p.owner_id === s.account_id) {
