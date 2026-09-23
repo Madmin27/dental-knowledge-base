@@ -15,6 +15,32 @@ def validate(name,data):
     if not isinstance(record.get('events'),list) or len(record['events'])>201:raise ValueError('Invalid history')
     return record
 
+def reconcile(backup,current):
+    """Select only a proven continuation, never silently select a branch.
+
+    Old redaction operations rewrote earlier event prose. Without a persisted
+    pre-redaction chain proof, such histories require private operator review.
+    Failing before destination creation is safer than reviving erased content.
+    """
+    for field in ('schemaVersion','id','keyHash','payloadHash','createdAt'):
+        if (field in backup)!=(field in current) or backup.get(field)!=current.get(field):
+            raise ValueError('Conflicting immutable record identity; operator review required')
+    a,b=backup['events'],current['events']
+    canonical=lambda event:json.dumps(event,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False)
+    if any(canonical(x)!=canonical(y) for x,y in zip(a,b)):
+        raise ValueError('Divergent event histories; operator review required (including rewritten redactions)')
+    redacted_a,redacted_b=bool(backup.get('redactedAt')),bool(current.get('redactedAt'))
+    if redacted_a and redacted_b and backup['redactedAt']!=current['redactedAt']:
+        raise ValueError('Conflicting redaction identities; operator review required')
+    if redacted_a!=redacted_b:
+        redacted,clear=(backup,current) if redacted_a else (current,backup)
+        if len(redacted['events'])<len(clear['events']):
+            raise ValueError('History extends a redaction; operator review required')
+        return redacted
+    if backup.get('submission')!=current.get('submission'):
+        raise ValueError('Conflicting submission; operator review required')
+    return backup if len(a)>len(b) else current
+
 def restore(archive,current,destination):
     if destination.exists():raise ValueError('Destination must not exist')
     if not current.is_dir():raise ValueError('Current spool required for deletion and revision reconciliation')
@@ -38,14 +64,15 @@ def restore(archive,current,destination):
             r=validate(name,data)
             if r['id'] in records:raise ValueError('Duplicate receipt across archive/live')
             records[r['id']]=(name,data,r)
-    # Current records win, including redaction tombstones and comments after backup.
+    # Reconcile everything before creating the destination. Any conflict aborts.
+    current_ids=set()
     for file in [*current.glob('*.json'),*(current/'archive').glob('*.json')]:
         if file.is_symlink():raise ValueError('Symlink rejected')
         name=file.relative_to(current).as_posix();data=file.read_bytes();r=validate(name,data)
+        if r['id'] in current_ids:raise ValueError('Duplicate current receipt across archive/live')
+        current_ids.add(r['id'])
         old=records.get(r['id'])
-        if old and old[2]['keyHash']!=r['keyHash']:raise ValueError('Conflicting record identity')
-        if old and old[2].get('redactedAt') and not r.get('redactedAt'):continue
-        if old and len(old[2]['events'])>len(r['events']) and not r.get('redactedAt'):continue
+        if old and reconcile(old[2],r) is old[2]:continue
         records[r['id']]=(name,data,r)
     if len(records)>20000:raise ValueError('Restore capacity exceeded')
     destination.mkdir(mode=0o700,parents=False);(destination/'archive').mkdir(mode=0o700)

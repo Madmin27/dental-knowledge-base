@@ -235,3 +235,13 @@ Bu kanal katkıların GitHub'a aktarımı veya akademik oylama değildir. Katıl
 görüşleri, özel kayıtlar ve bilimsel kararlar kendi platformumuzda kalır.
 AI denetçisi danışmandır; kendi işini onaylayamaz ve bilimsel bulguları yetkili
 insan değerlendirmesi olmadan kapatamaz. Ayrıntı: [inceleme politikası](../INDEPENDENT-REVIEW.md).
+
+## 2026-09-23 — İlk model ve uzman ekibe devir
+
+Öncelik gerçekçi, kaynak temelli incelenebilir modeldir; ekip henüz oluşmadı diye
+teknik hazırlık ve açıkça etiketlenmiş önizleme bekletilmez. AI eksik anatomi
+uyduramaz, hazırladığı modele bilimsel kabul veremez. Proje sahibi uzman ekibe
+anatomik/editoryal sorumluluk devrini kaydettiğinde AI'ın kendiliğinden anatomik
+öneri, değişiklik ve bilimsel denetim rolü sona erer. Sonraki anatomik AI yardımı
+ancak ekibin açık talebiyle olur; oy veya kabul yetkisi doğurmaz. Yetkilendirilmiş
+teknik bakım ayrı yürür. Bu kayıt bir yetki motorunun kurulmuş olduğu anlamına gelmez.

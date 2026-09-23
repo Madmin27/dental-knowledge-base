@@ -102,3 +102,19 @@ JavaScript timer. Geometry is unchanged; compatible graphics remains available.
 Browser-local fault injection on HTTPS verified normal rendering, missing-module
 recovery links, stalled-transfer errors and successful reload after removing the
 fault. This is not a measurement of the owner's device/network speed.
+
+## Restore integrity follow-up — audit #5
+
+Reconciliation now verifies immutable identity fields and requires exact semantic
+prefix compatibility of event histories before choosing either record. Divergent
+histories abort before creating the output directory. Compatible redactions retain
+precedence; redaction flags cannot bypass conflicting histories. Current live and
+archive copies with duplicate receipt IDs also abort.
+
+Legacy redaction rewrites prior event prose without preserving a verifiable
+pre-redaction chain. Comparing such a record with an unredacted old backup may
+now stop for private operator review, even when the redaction was legitimate.
+Do not remove that guard or discard the redacted record to make restore succeed.
+There is no automatic branch selection or permission to revive erased text.
+This conservative limit requires a future verifiable redaction lineage design
+before broader automatic recovery can be claimed.

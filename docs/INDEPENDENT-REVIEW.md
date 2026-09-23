@@ -82,3 +82,24 @@ An issue may flag a potentially misleading anatomical presentation; the qualifie
 scientific decision belongs in the platform's human-review process. Until that
 process exists, record the human review reference without claiming portal
 functionality has been implemented or copying private discussion into GitHub.
+
+## Owner clarification — realistic first model, then expert ownership
+
+Recorded 2026-09-23: the immediate objective is a realistic, source-based model
+that experts can actually inspect. Lack of a complete expert team does not block
+technical preparation or a clearly labelled preview. AI may assist with source
+research and implementation during this preparation, but must not invent anatomy
+or declare the model anatomically accepted.
+
+Once the owner records the qualified team's assumption of anatomical/editorial
+responsibility, AI stops autonomous anatomical proposals, edits and scientific
+review. The human team owns anatomical corrections, variation criteria, teaching
+claims, dissent and acceptance. AI has no vote or approval authority. Any later
+AI assistance on anatomical work requires an explicit request from that team;
+its output remains subordinate to their decision. Implementation agents do not
+unilaterally declare that this handover has happened.
+
+Separately authorized software maintenance (backups, loading, security, tests)
+can continue without deciding anatomy. A technical defect touching source
+geometry/presentation must be referred to the human team before an anatomical
+change. Independent software auditing does not become an AI scientific board.

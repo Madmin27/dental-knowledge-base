@@ -16,3 +16,8 @@ implementation or review work. Follow `/root/sunucu/AGENTS.md` for server work.
   critique, votes among models, CI and public HTTPS do not provide that approval.
 - GitHub review issues concern public implementation/source-presentation defects;
   participant contributions and academic decisions remain on the platform.
+- Owner priority: provide a realistic source-based preview first. After the owner
+  records handover to the qualified expert team, stop autonomous AI anatomical
+  proposals/edits/review; anatomy belongs to that team. Further anatomical AI
+  assistance requires their explicit request. Separately authorized technical
+  maintenance does not confer anatomical authority.
