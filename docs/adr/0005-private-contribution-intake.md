@@ -55,7 +55,8 @@ AI danışmanlık çıktısı insan uzman doğrulaması olarak kullanılmadı.
 
 ## Açık yayın engelleri
 
-CONTRIB-001: canonical Issue import migration, kaynak revizyon eşleme, audit ve
+CONTRIB-001: kendi platformumuzun canonical katkı kaydına import migration,
+kaynak revizyon eşleme, audit ve
 rol doğrulaması tasarlanıp insan tarafından onaylanmadan bu kuyruktan akademik
 kabul/yayın üretilemez. İçe aktarma henüz uygulanmadı.
 CONTRIB-002: halka açık HTTPS hizmeti, hesap/yetki sistemi, uzman incelemesi,

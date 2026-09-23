@@ -64,9 +64,8 @@ ayırt edemeyen bulgu “belirsiz” kalır. Hasta bilgisi veya ham klinik veri 
 
 Bakımcı özel bir takip listesinde davet, katılım, inceleme kapsamı, bulgu kimliği,
 sorumlu ve sonraki adımı tutar. Davet veya kişisel görüşler izinsiz yayımlanmaz.
-GitHub'a yalnız yazarın izin verdiği özet aktarılır; özel takip bağlantıları,
-kimlik doğrulama kayıtları ve özel notlar issue içine konmaz. Mevcut sistemde
-otomatik GitHub aktarımı yoktur; CONTRIB-001 bunu ayrıca ele alır.
+Görüş, tartışma ve kararlar kendi platformumuzda tutulur; GitHub'a aktarılmaz.
+GitHub yalnız kod yönetiminde kullanılır. Portal ve denetim tasarımı ADR0007'dedir.
 
 İlk turun çıktısı: kapsam matrisi (incelendi/incelenmedi), gerekçeli bulgu listesi,
 tekrarlanabilen engelleyici sorunlar ve TASK-005/006 için gerçek örneklerdir.

@@ -6,6 +6,11 @@ Public domain: **dentalopensource.org** (DNS and HTTPS activation pending).
 The internal project directory and repository retain the DentalKnowledgeBase /
 dental-knowledge-base identifiers so existing deployments and links keep working.
 
+GitHub is for code only. Contributions, academic discussion, dissent, voting
+and reasoned decisions will remain on our own platform. See
+[self-hosted governance design](docs/adr/0007-self-hosted-academic-governance.md)
+for the delivery plan and the distinction between current intake and planned portal.
+
 Open, education-first dental anatomy knowledge base with versioned 3D assets, claims, evidence, anatomical variants, academic peer review, provenance, rights management and AI-assisted — but human-approved — revisions.
 
 > Status: local source-based anatomy/interior viewers, private contribution intake,

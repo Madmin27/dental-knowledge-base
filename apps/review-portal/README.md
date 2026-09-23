@@ -2,4 +2,7 @@
 
 Academic review and contribution interface.
 
-TASK-001 placeholder. Implementation is deferred to its scoped task under Architecture v0.1.
+Implementation is pending. The delivery contract is
+[ADR0007](../../docs/adr/0007-self-hosted-academic-governance.md), GOV-001–006.
+Contributions, discussion, ballots and academic decisions live here; GitHub is
+for code only. The existing preview's private intake is not a reviewer portal.

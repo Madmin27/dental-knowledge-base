@@ -4,6 +4,9 @@ Durum: Kullanıcının varyasyon/gerekçeli karar yönlendirmesine göre kabul e
 veri sözleşmesi; akademik yetki, portal ve yayın entegrasyonu henüz tamamlanmadı.
 Tarih: 2026-09-22. ADR0005 özel katkı kuyruğu ayrı kalır.
 
+23 Eylül güncellemesi: [ADR0007](0007-self-hosted-academic-governance.md)
+GitHub koordinasyonu adımını kaldırır; akademik akış kendi sunucumuzda yürür.
+
 ## Değişmez ilke
 
 Tek bir evrensel ağız modeli hedeflenmez. Örnek, anatomik varyasyon, bilimsel
@@ -106,9 +109,8 @@ Kurul bulunana kadar içerik "uzman incelemesi bekliyor" olarak kalır.
    yetkisiz, süresi dolmuş, kendi değişikliğine oy ve yanlış uzmanlık testleri.
 3. TASK-011: kriter kriter gerekçe formu, varyasyon karşılaştırma ve karar kartı;
    açık rıza ve reviewer gizlilik alanları. Kanıt yokken kabul düğmesi etkinleşmez.
-4. GitHub koordinasyonu: özel bildirimden yayın izni verilmiş özetin issue taslağı;
-   inceleyen kendi hesabından açar, URL bağlanır. Capability link/key, özel metin,
-   hasta/kimlik verisi taşınmaz. Issue kapanması bilimsel kabul değildir.
+4. Platform koordinasyonu: katkı, tartışma, şerh, heyet ve karar kayıtları kendi
+   portalımızda tutulur (ADR0007). GitHub yalnız kod yönetiminde kullanılır.
 5. Yayın: ayrı hak/gizlilik/QC kapıları, sürümlü release ve geri çekme. Yeni çocuk/
    yaş/cinsiyet/popülasyon koleksiyonları ancak gerçek kaynak ve bu incelemeyle.
 

@@ -1,5 +1,10 @@
 # Atlas katkıları
 
+23 Eylül kararı: GitHub yalnız kod yönetimi içindir. Katkı/tartışma/oy/karar
+kayıtları kendi sunucumuzda kalır. Profesyonel portalın tasarımı ve uygulama
+aşamaları [ADR0007](adr/0007-self-hosted-academic-governance.md) içindedir;
+aşağıdaki mevcut özel katkı/CLI akışı henüz yeni portal değildir.
+
 Uzman pilotu ve güncel erişim sınırlamaları:
 [EXPERT-PILOT.md](EXPERT-PILOT.md). Dış IP'den atlasın açılması, özel katkı
 servisinin o adres için yapılandırılmış olduğu anlamına gelmez.
