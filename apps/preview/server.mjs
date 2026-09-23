@@ -1,4 +1,5 @@
 import {isIP} from 'node:net';
+import {createHash} from 'node:crypto';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
@@ -9,6 +10,7 @@ import {requestLanguage,localizedHTML} from './localization.mjs';
 const files=new Map([['/',['anatomy.html','text/html; charset=utf-8']],['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']]]);
 files.set('/favicon.svg',['favicon.svg','image/svg+xml']);
 files.set('/i18n.js',['i18n.js','text/javascript; charset=utf-8']);
+files.set('/viewer-boot.js',['viewer-boot.js','text/javascript; charset=utf-8']);
 files.set('/drafts.js',['drafts.js','text/javascript; charset=utf-8']);
 files.set('/report',['report.html','text/html; charset=utf-8']);
 files.set('/overview',['index.html','text/html; charset=utf-8']);
@@ -29,6 +31,13 @@ export function previewServer({intake,researchAssets}={}) {
     res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
     res.setHeader('Cache-Control','no-store');
     const json=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));};
+    // Public source assets only. Private API responses keep no-store.
+    const model=(body,type)=>{
+      const etag='"'+createHash('sha256').update(body).digest('hex')+'"';
+      res.setHeader('ETag',etag);res.setHeader('Cache-Control','public, max-age=0, must-revalidate');
+      if(req.headers['if-none-match']===etag){res.writeHead(304);res.end();return;}
+      res.writeHead(200,{'Content-Type':type,'Content-Length':body.length});res.end(body);
+    };
     let requestURL;try{requestURL=new URL(req.url,'http://localhost');}catch{return json(400,{error:'Invalid request URL'});}
     if(intake && await intake.handle(req,requestURL,json))return;
     if(req.method!=='GET') {res.setHeader('Allow','GET');return json(405,{error:'Read-only preview'});}
@@ -41,10 +50,11 @@ export function previewServer({intake,researchAssets}={}) {
         return json(result?200:404,result??{error:'Unknown scenario'});
       }
       const research=researchAssets?.get(url.pathname);
-      if(research){res.writeHead(200,{'Content-Type':research.type});res.end(research.body);return;}
+      if(research){model(research.body,research.type);return;}
       const file=files.get(url.pathname);
       if(!file) return json(404,{error:'Not found'});
       const body=await readFile(new URL('./public/'+file[0],import.meta.url));
+      if(url.pathname.startsWith('/models/')){model(body,file[1]);return;}
       if(file[1].startsWith('text/html')){
         const lang=requestLanguage(url,req.headers.cookie);
         res.setHeader('Content-Language',lang);

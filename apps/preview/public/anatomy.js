@@ -1,6 +1,6 @@
 import {t,percent} from './i18n.js';
 import {showModelError} from './studio.js';
-import {createCompatibleRenderer,viewerFailure} from './viewer-runtime.js';
+import {createCompatibleRenderer,viewerFailure,fetchModel,loadingStage,modelProgress} from './viewer-runtime.js';
 import {validateView} from './view-contract.js';
 import {installContributions} from './contributions.js';
 import * as THREE from './vendor/three.module.js';
@@ -145,6 +145,7 @@ function materialFor(name,kind) {
 }
 
 async function start() {
+  await loadingStage(t('Grafik motoru hazırlanıyor…'));
   const graphics=createCompatibleRenderer(THREE.WebGLRenderer,{compatible:compatibleRequested});
   renderer=graphics.renderer;
   if(graphics.compatible){const note=document.createElement('p');note.className='graphics-notice';note.textContent=t('Uyumlu grafik modu · model ayrıntısı korunur');$('.stage-heading').append(note);}
@@ -179,13 +180,16 @@ async function start() {
   const fill = new THREE.DirectionalLight(0xe9f4ff,.7);fill.position.set(65,20,15);scene.add(fill);
   const rim = new THREE.DirectionalLight(0xffffff,1.3);rim.position.set(-10,40,-70);scene.add(rim);
   loadingPhase='files';
-  const [manifestResponse,binaryResponse] = await Promise.all([fetch('/models/z-anatomy/dentition.json'),fetch('/models/z-anatomy/dentition.bin')]);
-  if (!manifestResponse.ok || !binaryResponse.ok) throw Error(t('Kaynak model dosyası okunamadı.'));
-  const manifest = await manifestResponse.json(), binary = await binaryResponse.arrayBuffer();
-  const [extraMeta,extraData] = await Promise.all([fetch('/models/z-anatomy/neurovascular.json'),fetch('/models/z-anatomy/neurovascular.bin')]);
-  if (!extraMeta.ok || !extraData.ok) throw Error(t('Sinir/damar kaynak dosyası okunamadı.'));
-  const extra = await extraMeta.json(), extraBinary = await extraData.arrayBuffer();
+  await loadingStage(t('Model dosyaları indiriliyor…'));
+  const onProgress=modelProgress(t('İndirilen model verisi:'));
+  const [manifest,binary,extra,extraBinary] = await Promise.all([
+    fetchModel('/models/z-anatomy/dentition.json','json',{onProgress}),
+    fetchModel('/models/z-anatomy/dentition.bin','arrayBuffer',{onProgress}),
+    fetchModel('/models/z-anatomy/neurovascular.json','json',{onProgress}),
+    fetchModel('/models/z-anatomy/neurovascular.bin','arrayBuffer',{onProgress}),
+  ]);
   loadingPhase='geometry';
+  await loadingStage(t('Anatomik yüzeyler hazırlanıyor…'));
   for (const s of [...manifest.structures,...extra.structures]) {
     const data = s.kind === 'nerve' || s.kind === 'artery' ? extraBinary : binary;
     const geometry = new THREE.BufferGeometry();
@@ -201,6 +205,7 @@ async function start() {
     if (s.fdi) teeth.set(s.fdi,mesh);
   }
   loadingPhase='interface';
+  await loadingStage(t('İlk görüntü hazırlanıyor…'));
   const order = [17,16,15,14,13,12,11,21,22,23,24,25,26,27,47,46,45,44,43,42,41,31,32,33,34,35,36,37];
   for (const id of order) {
     const b = document.createElement('button');b.dataset.fdi=id;b.textContent=id;b.title=toothName(id);b.setAttribute('aria-label',`${id} ${toothName(id)}`);

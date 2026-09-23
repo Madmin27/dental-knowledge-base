@@ -21,3 +21,14 @@ test('HTTP preview serves only allowlisted assets and rejects writes and file di
   assert.equal((await (await fetch(base+'/api/check?scenario=approved')).json()).allowed,true);
   assert.equal((await (await fetch(base+'/api/check?scenario=nc')).json()).allowed,false);
 });
+
+test('public model bytes revalidate by content hash while private routes remain no-store',async()=>{
+ const server=previewServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ try{
+  const base='http://127.0.0.1:'+server.address().port;
+  const first=await fetch(base+'/models/z-anatomy/dentition.json');const etag=first.headers.get('etag');assert.ok(etag);await first.text();
+  const second=await fetch(base+'/models/z-anatomy/dentition.json',{headers:{'If-None-Match':etag}});assert.equal(second.status,304);assert.equal(await second.text(),'');
+  const stale=await fetch(base+'/models/z-anatomy/dentition.json',{headers:{'If-None-Match':'"old-version"'}});assert.equal(stale.status,200);await stale.text();
+  assert.equal((await fetch(base+'/api/contributions')).headers.get('cache-control'),'no-store');
+ }finally{await new Promise(r=>server.close(r));}
+});

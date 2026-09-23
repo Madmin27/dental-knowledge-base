@@ -83,3 +83,22 @@ Never delete redaction tombstones merely to free active capacity; archive them.
   desk under ADR0007. First administrator identity is still required from owner.
 - Then: 3–5 real experts using the pilot pack. No invitations or academic approval
   have been issued. Operator tests are not evidence of anatomical correctness.
+
+## Viewer loading follow-up (2026-09-23)
+
+The owner reported intermittent loading on the HTTPS domain; the exact original
+cause was not established. The live atlas rendered 28 source teeth in Chromium.
+Public model responses previously used no-store and therefore retransferred on
+refresh. They now use content SHA-256 ETags with mandatory revalidation; a live
+conditional request returned 304. Private API responses remain no-store.
+
+The model reader reports received MB, applies a 45-second idle deadline renewed
+by data and a five-minute overall limit, and displays graphics/geometry stages.
+An independent bootstrap catches failed module imports and supplies recovery
+links; a 90-second no-progress watchdog covers startup stalls while the browser
+main thread remains responsive. GPU driver hangs cannot be interrupted by a
+JavaScript timer. Geometry is unchanged; compatible graphics remains available.
+
+Browser-local fault injection on HTTPS verified normal rendering, missing-module
+recovery links, stalled-transfer errors and successful reload after removing the
+fault. This is not a measurement of the owner's device/network speed.

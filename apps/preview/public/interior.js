@@ -1,6 +1,6 @@
 import {t,percent} from './i18n.js';
 import {showModelError} from './studio.js';
-import {createCompatibleRenderer,viewerFailure} from './viewer-runtime.js';
+import {createCompatibleRenderer,viewerFailure,fetchModel,loadingStage,modelProgress} from './viewer-runtime.js';
 let loadingPhase='files';
 import {installContributions} from './contributions.js';
 import {validateInteriorView} from './view-contract.js';
@@ -72,8 +72,11 @@ function addLayer(meta,geometry,index){
   objects.set(meta.id,{mesh,stencil,cap,closed:meta.openEdges===0&&meta.nonManifoldEdges===0});
 }
 async function start(){
-  const response=await fetch('/research/pulp/manifest.json');if(!response.ok)throw Error(t('Araştırma örneği bu sunucuda etkin değil. Tam ağız atlasını kullanabilirsiniz.'));const manifest=await response.json();
-  const buffers=await Promise.all(manifest.models.map(async m=>{const r=await fetch('/research/pulp/'+m.file);if(!r.ok)throw Error(t('Kaynak yüzey okunamadı.'));return r.arrayBuffer();}));
+  await loadingStage(t('Model dosyaları indiriliyor…'));
+  const onProgress=modelProgress(t('İndirilen model verisi:'));
+  const manifest=await fetchModel('/research/pulp/manifest.json','json',{onProgress});
+  const buffers=await Promise.all(manifest.models.map(m=>fetchModel('/research/pulp/'+m.file,'arrayBuffer',{onProgress})));
+  await loadingStage(t('Grafik motoru hazırlanıyor…'));
   loadingPhase='graphics';const graphics=createCompatibleRenderer(THREE.WebGLRenderer,{stencil:true,compatible:new URLSearchParams(location.search).get('graphics')==='compat'});renderer=graphics.renderer;renderer.setPixelRatio(Math.min(devicePixelRatio,graphics.compatible?1:1.8));
   if(graphics.compatible){const note=document.createElement('p');note.className='graphics-notice';note.textContent=t('Uyumlu grafik modu · model ayrıntısı korunur');$('.stage-heading').append(note);}
   renderer.localClippingEnabled=true;renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;host.append(renderer.domElement);
