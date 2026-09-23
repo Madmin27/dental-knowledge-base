@@ -22,6 +22,7 @@ export async function installContributions({captureView=()=>({kind:'technical',v
   node('p',t('Anatomik bir sorun bildirin, kaynak önerin veya eğitim deneyimini iyileştirin. Bildirim önce bakımcı tarafından değerlendirilir; bilimsel değişiklikler ayrıca uzman incelemesi gerektirir.'),dialog);
   node('p',notice,dialog).className='contribution-notice';
   node('p',languageNotice,dialog).className='contribution-language';
+  const mediaGuide=node('a',t('Görsel katkı rehberi'),dialog);mediaGuide.href='/media-guide';mediaGuide.target='_blank';mediaGuide.rel='noopener noreferrer';
   const content=node('div',undefined,dialog);const info=errorBox(content);
   try{const health=await(await fetch('/health',{signal:AbortSignal.timeout(15000)})).json();if(!health.contributionsEnabled){button.disabled=false;button.onclick=()=>{info.textContent=t('Katkı kuyruğu bu sunucuda etkin değil.');dialog.showModal();};return;}}catch{button.disabled=false;button.onclick=()=>{info.textContent=t('Katkı hizmetine ulaşılamıyor. Sayfayı yenileyin.');dialog.showModal();};return;}
   button.disabled=false;

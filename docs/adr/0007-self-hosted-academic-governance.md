@@ -245,3 +245,11 @@ anatomik/editoryal sorumluluk devrini kaydettiğinde AI'ın kendiliğinden anato
 öneri, değişiklik ve bilimsel denetim rolü sona erer. Sonraki anatomik AI yardımı
 ancak ekibin açık talebiyle olur; oy veya kabul yetkisi doğurmaz. Yetkilendirilmiş
 teknik bakım ayrı yürür. Bu kayıt bir yetki motorunun kurulmuş olduğu anlamına gelmez.
+
+## 2026-09-23 — Görsel katkı ve AI aday model tasarımı
+
+[ADR0008](0008-media-contributions-and-model-candidates.md) fotoğraf/röntgen/hacim
+katkılarını, ayrı izinleri ve insan talebiyle AI aday üretimini tanımlar. AI çıktısı
+uzmana sunulur; kabul edilen sürüm de itiraz/eleştiriye açık kalır. Bu tasarım
+anonim metin formunda dosya yüklemeyi açmaz; kimlik ve özel karantina uygulaması
+ayrı teslimat kapılarıdır. Uzmanların bilimsel sorumluluğu değişmez.

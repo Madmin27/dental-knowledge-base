@@ -103,3 +103,12 @@ Separately authorized software maintenance (backups, loading, security, tests)
 can continue without deciding anatomy. A technical defect touching source
 geometry/presentation must be referred to the human team before an anatomical
 change. Independent software auditing does not become an AI scientific board.
+
+## Requested AI candidate generation
+
+The owner's subsequent request explicitly includes designing image-to-model AI
+assistance. ADR0008 implements that scope as a **human-requested candidate** route,
+not autonomous scientific authority. After expert handover, the team can request
+such jobs; resulting models always require their review and remain challengeable.
+No AI job or image submission was authorized to bypass privacy/rights safeguards,
+and no external clinical-data transfer is inferred from the design request.

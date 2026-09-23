@@ -1,5 +1,26 @@
 // Explicit UI catalog. Source records, identifiers and contributor prose are never translated.
 export const english = Object.fromEntries(`
+Görsel katkı rehberi|Visual contribution guide
+Görsel katkı rehberi · Dental Open Source|Visual contribution guide · Dental Open Source
+Fotoğraflardan ve görüntülerden incelenebilir modeller|From images to reviewable models
+Hazırlık aşamasında: dosya yükleme ve AI ile model üretimi henüz açık değil.|In preparation: file upload and AI model generation are not available yet.
+Hasta görüntülerini GitHub, herkese açık bağlantılar veya mevcut metin formu üzerinden göndermeyin.|Do not send clinical images through GitHub, public links or the current text form.
+1 · Diş fotoğrafları|1 · Tooth photographs
+Her dişi ayrı bir görüntü setinde tutun. Biliniyorsa FDI numarasını, çekim yönlerini ve eksik ya da hasarlı bölgeleri belirtin. Bilinmeyen bilgileri tahmin etmeyin.|Keep each tooth in its own image set. Record the FDI number if known, view directions, and missing or damaged regions. Do not guess unknown information.
+Ön, arka, yan, çiğneme ve kök ucu görünümlerine örtüşen ara açılar ekleyin. Netlik ve aydınlatma tutarlı olsun. Varsa ölçü referansı kullanın; yoksa ölçek bilinmiyor olarak kalır.|Include front, back, side, chewing-surface and root-tip views with overlapping intermediate angles. Keep focus and lighting consistent. Include a calibration reference if available; otherwise scale remains unknown.
+Fotoğraflar görünür dış yüzeyi destekler; dişin içindeki pulpa veya kanalları ölçmez. AI ile güzelleştirilmiş görüntüleri özgün kaynak gibi sunmayın.|Photographs support visible external surfaces; they do not measure internal pulp or canals. Do not present AI-enhanced images as original evidence.
+2 · Röntgen ve hacim görüntüleri|2 · Radiographs and volumes
+İki boyutlu röntgen ve CBCT aynı veri değildir. Tek röntgenden önerilen üç boyutlu şekil tahmin içerir; ölçülmüş anatomi olarak sunulmaz.|A 2D radiograph and CBCT are different inputs. A proposed 3D shape from one radiograph includes inference and is not presented as measured anatomy.
+Yalnız katkıda bulunmaya yetkili olduğunuz mevcut materyali hazırlayın. Bu proje için yeni röntgen çekimi veya diş çekimi istenmez.|Prepare only existing material you are authorized to contribute. This project does not request new imaging or tooth extraction.
+3 · Özel inceleme ve izinler|3 · Private review and permissions
+Dosyalar önce özel alanda güvenlik, kullanım hakkı ve insan gizlilik incelemesinden geçecek. Görüntü üzerindeki yazılar ve metadata ayrıca kontrol edilecek.|Files will first undergo security, rights and human privacy review in a private area. Image text and metadata will be checked separately.
+İşleme, AI kullanımı, yayın ve model eğitimi izinleri ayrı olacak. Katkı yapmak otomatik yayın veya AI eğitimi izni vermez.|Processing, AI inference, publication and model-training permissions will be separate. Contributing does not automatically authorize publication or AI training.
+4 · Aday model ve uzman değerlendirmesi|4 · Candidate model and expert review
+AI çıktısı kaynakları, kullanılan yöntem, sürüm, eksikler ve tahmin edilen bölgelerle birlikte aday model olarak sunulacak. Uzmanlar gerekçeli kabul, düzeltme veya ret kararı verecek.|AI output will be presented as a candidate with its sources, method, version, limitations and inferred regions. Experts will record a reasoned acceptance, revision request or rejection.
+Kabul edilen modeller de eleştiriye açık kalacak. Yeni bulgu ilgili sürüme bağlanacak; değişiklik yeni sürüm ve yeni inceleme oluşturacak. AI kendi modelini onaylayamaz.|Accepted models will remain open to criticism. New findings will reference the relevant version; changes will create a new version and review. AI cannot approve its own model.
+Güvenli yükleme kanalı açılana kadar burada yalnız rehber sunulmaktadır.|Until the controlled upload channel opens, this page provides guidance only.
+Tam çekim ve katkı rehberi|Full capture and contribution guide
+Üretim ve uzman inceleme tasarımı|Generation and expert-review design
 Grafik motoru hazırlanıyor…|Preparing graphics…
 Model dosyaları indiriliyor…|Downloading model files…
 İndirilen model verisi:|Model data downloaded:

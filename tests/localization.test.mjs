@@ -43,3 +43,13 @@ test('all current pages serve English and Turkish with persistent preference hea
   }
   assert.equal((await fetch(base+'/i18n.js')).status,200);
 });
+
+test('visual contribution guide is bilingual and does not imply active clinical uploads',async()=>{
+ const server=previewServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ try{
+  const base='http://127.0.0.1:'+server.address().port;
+  const en=await(await fetch(base+'/media-guide')).text();
+  assert.match(en,/Visual contribution guide/);assert.match(en,/file upload and AI model generation are not available yet/);assert.match(en,/Accepted models will remain open to criticism/);assert.doesNotMatch(en,/<input[^>]+type=["']file/);
+  const tr=await(await fetch(base+'/media-guide?lang=tr')).text();assert.match(tr,/Görsel katkı rehberi/);assert.match(tr,/dosya yükleme ve AI ile model üretimi henüz açık değil/);
+ }finally{await new Promise(r=>server.close(r));}
+});

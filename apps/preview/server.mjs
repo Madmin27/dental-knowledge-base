@@ -12,6 +12,7 @@ files.set('/favicon.svg',['favicon.svg','image/svg+xml']);
 files.set('/i18n.js',['i18n.js','text/javascript; charset=utf-8']);
 files.set('/viewer-boot.js',['viewer-boot.js','text/javascript; charset=utf-8']);
 files.set('/drafts.js',['drafts.js','text/javascript; charset=utf-8']);
+files.set('/media-guide',['media-guide.html','text/html; charset=utf-8']);
 files.set('/report',['report.html','text/html; charset=utf-8']);
 files.set('/overview',['index.html','text/html; charset=utf-8']);
 for(const name of ['atlas.js','atlas-geometry.js','atlas.css','vendor/three.module.js','vendor/three.core.js','vendor/OrbitControls.js','vendor/THREE-LICENSE.txt']) {

@@ -2,7 +2,8 @@
 
 Date: 2026-09-22. This is a delivery plan, not a claim of academic acceptance.
 Public branding is **Dental Open Source**, domain **dentalopensource.org**.
-Internal project identifiers remain unchanged; DNS/HTTPS activation is pending.
+Internal project identifiers remain unchanged. Update 2026-09-23: public HTTPS is
+active and owner-confirmed; academic acceptance remains pending.
 
 ## Delivered in the studio interface revision
 
@@ -62,3 +63,12 @@ service deployed. These are independent states.
 - Contributions: `CONTRIBUTING-ATLAS.md`
 - Decision model: `adr/0006-variant-context-and-reasoned-review.md`
 - Accessibility criteria: https://www.w3.org/TR/WCAG22/
+
+## Visual-contribution preparation — 2026-09-23
+
+MEDIA-001: EN/TR guide, modality-specific reconstruction design and tested pure
+manifest contracts prepared under [ADR0008](adr/0008-media-contributions-and-model-candidates.md).
+MEDIA-002/003 deliver verified photo intake, private quarantine and human privacy
+review before file uploads open. MEDIA-004/005 add requested AI candidates, expert
+review and continuing criticism; MEDIA-006 adds the invited radiograph/volume pilot.
+No upload endpoint, AI worker or expert-voting system is claimed delivered.

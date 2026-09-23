@@ -29,6 +29,13 @@ See [preview setup](apps/preview/README.md),
 [product quality roadmap](docs/PRODUCT-QUALITY-ROADMAP.md), and
 [contribution guide](docs/CONTRIBUTING-ATLAS.md).
 
+## Visual contributions and candidate models
+
+[Photo and radiograph preparation guide](docs/MEDIA-CAPTURE-GUIDE.md), also available
+as `/media-guide` in English/Turkish. [ADR0008](docs/adr/0008-media-contributions-and-model-candidates.md)
+defines private uploads, requested AI generation, expert assessment and lasting
+criticism. Uploads, reconstruction workers and expert voting are not yet deployed.
+
 ## Independent review
 
 Follow the [advisory review policy](docs/INDEPENDENT-REVIEW.md) established by
