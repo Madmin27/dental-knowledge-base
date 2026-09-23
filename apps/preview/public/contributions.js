@@ -8,6 +8,7 @@ function node(tag,text,parent){const el=document.createElement(tag);if(text!==un
 async function request(path,key,body){const response=await fetch('/api/contributions'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+key,...(body?{'Content-Type':'application/json','X-DKB-Request':'1'}:{})},...(body?{body:JSON.stringify(body)}:{})});const result=await response.json();if(!response.ok){const error=Error(t(result.error??'İstek tamamlanamadı.'));error.status=response.status;throw error;}return result;}
 const tracking=(id,key)=>location.origin+'/contributions#id='+id+'&key='+key;
 const notice=t('Bu kuyruk akademik onay veya yayın kararı vermez. Hasta adı, görüntüsü, dosyası veya kimliğini belirleyebilecek bilgi eklemeyin.');
+const languageNotice=t('Katkı ve tartışmaların ortak dili İngilizcedir. Lütfen gözlemlerinizi, önerilerinizi ve tartışma yanıtlarınızı İngilizce yazın. Kaynakları özgün dilinde paylaşabilirsiniz. İngilizce yazılması tek başına bilimsel kabul anlamına gelmez.');
 function field(form,title,name,{type='text',required=false,max=4000,options,rows=4}={}){const label=node('label',title,form);label.htmlFor='contribution-'+name;const el=node(options?'select':type==='textarea'?'textarea':'input',undefined,form);el.id=label.htmlFor;el.name=name;el.required=required;if(options)for(const [value,title]of Object.entries(options)){const o=node('option',title,el);o.value=value;}else if(type==='textarea'){el.rows=rows;el.maxLength=max;}else{el.type=type;el.maxLength=max;}return el;}
 function errorBox(parent){const el=node('p','',parent);el.className='contribution-message';el.setAttribute('role','status');return el;}
 function receipt(parent,id,key){node('h3',t('Özel takip bağlantınız'),parent);node('p',t('Bu bağlantıyı saklayın. Bağlantıya sahip kişi bildiriminizi okuyabilir ve ek açıklama yazabilir. Kaybolursa geri getirilemez.'),parent);const a=node('a',t('Bildirimi aç →'),parent);a.href=tracking(id,key);const input=node('input',undefined,parent);input.value=a.href;input.readOnly=true;input.setAttribute('aria-label',t('Özel takip bağlantısı'));input.addEventListener('click',()=>input.select());const button=node('button',t('Takip bilgisini indir'),parent);button.type='button';button.onclick=()=>{const blob=new Blob(['Dental Open Source — '+t('Katkı takibi')+'\n'+a.href+'\n'],{type:'text/plain'});const url=URL.createObjectURL(blob);const link=node('a');link.href=url;link.download='dental-contribution-'+id.slice(0,8)+'.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};}
@@ -18,6 +19,7 @@ export async function installContributions({captureView,restoreView,catalog}){
   node('h2',t('Atlası birlikte geliştirelim'),dialog).id='contribution-title';
   node('p',t('Anatomik bir sorun bildirin, kaynak önerin veya eğitim deneyimini iyileştirin. Bildirim önce bakımcı tarafından değerlendirilir; bilimsel değişiklikler ayrıca uzman incelemesi gerektirir.'),dialog);
   node('p',notice,dialog).className='contribution-notice';
+  node('p',languageNotice,dialog).className='contribution-language';
   const content=node('div',undefined,dialog);const info=errorBox(content);
   try{const health=await(await fetch('/health')).json();if(!health.contributionsEnabled){button.disabled=false;button.onclick=()=>{info.textContent=t('Katkı kuyruğu bu sunucuda etkin değil.');dialog.showModal();};return;}}catch{button.disabled=false;button.onclick=()=>{info.textContent=t('Katkı hizmetine ulaşılamıyor. Sayfayı yenileyin.');dialog.showModal();};return;}
   button.disabled=false;
@@ -61,6 +63,7 @@ async function trackingPage(){
   const root=$('#contribution-tracking');if(!root)return;
   const params=new URLSearchParams(location.hash.slice(1));let id=params.get('id'),key=params.get('key');
   node('h1',t('Katkı takibi'),root);node('p',notice,root).className='contribution-notice';
+  node('p',languageNotice,root).className='contribution-language';
   if(!/^[a-f0-9]{32}$/.test(id??'')||!/^[a-f0-9]{64}$/.test(key??'')){node('p',t('Gönderim sonunda verilen özel takip bağlantısını açın. Bu sayfada herkese açık bildirim listesi bulunmaz.'),root);return;}
   node('p',t('Takip no: ')+id,root);const body=node('div',undefined,root);const message=errorBox(root);
   async function load(){

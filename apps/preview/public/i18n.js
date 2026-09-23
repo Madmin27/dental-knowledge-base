@@ -1,5 +1,6 @@
 // Explicit UI catalog. Source records, identifiers and contributor prose are never translated.
 export const english = Object.fromEntries(`
+Katkı ve tartışmaların ortak dili İngilizcedir. Lütfen gözlemlerinizi, önerilerinizi ve tartışma yanıtlarınızı İngilizce yazın. Kaynakları özgün dilinde paylaşabilirsiniz. İngilizce yazılması tek başına bilimsel kabul anlamına gelmez.|English is the shared language for contributions and discussions. Please write observations, suggestions and discussion replies in English. References may be shared in their original language. Writing in English does not by itself constitute scientific acceptance.
 İçeriğe geç|Skip to content
 Ana gezinme|Main navigation
 3B atlas|3D atlas

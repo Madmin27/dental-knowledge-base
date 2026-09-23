@@ -16,5 +16,6 @@ export function localizedHTML(html,lang){
     return gt?gt+escape(translated):`${attribute}="${escape(translated)}"`;
   });
   const selector=`<label class="language-control"><span class="language-label">${lang==='tr'?'Dil':'Language'}</span><select id="language-select" aria-label="${lang==='tr'?'Dil seçimi':'Language selection'}"><option value="en"${lang==='en'?' selected':''}>English</option><option value="tr"${lang==='tr'?' selected':''}>Türkçe</option></select></label>`;
-  return result.replace('<div class="header-actions">','<div class="header-actions">'+selector);
+  const footer=`<footer class="site-footer"><span>Dental Open Source</span><a href="https://github.com/Madmin27/dental-knowledge-base" target="_blank" rel="noopener noreferrer">${lang==='tr'?'GitHub · Kaynak kodu':'GitHub · Source code'} ↗</a></footer>`;
+  return result.replace('<div class="header-actions">','<div class="header-actions">'+selector).replace('</body>',footer+'</body>');
 }

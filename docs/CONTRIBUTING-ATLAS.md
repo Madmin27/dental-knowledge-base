@@ -87,3 +87,13 @@ kontrol edilir; fiziksel disk kaybı kurtarması yapılmış sayılmaz.
 testlerini de çalıştırır. Gerçek Chrome akışı:
 `scripts/validate_contributions_browser.mjs ENDPOINT http://127.0.0.1:3058/ OUTPUT TEST_KEY_FILE`.
 Yalnız ayrı geçici depo/anahtarla kullanılmalı; gerçek katkı kuyruğuna sentetik test eklemez.
+# Ortak katkı dili
+
+Katkıların, tartışma yanıtlarının ve bilimsel değerlendirmelerin ortak dili
+İngilizcedir. Arayüz İngilizce veya Türkçe kullanılabilir; kaynaklar özgün
+dillerinde paylaşılabilir. Form ve takip ekranı bu beklentiyi açıklar. Otomatik
+dil tespitiyle gönderim reddedilmez; gerektiğinde bakımcı İngilizce açıklama ister.
+Mevcut kayıtlar yeniden yazılmaz. İngilizce yazmak bilimsel kabul sağlamaz;
+kabul, kanıt ve uzman inceleme ölçütlerine bağlıdır. Silme/mahremiyet talepleri
+dil nedeniyle engellenmez. GitHub bağlantısı kaynak kodu içindir; katkılar ve
+tartışmalar projenin kendi sunucusunda kalır.
