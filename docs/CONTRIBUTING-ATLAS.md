@@ -1,5 +1,9 @@
 # Atlas katkıları
 
+Uzman pilotu ve güncel erişim sınırlamaları:
+[EXPERT-PILOT.md](EXPERT-PILOT.md). Dış IP'den atlasın açılması, özel katkı
+servisinin o adres için yapılandırılmış olduğu anlamına gelmez.
+
 Atlasta **Katkıda bulun** düğmesini kullanın. İlgili yapıyı, sorun türünü,
 gözleminizi, beklediğiniz sonucu ve varsa kaynak bağlantılarını yazın.
 Gönderim açıldığı andaki kamera ve katman ayarları, modelin tam sürümüyle kaydedilir.

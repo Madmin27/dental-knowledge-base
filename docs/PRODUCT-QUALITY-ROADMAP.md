@@ -20,6 +20,13 @@ Public branding/domain is still undecided; the implementation keeps the project 
 
 ## Delivery sequence and acceptance gates
 
+The immediate next step is a bounded **3–5-person expert pilot**, using
+[EXPERT-PILOT.md](EXPERT-PILOT.md) and the existing viewer. Do not wait for
+TASK-005/006 completion to collect observations. Use real findings to refine
+claim/evidence and reviewer requirements. Pilot findings are advisory records,
+not publication decisions; the authority and public-operation gates below still
+apply. This expert pilot precedes the broader student pilot listed under P2.
+
 | Priority | Track | Next deliverable | Acceptance evidence |
 | --- | --- | --- | --- |
 | P0 | Anatomical reliability | Execute `EXPERT-REVIEW-PACK.md` with named, qualified reviewers; inspect FDI 16/36/37, source alignment, gingival boundaries, nerve/artery labels and independent interior specimen | Findings identify source hash, structure, camera, criterion, evidence, severity and reviewer. Blocking inaccuracies resolved or explicitly withheld from teaching publication. |

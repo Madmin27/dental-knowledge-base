@@ -27,6 +27,24 @@ assert.equal((await s.call('',key,{...p,consent:false})).status,422);assert.equa
 assert.equal((await s.call('',key,{...p,description:'ü'.repeat(13000)})).status,413);
 const stale=structuredClone(p);stale.view.assets.dentition='old';assert.equal((await s.call('',key,stale)).status,422);const bad=structuredClone(p);bad.view.camera=[null,0,1];assert.equal((await s.call('',key,bad)).status,422);
 assert.equal((await s.call('',key,p)).status,201);assert.equal((await s.call('',hex(32),payload())).status,503);});
+test('HTTPS public origin supports receipts and followups without trusting forwarded headers',async t=>{
+ const origin='https://dental.example.org',s=await setup(t,{origin});
+ const headers={Host:'dental.example.org',Origin:origin};
+ const p=payload(),key=hex(32);
+ assert.equal((await s.call('',key,p,headers)).status,201);
+ assert.equal((await s.call('/'+p.id,key,undefined,headers)).status,200);
+ assert.equal((await s.call('/'+p.id+'/events',key,{revision:0,note:'Synthetic public-origin followup'},headers)).status,200);
+ assert.equal((await s.call('/'+p.id,hex(32),undefined,headers)).status,404);
+ for(const extra of [
+  {Origin:'http://dental.example.org'},
+  {Origin:'https://dental.example.org.evil.example'},
+  {Host:'localhost:3059','X-Forwarded-Host':'dental.example.org'},
+  {Origin:'http://localhost:3059','X-Forwarded-Proto':'https'},
+  {Origin:''},
+ ]) assert.equal((await s.call('',key,p,{...headers,...extra})).status,403);
+ await s.restart();
+ assert.equal((await s.call('/'+p.id,key,undefined,headers)).data.revision,1);
+});
 test('bounded request rate throttles creation',async t=>{const s=await setup(t,{rateLimit:2});for(let i=0;i<2;i++)assert.equal((await s.call('',hex(32),payload())).status,201);assert.equal((await s.call('',hex(32),payload())).status,429);});
 test('privacy redaction removes free text without resurrecting it on retry',async t=>{const s=await setup(t),p=payload(),key=hex(32);await s.call('',key,p);assert.equal((await s.call('/'+p.id+'/redact',key,{revision:0})).status,404);const r=await s.call('/'+p.id+'/redact',s.adminKey,{revision:0});assert.equal(r.status,200);assert.ok(r.data.redactedAt);assert.equal(r.data.submission.alias,'');assert.equal((await s.call('',key,p)).status,409);assert.equal((await s.call('/'+p.id+'/events',key,{revision:1,note:'Should not resurrect'})).status,409);const disk=await readFile(join(s.directory,p.id+'.json'),'utf8');assert.ok(!disk.includes(p.description));});
 test('abrupt writer death preserves every acknowledged record and leaves only complete JSON',async t=>{

@@ -1,0 +1,5 @@
+# /etc/systemd/system/dental-preview.service.d/90-public.conf
+# Replace the placeholder origin. Keep the existing credentials and StateDirectory.
+[Service]
+Environment=PREVIEW_HOST=127.0.0.1
+Environment=PREVIEW_ORIGIN=https://dental.example.org

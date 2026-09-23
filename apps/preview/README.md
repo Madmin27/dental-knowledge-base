@@ -53,9 +53,10 @@ node tests/preview.test.mjs
 
 The standalone command defaults to **127.0.0.1:3057**. The installed service uses
 `PREVIEW_HOST=192.168.1.192`, so LAN clients open **http://192.168.1.192:3057/**.
-UFW permits only 192.168.1.0/24 to this TCP port and denies other sources. No router
-port forwarding is configured. Set PREVIEW_HOST to a specific IPv4 address to
-change the binding; wildcard binding is rejected.
+As of 2026-09-22, UFW also permits temporary public TCP 3057 access; the user
+reported access through http://85.96.191.197:3057/. This is direct HTTP, not HTTPS.
+Contribution intake still accepts only the configured LAN origin. Set PREVIEW_HOST
+to a specific IPv4 address to change the binding; wildcard binding is rejected.
 
 The installed `dental-preview.service` is defined in `infra/dental-preview.service`.
 It uses DynamicUser, a read-only filesystem, and explicit read-only bindings for
@@ -67,8 +68,9 @@ systemctl restart dental-preview
 systemctl disable --now dental-preview  # stop and remove startup activation
 ```
 
-No public hostname or Nginx route was configured; port 3057 is allowed only on LAN. A public URL needs
-the chosen hostname/path and corresponding proxy configuration. Health and HTTP
+No Dental public hostname or Nginx route is configured yet. HTTPS transition is
+documented in [the public pilot deployment guide](../../docs/PUBLIC-PILOT-DEPLOYMENT.md).
+The following checks are historical installation evidence. Health and HTTP
 scenario checks passed after service installation; desktop 1440px and mobile
 390px browser checks confirmed the approval/NC-denial interactions and no mobile
 overflow. Local screenshot proof: /tmp/dkb-preview-proof/desktop.png and mobile.png.

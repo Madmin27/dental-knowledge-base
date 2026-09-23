@@ -1,7 +1,8 @@
 # DentalKnowledgeBase — somut uzman inceleme paketi
 
 Durum: İncelemeye hazırlanmış aday; uzman tarafından onaylanmış içerik değildir.
-İnceleme ekranı: mevcut LAN atlası. Ana eylemler: 1) diş-diş eti-kemik birleşimi,
+İlk 3–5 uzmanla yürütme ve erişim koşulları: [EXPERT-PILOT.md](EXPERT-PILOT.md).
+İnceleme ekranı: mevcut atlas önizlemesi. Ana eylemler: 1) diş-diş eti-kemik birleşimi,
 2) kemik içinde kök incelemesi, 3) sinir/atardamar katmanları, 4) tek diş.
 
 ## İnceleyene verilecek kaynaklar
@@ -36,6 +37,11 @@ Boş veya "incelenmedi" maddesi onay anlamına gelmez.
 8. Yoklukların görünürlüğü: üçüncü azılar, pulpa/kanal hacimleri, diş içi damar
    ve sinir ağı, venler, kapillerler, periodontal ligament segmentasyonu.
 9. Türkçe etiketlerin eğitim terminolojisi; açıklamalar ve yaş/cinsiyet iddiaları.
+10. Bağımsız diş içi araştırma örneği: `docs/assets/KANG-PULP-REVIEW.md`
+    ve bu örneğin kendi manifestiyle inceleyin. Kesit, iç boşluk ve kaynakta
+    bulunan yapıların etiketlerini kontrol edin. Kesit kapağı bir doku
+    segmentasyonu değildir. Bu örneği Z-Anatomy ağzındaki FDI 16/36/37 ile
+    eşleştirmeyin; aynı bireye veya dişe ait olduğu çıkarımını yapmayın.
 
 ## Bulgu şablonu
 
@@ -48,6 +54,8 @@ Boş veya "incelenmedi" maddesi onay anlamına gelmez.
 - Kaynak model kusuru / dönüşüm kusuru / sunum kusuru / belirsiz:
 - Etki: yayını engeller / açıklamayla kullanılabilir / küçük düzeltme:
 - Düzeltme ve yeniden inceleme sonucu:
+- Gerekçeli kararın kapsamı, sınırlamaları ve varsa karşı görüş:
+- İsmin/görüşün kamuya aktarılması için izin (ayrı ayrı):
 
 Bu dosyanın hazırlanması insan incelemesini gerçekleştirmiş sayılmaz. Kamuya
 öğrenci yayını, kaydedilmiş hak/akademik kararlar ve gerçek cihaz kabulünden sonra
