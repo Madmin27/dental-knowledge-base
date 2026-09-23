@@ -1,5 +1,9 @@
 # HTTPS uzman pilotu geçişi
 
+DNS güncellemesi: kendi BIND9 sunucumuzda zone hazır; registrar glue/NS
+delegasyonu ve dış ağdan TCP/UDP53 kontrolü bekleniyor.
+Kurulum/kayıt adımları: [DNS rehberi](../infra/dns/README.md).
+
 ## 23 Eylül — Dental Open Source adı ve Nginx hazırlığı
 
 Kamuya dönük ad **Dental Open Source**, seçilen adres **dentalopensource.org**.

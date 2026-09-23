@@ -1,0 +1,13 @@
+$ORIGIN dentalopensource.org.
+$TTL 300
+@ IN SOA ns1.dentalopensource.org. hostmaster.dentalopensource.org. (
+    2026092301 ; serial
+    3600       ; refresh
+    600        ; retry
+    1209600    ; expire
+    300        ; negative cache
+)
+@   IN NS ns1.dentalopensource.org.
+@   IN A 85.96.191.197
+ns1 IN A 85.96.191.197
+www IN CNAME dentalopensource.org.
