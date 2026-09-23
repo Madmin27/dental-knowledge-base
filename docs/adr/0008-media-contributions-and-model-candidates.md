@@ -208,3 +208,110 @@ previous votes are never carried forward silently.
 Release raw-image upload only after MEDIA-002/003 gates; AI model production requires
 004 and review delivery requires 005. No broad clinical launch just to demonstrate
 an upload button. Prioritize a usable source-based atlas while these tracks mature.
+
+## 2026-09-23 independent-review refinement — evidence classes (contract v2)
+
+This revision addresses the owner's forwarded advisory review. It is an implementer
+response, not independent acceptance. The following distinctions are normative for
+candidate creation and future UI/API/review integration, not merely method labels.
+
+| `candidateClass` | Meaning | Review boundary |
+| --- | --- | --- |
+| `OBSERVATION_DERIVED` | Evidence-derived working candidate with unresolved calibration, e.g. an uncalibrated volume segmentation | Non-metric research preview; not a calibrated measurement or canonical specimen |
+| `RECONSTRUCTED_FROM_CALIBRATED_IMAGING` | Segmentation derived from a volume with a referenced verified calibration record | Review the spatial metadata and resolution; does not mean unmodified ground truth |
+| `MULTIVIEW_SURFACE_RECONSTRUCTION` | Reconstruction of externally supported surface geometry | Inspect camera registration, coverage and scale separately; no observed internal anatomy |
+| `AI_INFERRED_HYPOTHESIS` | Learned/generative shape inference, including 2D-only inference | Illustrative/research hypothesis or model-prior visualization only |
+| `HYBRID` | A pipeline combining supported reconstruction and inferred completion | Per-region decomposition is mandatory; whole model inherits the restrictive inferred ceiling |
+
+AI-assisted segmentation does not automatically make a measured-volume derivation
+a generative prior; classify evidence and geometric operations, not just the tool's
+AI branding. Conversely, generative filling cannot keep a pure multiview/calibrated
+class merely because the input contained photographs or a volume. The constructor
+promotes a previously pure class to HYBRID when support maps contain inferred and
+supported regions, or AI_INFERRED_HYPOTHESIS if inference has no supported region.
+A client-declared class cannot override the evidence-derived class.
+
+### Non-negotiable 2D-only publication ceiling
+
+A candidate whose evidence basis is only 2D radiography cannot be published as
+`specimen_specific_3d_anatomy` or `canonical`. The only permitted publication intents
+are `illustrative_research_hypothesis` and `model_prior_visualization`, still subject
+to all rights/privacy/expert/release decisions. Attractive rendering, high model
+confidence, an asserted scale or a majority vote cannot lift this ceiling.
+
+All new candidates start private/unaccepted and `canonicalEligible=false`. The pure
+contract checks a requested publication scope when supplied and emits the ceiling;
+it is not a deployed publication endpoint. Future release code must independently
+recompute/verify the ceiling against the frozen evidence and candidate revisions.
+
+New independent 3D evidence requires a **new evidence set and candidate version**,
+with new registration, support map, class, review and release decisions. It cannot
+retroactively relabel the original 2D hypothesis. A validated supported component
+of a HYBRID may become a separate derivative with its own restricted scope/review;
+approval of that component does not validate inferred regions of the parent.
+
+### Support-map technical contract
+
+The manifest requires the complete map and its digest; a bare hash is insufficient.
+The map binds `schemaVersion`, `meshSha256`, `coordinateFrameId`, `faceCount` and a
+bounded ordered region list. Regions partition all mesh faces without gaps or
+overlaps. Decimation/remeshing changes face IDs and requires a new bound map.
+
+Each region contains:
+
+- `id`, `firstFace`, `faceCount`: stable identity within this exact mesh revision.
+- `supportType`: `image_supported`, `inferred` or `unknown`.
+- `sourceReferences`: reviewed derivative `assetId`, exact `sha256` and `viewId`
+  resolving to a particular photograph or slice/volume view in the evidence set.
+  Volume views resolve slice/voxel ROI and spacing through an immutable referenced
+  view record; a free-text label alone is not sufficient in the processing service.
+- `registration`: direction is source frame → candidate frame. Store source/target
+  frame IDs, units and transform type. `affine_3d` uses a finite row-major 4×4 matrix;
+  `projection_2d` references exact camera calibration and pose hashes. A 2D pixel
+  is not treated as a depth-bearing 3D point by inventing a 4×4 transform.
+- `supportConfidence`: null when unavailable, otherwise [0,1] plus
+  `confidenceMethodId`. Score meaning/calibration population and known limitations
+  belong in the method record. It is not automatically an accuracy probability.
+- `reviewStatus`, `reviewedBy`: newly generated maps always start `pending`/null.
+  Later reviews are append-only records bound to map/region hash, verified reviewer,
+  eligibility/COI snapshot, time, decision and rationale. Generator-supplied reviewer
+  identities or approval flags cannot authorize these transitions.
+
+Supported regions require references to known matching source hashes; unknown
+regions assert neither source support nor a confidence score. Inferred-region
+references express conditioning evidence, not a claim that depth was observed.
+The current metadata validator does not compute transforms, inspect pixels,
+verify calibration records or check reviewer authority. Those remain processing
+and review service duties, including invertibility, physical plausibility and
+registration residual checks. Never confuse schema validity with registration QC.
+
+UI requirements: display class and evidence basis beside the candidate title, keep
+inferred/unknown overlays accessible in both languages, show linked source view on
+region selection, confidence meaning and reviewer state; show the publication
+ceiling on every detail/export/review screen. No 3D candidate viewer is deployed
+by this refinement; the public preparation guide explains the distinctions now.
+
+### Privacy categories and metric families
+
+Privacy uses **combinable risk tags**, not a lowest-risk mutually exclusive choice:
+`specimen_only_unlinked`, `linked_research_specimen`, `clinical_context`, `radiograph`,
+`volume`, `face_maxillofacial_identifiable`, `unknown`. The first tag is an assertion
+of an unlinked specimen-only image, not verified anonymity. A privacy reviewer
+confirms or changes it; unknown remains restrictive. Radiograph/volume tags cannot
+be removed by selecting specimen-only. Any identifying/maxillofacial tag requires
+its additional handling. Every human-derived category still requires human privacy
+review; all candidate manifests start `privacyRelease=null`.
+
+Metric families are `surface_deviation`, `landmark_error`, `volumetric_overlap`,
+`topology_integrity`, `scale_consistency`, `registration_residual`,
+`region_support_coverage`. Each future metric record binds the candidate/evidence
+revision, region, units, algorithm/version, reference, aggregation, uncertainty and
+expert threshold-policy revision. Unavailable metrics are explicitly `not_applicable`
+or `not_measured`, never zero/passed. Volumetric overlap requires an appropriate
+reference segmentation; unknown scale forbids physical-unit error claims. Thresholds
+remain expert-defined by modality/region/educational purpose; no universal mm or
+percentage acceptance rule is introduced. Metrics do not replace expert judgment.
+
+Candidate manifest schema advances from v1 to v2. No production candidate store
+exists, so no data migration is claimed; any future import of v1 must request the
+missing evidence map/classification rather than silently default it to approved.

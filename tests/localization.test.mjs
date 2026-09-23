@@ -49,7 +49,7 @@ test('visual contribution guide is bilingual and does not imply active clinical 
  try{
   const base='http://127.0.0.1:'+server.address().port;
   const en=await(await fetch(base+'/media-guide')).text();
-  assert.match(en,/Visual contribution guide/);assert.match(en,/file upload and AI model generation are not available yet/);assert.match(en,/Accepted models will remain open to criticism/);assert.doesNotMatch(en,/<input[^>]+type=["']file/);
+  assert.match(en,/Visual contribution guide/);assert.match(en,/file upload and AI model generation are not available yet/);assert.match(en,/Accepted models will remain open to criticism/);assert.match(en,/AI_INFERRED_HYPOTHESIS/);assert.match(en,/cannot be published as that specimen/);assert.doesNotMatch(en,/<input[^>]+type=["']file/);
   const tr=await(await fetch(base+'/media-guide?lang=tr')).text();assert.match(tr,/Görsel katkı rehberi/);assert.match(tr,/dosya yükleme ve AI ile model üretimi henüz açık değil/);
  }finally{await new Promise(r=>server.close(r));}
 });

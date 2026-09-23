@@ -1,5 +1,14 @@
 // Explicit UI catalog. Source records, identifiers and contributor prose are never translated.
 export const english = Object.fromEntries(`
+Model sınıfları ve yayın sınırı|Candidate classes and publication limits
+Adaylar kanıt türüne göre ayrı sınıflanır. Hiçbir sınıf tek başına bilimsel kabul anlamına gelmez.|Candidates are classified by their evidence basis. No class alone constitutes scientific acceptance.
+Gözlemden türetilmiş; kalibrasyonu henüz doğrulanmamış aday.|Observation-derived candidate with calibration not yet verified.
+Kalibrasyon kaydına bağlı hacim görüntüsünden türetilmiş aday.|Candidate derived from volumetric imaging with a referenced calibration record.
+Birden fazla fotoğrafın desteklediği dış yüzey rekonstrüksiyonu.|External surface reconstruction supported by multiple photographs.
+Öğrenilmiş önbilgi veya üretici model ile tahmin edilmiş hipotez.|Hypothesis inferred using learned priors or a generative model.
+Görüntüyle desteklenen ve tahminle tamamlanan bölgeleri birlikte içeren aday.|Candidate combining image-supported and inferred regions.
+Yalnız 2D röntgene dayanan modeller, o dişin gerçek üç boyutlu anatomisi veya canonical model olarak yayımlanamaz; yalnız açıklayıcı araştırma hipotezi ya da model önbilgisi gösterimi olarak değerlendirilebilir.|Models based only on 2D radiographs cannot be published as that specimen’s 3D anatomy or as canonical models; they may only be considered as illustrative research hypotheses or model-prior visualizations.
+Her bölge için kaynak görünümü, dönüşüm kaydı, destek türü, varsa güven skorunun anlamı ve uzman inceleme durumu gösterilecek.|Each region will show its source view, registration record, support type, confidence-score meaning when available, and expert-review status.
 Görsel katkı rehberi|Visual contribution guide
 Görsel katkı rehberi · Dental Open Source|Visual contribution guide · Dental Open Source
 Fotoğraflardan ve görüntülerden incelenebilir modeller|From images to reviewable models
