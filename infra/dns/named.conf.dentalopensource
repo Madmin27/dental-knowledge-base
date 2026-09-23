@@ -1,8 +1,11 @@
+include "/etc/bind/keys/dentalopensource-acme.key";
 zone "dentalopensource.org" {
     type master;
-    file "/etc/bind/db.dentalopensource.org";
+    file "/var/lib/bind/dentalopensource/db.dentalopensource.org";
     allow-query { any; };
     allow-transfer { none; };
-    allow-update { none; };
+    update-policy {
+        grant dentalopensource-acme name _acme-challenge.dentalopensource.org. TXT;
+    };
     notify no;
 };

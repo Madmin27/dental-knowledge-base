@@ -2,7 +2,8 @@
 
 *A community for open dental knowledge, anatomy and education.*
 
-Public domain: **dentalopensource.org** (DNS and HTTPS activation pending).
+Public domain: **dentalopensource.org**. Let's Encrypt TLS is installed;
+external web reachability still needs router/NAT verification.
 The internal project directory and repository retain the DentalKnowledgeBase /
 dental-knowledge-base identifiers so existing deployments and links keep working.
 

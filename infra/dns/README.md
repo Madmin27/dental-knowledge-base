@@ -1,5 +1,22 @@
 # Dental Open Source authoritative DNS
 
+## DNS-01 certificate automation (2026-09-23)
+
+The live zone now resides in
+`/var/lib/bind/dentalopensource/db.dentalopensource.org` (bind-owned, journaled).
+The repository zone is an initial seed: do not overwrite the live dynamic zone
+with it. Synchronize/freeze via rndc before any manual future zone edits.
+The TSIG key under `/etc/bind/keys/dentalopensource-acme.key` is secret, outside
+Git, root:bind mode0640; its only permission is the exact ACME TXT owner name.
+All other dynamic updates and zone transfers remain denied.
+
+`certbot-dental-auth.sh`, `certbot-dental-cleanup.sh` and
+`certbot-dental-deploy.sh` are installed under `/usr/local/sbin/` and referenced
+by Certbot renewal configuration. DNS-01 certificate issuance succeeded;
+DNS delegation is now active. External HTTP/HTTPS routing is a separate check.
+
+The initial-install notes below precede certificate automation.
+
 Installed on 2026-09-23: `named.conf.dentalopensource` and
 `db.dentalopensource.org` under `/etc/bind`, included by `named.conf.local`.
 The previous local configuration is backed up at

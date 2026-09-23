@@ -210,6 +210,9 @@ oluşmadan 'akademik kabul' özelliği açılmaz. HTTPS dış pilot ön koşulud
 
 ## Araştırma ve takım eleştirisi
 
+İkinci inceleme ve uygulama kabulüne eklenen kontroller:
+[23 Eylül değerlendirmesi](../codex/GOVERNANCE-SECOND-REVIEW-2026-09-23.md).
+
 - [OWASP Authorization](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html): varsayılan ret ve her nesne/istekte kontrol.
 - [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html): oturum yaşam döngüsü ve kritik işlemlerde yeniden doğrulama.
 - [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/): erişilebilirlik tasarım/test hedefi.

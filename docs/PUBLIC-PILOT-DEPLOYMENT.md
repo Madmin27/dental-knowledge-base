@@ -1,5 +1,31 @@
 # HTTPS uzman pilotu geçişi
 
+## Güncel işletim — 23 Eylül 2026, HTTPS kuruldu
+
+- Let’s Encrypt sertifikası DNS-01 ile alındı; bitiş 2026-12-22.
+  `/etc/letsencrypt/live/dentalopensource.org/` altında; anahtar Git dışında.
+- Nginx HTTP308 → HTTPS, TLS proxy → 192.168.1.192:3057. Servis
+  PREVIEW_ORIGIN=https://dentalopensource.org; bakımcı CLI HTTPS kullanır.
+- Sunucuda yalnız yerel çözüm için /etc/hosts domaini LAN IP'ye bağlar.
+  Sertifika doğrulaması kapatılmadan health, atlas, interior ve boş bakımcı
+  listesi başarılı; yabancı Origin403. Canlı kuyruğa sentetik kayıt eklenmedi.
+- HTTP-01 staging doğrulamasında Let's Encrypt dışarıdan TCP80 bağlantısında
+  timeout bildirdi. Dış web aracıyla HTTPS de doğrulanamadı. DNS doğrulaması
+  dış DNS'in çalıştığını kanıtlar; dış web erişiminin çalıştığını kanıtlamaz.
+- Kullanıcının modem TCP80/443 → 192.168.1.192:80/443 kontrolü bekleniyor.
+  Bu nedenle eski IP:3057 atlas erişimi ve UFW izni korundu. Repo'daki nihai
+  loopback şablonu, dış HTTPS doğrulandıktan sonra uygulanacak.
+- Geri dönüş dosyaları ve boş intake yedeği:
+  /var/backups/dental-preview/https-20260923. Veriler silinmedi.
+- certbot.timer etkin. Dental auth/cleanup/deploy hook'ları
+  /usr/local/sbin/certbot-dental-*.sh. Yenileme bu DNS hook'larını kullanır;
+  HTTP80 erişimine bağımlı değildir. `certbot renew --cert-name dentalopensource.org
+  --dry-run --run-deploy-hooks` başarılı; DNS oluşturma/temizleme ve Nginx reload
+  dahil prova geçti. Ayrı headless Chrome görsel denemeleri timeout oldu;
+  bu tur görsel tarayıcı kabulü verilmedi.
+
+Aşağıdaki önceki tarihli hazırlık kayıtları bu güncel durumun öncesini anlatır.
+
 DNS güncellemesi: kendi BIND9 sunucumuzda zone hazır; registrar glue/NS
 delegasyonu ve dış ağdan TCP/UDP53 kontrolü bekleniyor.
 Kurulum/kayıt adımları: [DNS rehberi](../infra/dns/README.md).
