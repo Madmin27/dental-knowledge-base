@@ -4,7 +4,9 @@ Tarih: 2026-09-23. Karar: Kullanıcı yönlendirmesiyle GitHub yalnız kod,
 commit, test ve dağıtım geliştirmesinde kullanılacak. Akademik katkılar,
 tartışmalar, şerhler, heyetler, oylar ve kararlar platformda tutulacak.
 ADR0006'nın GitHub koordinasyonu adımı kaldırılır; diğer bilimsel ilkeleri sürer.
-Durum: Mimari ve ürün tasarımı. Portal, kimlik servisi ve oylama henüz kurulmadı.
+Durum: Geniş akademik yönetişim hâlâ mimari ve ürün tasarımıdır. Davetli fotoğraf
+pilotunun kimlik servisi ve özel gizlilik masası uygulandı; gerçek hesap ataması
+bekleniyor. Oylama/akademik yayın henüz kurulmadı. [Güncel pilot kapsamı](../PRIVATE-PHOTO-PILOT.md).
 
 ## Birincil kayıt ve kapsam
 

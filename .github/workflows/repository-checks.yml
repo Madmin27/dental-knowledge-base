@@ -42,3 +42,7 @@ jobs:
         run: npm run test:db
         env:
           TEST_DATABASE_URL: postgresql://dental_test:synthetic-ci-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dental_test
+      - name: Private photo authority, quotas and erasure integration
+        run: npm run test:review-db
+        env:
+          TEST_REVIEW_DATABASE_URL: postgresql://dental_test:synthetic-ci-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/dental_test

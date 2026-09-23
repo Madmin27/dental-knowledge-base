@@ -1,0 +1,81 @@
+name: dental-review
+services:
+  database:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    ports: ["127.0.0.1:55433:5432"]
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ${REVIEW_CONFIG_DIR:?}/init.sql:/docker-entrypoint-initdb.d/10-review.sql:ro
+    mem_limit: 768m
+    cpus: 1
+    pids_limit: 100
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  identity:
+    image: quay.io/keycloak/keycloak:26.7.4@sha256:82a77884f3af238beab1e7afd63b5f530e1b5c0590bd7aa60b40a40463e29b2c
+    command: [start, --import-realm]
+    restart: unless-stopped
+    depends_on:
+      database: { condition: service_healthy }
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://database:5432/dental_identity
+      KC_DB_USERNAME: dental_identity
+      KC_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?}
+      KC_BOOTSTRAP_ADMIN_USERNAME: bootstrap-operator
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_PASSWORD:?}
+      KC_HOSTNAME: https://dentalopensource.org/auth
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_POOL_MAX_THREADS: "32"
+      KC_DB_POOL_MAX_SIZE: "10"
+      KC_LOG_LEVEL: warn
+    ports: ["127.0.0.1:8079:8080"]
+    volumes:
+      [
+        "${REVIEW_CONFIG_DIR:?}/realm.json:/opt/keycloak/data/import/dental-realm.json:ro",
+      ]
+    mem_limit: 1536m
+    cpus: 2
+    pids_limit: 200
+    security_opt: [no-new-privileges:true]
+  processor:
+    image: dental-photo-processor:20260923
+    restart: unless-stopped
+    network_mode: none
+    user: "${REVIEW_UID:?}:${REVIEW_GID:?}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 1536m
+    cpus: 1
+    pids_limit: 32
+    tmpfs: ["/tmp:size=128m,mode=1777,noexec,nosuid,nodev"]
+    ulimits:
+      nofile: { soft: 128, hard: 128 }
+      fsize: { soft: 26214400, hard: 26214400 }
+    volumes:
+      - /var/lib/dental-review/processor:/socket
+      - definitions:/definitions:ro
+  definitions:
+    image: dental-photo-processor:20260923
+    command: [freshclam, --foreground=true, --daemon, --checks=4, --stdout]
+    restart: unless-stopped
+    networks: [updates]
+    volumes: ["definitions:/var/lib/clamav"]
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 16
+    security_opt: [no-new-privileges:true]
+volumes:
+  database:
+  definitions:
+networks:
+  updates:

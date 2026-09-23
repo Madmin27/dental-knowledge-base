@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Private contributions · Dental Open Source</title>
+    <link rel="stylesheet" href="/review/style.css" />
+    <script type="module" src="/review/app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+    <header>
+      <a class="brand" href="/">Dental <span>Open Source</span></a>
+      <nav>
+        <a href="/" data-i18n="atlas">3D atlas</a
+        ><a href="/media-guide" data-i18n="guide">Capture guide</a
+        ><label class="language"
+          ><span data-i18n="languageLabel">Language</span>
+          <select id="language">
+            <option value="en">English</option>
+            <option value="tr">Türkçe</option>
+          </select></label
+        >
+      </nav>
+    </header>
+    <main id="main">
+      <div class="eyebrow" data-i18n="eyebrow">
+        CONTRIBUTE · PRIVATE WORKSPACE
+      </div>
+      <h1 data-i18n="title">Your observations. A careful review.</h1>
+      <p class="intro" data-i18n="intro">
+        Contribute photographs of a single tooth specimen. Your files stay
+        private while an authorised person checks privacy and permissions.
+      </p>
+      <ol class="steps">
+        <li data-i18n="step1">1 · Verified account</li>
+        <li data-i18n="step2">2 · Private photographs</li>
+        <li data-i18n="step3">3 · Human privacy review</li>
+      </ol>
+      <p id="notice" class="notice" role="status" aria-live="polite"></p>
+      <div id="error" class="error" role="alert" hidden></div>
+      <section id="signed-out" class="card" hidden>
+        <h2 data-i18n="invite">An invited pilot</h2>
+        <p data-i18n="inviteText">
+          Access uses your individual account and an authenticator code. An
+          account alone does not give review authority.
+        </p>
+        <a class="button" href="/review/login" data-i18n="login"
+          >Sign in securely</a
+        >
+        <p class="muted" data-i18n="accountHelp">
+          Accounts are provisioned by the project administrator after contact
+          verification. Public registration is not open.
+        </p>
+      </section>
+      <div id="workspace" hidden>
+        <div class="toolbar">
+          <h2 data-i18n="workspace">Contribution workspace</h2>
+          <div>
+            <a href="/review/login" data-i18n="reauth">Verify identity again</a
+            ><button id="logout" class="secondary" data-i18n="logout">
+              Sign out
+            </button>
+          </div>
+        </div>
+        <div class="layout">
+          <aside class="card">
+            <h2 data-i18n="packages">Photo packages</h2>
+            <p class="muted" data-i18n="scope">
+              Your packages and, when authorised, the photo pilot privacy queue.
+            </p>
+            <div id="package-list"></div>
+            <button id="new-package" data-i18n="new">New package</button>
+          </aside>
+          <section class="card" id="detail">
+            <p data-i18n="select">
+              Select a package or prepare a new contribution.
+            </p>
+          </section>
+        </div>
+        <section id="new-panel" class="card" hidden>
+          <h2 data-i18n="new">New package</h2>
+          <form id="package-form">
+            <p class="notice" data-i18n="english">
+              Write your contribution in English. Do not include patient names,
+              record numbers or dates of birth.
+            </p>
+            <label
+              ><span data-i18n="purpose">Contribution purpose (English)</span
+              ><textarea
+                name="purpose"
+                required
+                minlength="3"
+                maxlength="2000"
+                rows="3"
+              ></textarea></label
+            ><label
+              ><span data-i18n="authority"
+                >Authority / permission reference (English, no patient
+                identifiers)</span
+              ><textarea
+                name="authorityReference"
+                required
+                minlength="3"
+                maxlength="2000"
+                rows="2"
+              ></textarea></label
+            ><label
+              ><span data-i18n="fdi">FDI tooth number, if known</span
+              ><input
+                name="fdi"
+                value="unknown"
+                maxlength="7"
+                required /></label
+            ><label class="check"
+              ><input type="checkbox" name="sameSpecimen" required /><span
+                data-i18n="same"
+                >All photographs in this package show the same specimen.</span
+              ></label
+            ><label class="check"
+              ><input
+                type="checkbox"
+                name="noPatientIdentifiers"
+                required
+              /><span data-i18n="noPatient"
+                >I have removed patient identifiers and am not submitting a
+                radiograph or a facial image.</span
+              ></label
+            ><label class="check"
+              ><input type="checkbox" name="privateInspection" required /><span
+                data-i18n="inspectConsent"
+                >I authorise private storage and inspection by the assigned
+                photo-pilot privacy team.</span
+              ></label
+            ><label class="check"
+              ><input type="checkbox" name="processing" required /><span
+                data-i18n="processingConsent"
+                >I authorise local security scanning and metadata removal to
+                prepare a private review copy.</span
+              ></label
+            >
+            <p class="muted" data-i18n="retention">
+              Pilot retention: complete packages up to 30 days; incomplete
+              packages up to 24 hours. You can request deletion earlier.
+              Encrypted backups retain up to 14 daily snapshots on this server.
+            </p>
+            <p class="muted" data-i18n="noOtherConsent">
+              This does not permit AI inference, AI training, raw-image
+              publication or derivative publication. Those permissions remain
+              off.
+            </p>
+            <button type="submit" data-i18n="create">
+              Create private package
+            </button>
+          </form>
+        </section>
+      </div>
+      <section class="principles">
+        <div>
+          <h3 data-i18n="privateTitle">Private by default</h3>
+          <p data-i18n="privateText">
+            Encrypted files, scoped access and a recorded decision. No public
+            image links.
+          </p>
+        </div>
+        <div>
+          <h3 data-i18n="humanTitle">A human decision</h3>
+          <p data-i18n="humanText">
+            The contributor cannot clear their own photographs. Privacy
+            clearance is not anatomical acceptance.
+          </p>
+        </div>
+        <div>
+          <h3 data-i18n="limitsTitle">Photographs first</h3>
+          <p data-i18n="limitsText">
+            JPEG / PNG · 20 MiB per file · 40 megapixels. Radiographs, DICOM,
+            archives and AI reconstruction are not available here.
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <span>Dental Open Source</span
+      ><a
+        href="https://github.com/Madmin27/dental-knowledge-base"
+        rel="noopener noreferrer"
+        >GitHub · Source code ↗</a
+      >
+    </footer>
+  </body>
+</html>

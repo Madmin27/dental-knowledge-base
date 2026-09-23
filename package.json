@@ -3,15 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/domain.test.mjs && node tests/rights.test.mjs && node tests/preview.test.mjs && node tests/atlas.test.mjs && node tests/anatomy-source.test.mjs && node tests/contributions.test.mjs && node tests/anatomical-review.test.mjs && node tests/interior.test.mjs && node tests/viewer-runtime.test.mjs && node tests/localization.test.mjs && node tests/media-contract.test.mjs",
+    "test": "node tests/domain.test.mjs && node tests/rights.test.mjs && node tests/preview.test.mjs && node tests/atlas.test.mjs && node tests/anatomy-source.test.mjs && node tests/contributions.test.mjs && node tests/anatomical-review.test.mjs && node tests/interior.test.mjs && node tests/viewer-runtime.test.mjs && node tests/localization.test.mjs && node tests/media-contract.test.mjs && node tests/review-portal.test.mjs",
     "db:migrate": "node --env-file=.env packages/db/migrate.mjs",
     "test:db": "node tests/db.test.mjs",
     "db:init-env": "node infra/init-dev-env.mjs",
     "db:up": "docker compose --env-file .env -f infra/compose.dev.yml up -d --wait",
     "db:runtime-role": "node --env-file=.env packages/db/runtime-role.mjs",
-    "test:db:local": "node --env-file=.env --input-type=module -e 'process.env.TEST_DATABASE_URL=process.env.DATABASE_URL; await import(\"./tests/db.test.mjs\");'"
+    "test:db:local": "node --env-file=.env --input-type=module -e 'process.env.TEST_DATABASE_URL=process.env.DATABASE_URL; await import(\"./tests/db.test.mjs\");'",
+    "test:review-db": "node tests/review-portal-db.test.mjs"
   },
   "dependencies": {
+    "openid-client": "6.8.8",
     "pg": "8.23.0",
     "three": "0.186.0"
   }

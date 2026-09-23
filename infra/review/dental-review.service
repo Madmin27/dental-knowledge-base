@@ -1,0 +1,41 @@
+[Unit]
+Description=Dental Open Source private photo contribution and privacy desk
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dental-review
+Group=dental-review
+WorkingDirectory=/srv/dental-review
+BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/apps/review-portal:/srv/dental-review/apps/review-portal
+BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/node_modules:/srv/dental-review/node_modules
+ExecStart=/usr/bin/node /srv/dental-review/apps/review-portal/server.mjs
+Environment=REVIEW_PORT=3059
+Environment=REVIEW_VAULT=/var/lib/dental-review/vault
+Environment=REVIEW_PROCESSOR_SOCKET=/var/lib/dental-review/processor/processor.sock
+Environment=REVIEW_ERASURE_LEDGER=/var/lib/dental-review/erasures.jsonl
+# Enable only after named accounts and the synthetic acceptance/recovery gates.
+Environment=REVIEW_UPLOADS_ENABLED=false
+StateDirectory=dental-review
+StateDirectoryMode=0700
+LoadCredential=portal.json:/etc/dental-review/portal.json
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=512M
+TasksMax=32
+CPUQuota=100%
+LimitNOFILE=256
+
+[Install]
+WantedBy=multi-user.target

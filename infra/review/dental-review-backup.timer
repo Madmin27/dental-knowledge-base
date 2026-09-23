@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily private dental portal snapshot
+[Timer]
+OnCalendar=*-*-* 04:15:00
+RandomizedDelaySec=600
+Persistent=true
+[Install]
+WantedBy=timers.target

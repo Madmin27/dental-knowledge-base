@@ -1,7 +1,10 @@
 # ADR 0008 — Visual contributions and reviewable model candidates
 
-Date: 2026-09-23. Status: design and tested metadata contracts; upload,
-quarantine processing, AI workers and expert portal are **not deployed**.
+Date: 2026-09-23. Status: tested metadata contracts and an implemented invited
+private-photo intake/privacy desk. The account-gated portal and processor are
+deployed, but **real intake remains disabled pending named-account onboarding**.
+AI workers, radiograph/volume intake and academic publication are not deployed.
+Current implementation and narrower pilot retention: [private photo pilot](../PRIVATE-PHOTO-PILOT.md).
 Owner request: prepare photo/radiograph contributions and design AI reconstruction;
 all generated models go to experts and remain open to criticism after acceptance.
 

@@ -1,0 +1,8 @@
+[Unit]
+Description=Encrypted private dental portal and identity backup
+After=docker.service
+[Service]
+Type=oneshot
+UMask=0077
+ExecStart=/usr/bin/python3 /root/projeler/DentalKnowledgeBase/infra/review/backup.py snapshot
+TimeoutStartSec=1800
