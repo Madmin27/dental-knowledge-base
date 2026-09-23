@@ -1,3 +1,4 @@
+import {t,percent} from './i18n.js';
 import {showModelError} from './studio.js';
 import {createCompatibleRenderer,viewerFailure} from './viewer-runtime.js';
 import {validateView} from './view-contract.js';
@@ -9,7 +10,7 @@ import { RoomEnvironment } from './vendor/RoomEnvironment.js';
 const $ = selector => document.querySelector(selector);
 const host = $('#canvas');
 const state = {selected:16, jaw:'both', mode:'mouth', roots:false, bones:true, opening:0, gingivaOpacity:1, boneOpacity:1, nerves:false, arteries:false};
-const names = ['','orta kesici','yan kesici','köpek dişi','birinci küçük azı','ikinci küçük azı','birinci büyük azı','ikinci büyük azı'];
+const names = ['',t('orta kesici'),t('yan kesici'),t('köpek dişi'),t('birinci küçük azı'),t('ikinci küçük azı'),t('birinci büyük azı'),t('ikinci büyük azı')];
 const objects = [], teeth = new Map();
 let selectedStructure;
 let loadingPhase='graphics';
@@ -20,7 +21,7 @@ const pointer = new THREE.Vector2(), raycaster = new THREE.Raycaster();
 const mark = () => {dirty = true;};
 
 function toothName(fdi) {
-  return `${fdi < 30 ? 'Üst' : 'Alt'} ${[1,4].includes(Math.floor(fdi/10)) ? 'sağ' : 'sol'} ${names[fdi%10]}`;
+  return `${t(fdi < 30 ? 'Üst' : 'Alt')} ${t([1,4].includes(Math.floor(fdi/10)) ? 'sağ' : 'sol')} ${names[fdi%10]}`;
 }
 function selection(fdi) {
   if (!teeth.has(fdi)) return;
@@ -72,25 +73,25 @@ function updateVisibility() {
     }
   }
   $('#gum-transparency').value = Math.round((1-state.gingivaOpacity)*100);
-  $('#gum-transparency-value').textContent = `%${$('#gum-transparency').value}`;
+  $('#gum-transparency-value').textContent = percent($('#gum-transparency').value);
   $('#bones').checked = state.bones;
   $('#bone-transparency').value = Math.round((1-state.boneOpacity)*100);
-  $('#bone-transparency-value').textContent = `%${Math.round((1-state.boneOpacity)*100)}`;
+  $('#bone-transparency-value').textContent = percent(Math.round((1-state.boneOpacity)*100));
   $('#bone-opacity-controls').hidden = !state.bones;
   $('#roots').checked = state.gingivaOpacity === 0;
   state.roots = state.gingivaOpacity === 0;
   for (const id of ['gum-transparency','roots','bones','bone-transparency','opening','nerves','arteries','tissue-preset']) $('#'+id).disabled = state.mode === 'tooth';
   $('#bones').disabled = state.mode === 'tooth' || state.gingivaOpacity < 1 || state.nerves || state.arteries;
   $('#bone-transparency').max = 85;
-  $('#study-context').textContent = state.mode === 'tooth' ? 'İzole diş: çevre dokular gösterilmiyor. Kökün dış yüzeyi incelenir.' : state.gingivaOpacity < 1 || state.boneOpacity < 1 ? 'Katman incelemesi: saydam dokuların arkasındaki kökler görünür. Pembe yüzey tüm çeneyi sarmaz; kök–kemik ilişkisini kemik katmanıyla izleyin.' : !state.bones ? 'Yalnız diş ve diş eti alt kümesi. Çene kemiği gizli; bu görünüm tam ağız anatomisi değildir.' : 'Kaynak birleşimi: dişler, diş eti ve çene kemiği birlikte. Modelin üst ve arka sınırları tam baş anatomisini içermez.';
+  $('#study-context').textContent = state.mode === 'tooth' ? t('İzole diş: çevre dokular gösterilmiyor. Kökün dış yüzeyi incelenir.') : state.gingivaOpacity < 1 || state.boneOpacity < 1 ? t('Katman incelemesi: saydam dokuların arkasındaki kökler görünür. Pembe yüzey tüm çeneyi sarmaz; kök–kemik ilişkisini kemik katmanıyla izleyin.') : !state.bones ? t('Yalnız diş ve diş eti alt kümesi. Çene kemiği gizli; bu görünüm tam ağız anatomisi değildir.') : t('Kaynak birleşimi: dişler, diş eti ve çene kemiği birlikte. Modelin üst ve arka sınırları tam baş anatomisini içermez.');
   $('#opening').disabled = state.mode === 'tooth' || state.nerves || state.arteries;
-  $('#opening-help').textContent = state.nerves || state.arteries ? 'Sinir/damar görünümünde kaynak çene konumu korunur.' : 'İnceleme için ayırma; çene hareketi simülasyonu değildir.';
+  $('#opening-help').textContent = state.nerves || state.arteries ? t('Sinir/damar görünümünde kaynak çene konumu korunur.') : t('İnceleme için ayırma; çene hareketi simülasyonu değildir.');
   $('#tissue-legend').hidden = !(state.nerves || state.arteries) || state.mode === 'tooth';
-  $('#layer-status').textContent = [state.nerves ? 'Sarı: kaynak sinir yüzeyleri' : '', state.arteries ? 'Kırmızı: kaynak atardamar yüzeyleri' : ''].filter(Boolean).join(' · ');
-  $('#gum-help').textContent = state.mode === 'tooth' ? 'Diş eti ayarı için tüm ağza dönün.' : '%0 opak · %100 gizli. Kökleri incelerken kemik katmanı korunur; saydamlığı ayrıca ayarlanabilir.';
-  $('#mode-label').textContent = state.mode === 'tooth' ? `FDI ${state.selected} / TEK DİŞ` : 'TAM AĞIZ';
-  $('#view-title').textContent = state.mode === 'tooth' ? toothName(state.selected) : state.jaw === 'upper' ? 'Üst diş dizilimi' : state.jaw === 'lower' ? 'Alt diş dizilimi' : 'Kalıcı diş dizilimi';
-  $('#model-status').textContent = state.mode === 'tooth' ? 'Kaynak kron ve kök yüzeyleri · iç doku yok' : `${state.jaw === 'both' ? 28 : 14} diş · kaynak modeli`;
+  $('#layer-status').textContent = [state.nerves ? t('Sarı: kaynak sinir yüzeyleri') : '', state.arteries ? t('Kırmızı: kaynak atardamar yüzeyleri') : ''].filter(Boolean).join(' · ');
+  $('#gum-help').textContent = state.mode === 'tooth' ? t('Diş eti ayarı için tüm ağza dönün.') : t('%0 opak · %100 gizli. Kökleri incelerken kemik katmanı korunur; saydamlığı ayrıca ayarlanabilir.');
+  $('#mode-label').textContent = state.mode === 'tooth' ? `FDI ${state.selected} / ${t('TEK DİŞ')}` : t('TAM AĞIZ');
+  $('#view-title').textContent = state.mode === 'tooth' ? toothName(state.selected) : state.jaw === 'upper' ? t('Üst diş dizilimi') : state.jaw === 'lower' ? t('Alt diş dizilimi') : t('Kalıcı diş dizilimi');
+  $('#model-status').textContent = state.mode === 'tooth' ? t('Kaynak kron ve kök yüzeyleri · iç doku yok') : `${state.jaw === 'both' ? 28 : 14} ${t('diş · kaynak modeli')}`;
   document.querySelectorAll('[data-jaw]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.jaw === state.jaw)));
   document.querySelectorAll('[data-fdi]').forEach(b => b.disabled = state.jaw === 'upper' ? Number(b.dataset.fdi) > 30 : state.jaw === 'lower' ? Number(b.dataset.fdi) < 30 : false);
   mark();
@@ -146,7 +147,7 @@ function materialFor(name,kind) {
 async function start() {
   const graphics=createCompatibleRenderer(THREE.WebGLRenderer,{compatible:compatibleRequested});
   renderer=graphics.renderer;
-  if(graphics.compatible){const note=document.createElement('p');note.className='graphics-notice';note.textContent='Uyumlu grafik modu · model ayrıntısı korunur';$('.stage-heading').append(note);}
+  if(graphics.compatible){const note=document.createElement('p');note.className='graphics-notice';note.textContent=t('Uyumlu grafik modu · model ayrıntısı korunur');$('.stage-heading').append(note);}
   renderer.setPixelRatio(Math.min(devicePixelRatio,graphics.compatible?1:1.6));
   renderer.setClearColor(0x000000,0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -155,7 +156,7 @@ async function start() {
   renderer.shadowMap.type = THREE.PCFShadowMap;
   host.append(renderer.domElement);
   renderer.domElement.tabIndex=0;
-  renderer.domElement.setAttribute('aria-label','3B ağız modeli. Ok tuşlarıyla döndürün, artı ve eksiyle yakınlaştırın, Home ile sığdırın.');
+  renderer.domElement.setAttribute('aria-label',t('3B ağız modeli. Ok tuşlarıyla döndürün, artı ve eksiyle yakınlaştırın, Home ile sığdırın.'));
   renderer.domElement.addEventListener('keydown',e=>{
     if(e.ctrlKey||e.metaKey||e.altKey)return;
     const actions={ArrowLeft:()=>controls.rotateLeft(Math.PI/24),ArrowRight:()=>controls.rotateLeft(-Math.PI/24),ArrowUp:()=>controls.rotateUp(Math.PI/24),ArrowDown:()=>controls.rotateUp(-Math.PI/24),'+':()=>controls.dollyIn(.8),'-':()=>controls.dollyOut(.8),Home:()=>frame()};
@@ -179,10 +180,10 @@ async function start() {
   const rim = new THREE.DirectionalLight(0xffffff,1.3);rim.position.set(-10,40,-70);scene.add(rim);
   loadingPhase='files';
   const [manifestResponse,binaryResponse] = await Promise.all([fetch('/models/z-anatomy/dentition.json'),fetch('/models/z-anatomy/dentition.bin')]);
-  if (!manifestResponse.ok || !binaryResponse.ok) throw Error('Kaynak model dosyası okunamadı.');
+  if (!manifestResponse.ok || !binaryResponse.ok) throw Error(t('Kaynak model dosyası okunamadı.'));
   const manifest = await manifestResponse.json(), binary = await binaryResponse.arrayBuffer();
   const [extraMeta,extraData] = await Promise.all([fetch('/models/z-anatomy/neurovascular.json'),fetch('/models/z-anatomy/neurovascular.bin')]);
-  if (!extraMeta.ok || !extraData.ok) throw Error('Sinir/damar kaynak dosyası okunamadı.');
+  if (!extraMeta.ok || !extraData.ok) throw Error(t('Sinir/damar kaynak dosyası okunamadı.'));
   const extra = await extraMeta.json(), extraBinary = await extraData.arrayBuffer();
   loadingPhase='geometry';
   for (const s of [...manifest.structures,...extra.structures]) {
@@ -195,7 +196,7 @@ async function start() {
     geometry.computeBoundingBox();geometry.computeBoundingSphere();
     const mesh = new THREE.Mesh(geometry,s.groups.map(g=>materialFor(g.material,s.kind)));
     mesh.name=s.name;mesh.userData=s;mesh.castShadow=true;mesh.receiveShadow=true;
-    if (s.kind==='nerve'||s.kind==='artery') {const li=document.createElement('li');li.textContent=s.label;$('#structure-list').append(li);}
+    if (s.kind==='nerve'||s.kind==='artery') {const li=document.createElement('li');li.textContent=t(s.label);$('#structure-list').append(li);}
     (s.jaw === 'upper' ? upper : lower).add(mesh);objects.push(mesh);
     if (s.fdi) teeth.set(s.fdi,mesh);
   }
@@ -220,7 +221,7 @@ async function start() {
         document.querySelector(`[data-fdi="${id}"]`).focus({preventScroll:true});
       });results.append(button);
     }
-    if(!matches.length){const note=document.createElement('p');note.textContent='Bu koleksiyonda eşleşen diş yok. 18, 28, 38 ve 48 kaynakta bulunmuyor.';results.append(note);}
+    if(!matches.length){const note=document.createElement('p');note.textContent=t('Bu koleksiyonda eşleşen diş yok. 18, 28, 38 ve 48 kaynakta bulunmuyor.');results.append(note);}
   });
   const resize = () => {const {width,height}=host.getBoundingClientRect();renderer.setSize(width,height);const changed=Math.abs(camera.aspect-width/height)>.15;camera.aspect=width/height;camera.updateProjectionMatrix();if(changed&&teeth.size)frame();mark();};
   new ResizeObserver(resize).observe(host);resize();
@@ -233,10 +234,10 @@ async function start() {
     const candidates=objects.filter(o=>o.visible&&o.parent.visible && !(o.userData.kind==='gingiva'&&state.gingivaOpacity<1) && !(o.userData.kind==='bone'&&state.boneOpacity<1));
     const hit=raycaster.intersectObjects(candidates,false).find(h=>h.object.material[h.face.materialIndex]?.visible);
     if(hit?.object.userData.fdi)selection(hit.object.userData.fdi);
-    else if(hit?.object.name){selectedStructure=hit.object.name;$('#selected-label').textContent=(hit.object.userData.label??hit.object.name)+' · kaynak yüzeyi';}
+    else if(hit?.object.name){selectedStructure=hit.object.name;$('#selected-label').textContent=t(hit.object.userData.label??hit.object.name)+t(' · kaynak yüzeyi');}
   });
   renderer.domElement.addEventListener('dblclick',focusTooth);
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError('3B görüntü bağlantısı kesildi. Yeniden yükleyin veya uyumlu grafik modunu deneyin.',{code:'GRAPHICS_CONTEXT_LOST',graphics:true});});
+  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError(t('3B görüntü bağlantısı kesildi. Yeniden yükleyin veya uyumlu grafik modunu deneyin.'),{code:'GRAPHICS_CONTEXT_LOST',graphics:true});});
   document.querySelectorAll('[data-jaw]').forEach(b=>b.onclick=()=>{
     state.jaw=b.dataset.jaw;
     if(state.jaw==='upper'&&state.selected>30)state.selected=state.selected<40?state.selected-10:state.selected-30;
@@ -274,7 +275,7 @@ async function start() {
   $('#zoom-out').onclick=()=>{controls.dollyOut(1/1.25);controls.update();};
   document.addEventListener('keydown',e=>{if(document.querySelector('dialog[open]')||['INPUT','BUTTON','TEXTAREA','SELECT'].includes(e.target.tagName))return;if(e.key==='Escape')home();if(e.key.toLowerCase()==='f')focusTooth();if(e.key.toLowerCase()==='r')frame();});
   const loop = () => {requestAnimationFrame(loop);if(document.hidden)return;controls.update();if(dirty){renderer.render(scene,camera);frames++;dirty=false;}};loop();
-  const catalog={assets:{dentition:manifest.binarySha256,neurovascular:extra.binarySha256},teeth:[...teeth.keys()],structures:[...manifest.structures,...extra.structures].map(s=>({name:s.name,label:s.fdi?toothName(s.fdi):(s.label??s.name),fdi:s.fdi??null}))};
+  const catalog={assets:{dentition:manifest.binarySha256,neurovascular:extra.binarySha256},teeth:[...teeth.keys()],structures:[...manifest.structures,...extra.structures].map(s=>({name:s.name,label:s.fdi?toothName(s.fdi):t(s.label??s.name),fdi:s.fdi??null}))};
   const captureView=()=>validateView({version:1,assets:catalog.assets,structure:selectedStructure,state,camera:camera.position.toArray(),target:controls.target.toArray()},catalog);
   function restoreView(value) {
     const view=validateView(value,catalog);

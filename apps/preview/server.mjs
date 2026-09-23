@@ -5,8 +5,10 @@ import {fileURLToPath} from 'node:url';
 import {loadResearchAssets} from './research-assets.mjs';
 import {createIntake,loadCatalog} from './contributions.mjs';
 import {scenarios,evaluateScenario} from './scenarios.mjs';
+import {requestLanguage,localizedHTML} from './localization.mjs';
 const files=new Map([['/',['anatomy.html','text/html; charset=utf-8']],['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']]]);
 files.set('/favicon.svg',['favicon.svg','image/svg+xml']);
+files.set('/i18n.js',['i18n.js','text/javascript; charset=utf-8']);
 files.set('/overview',['index.html','text/html; charset=utf-8']);
 for(const name of ['atlas.js','atlas-geometry.js','atlas.css','vendor/three.module.js','vendor/three.core.js','vendor/OrbitControls.js','vendor/THREE-LICENSE.txt']) {
   files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':name.endsWith('.txt')?'text/plain; charset=utf-8':'text/javascript; charset=utf-8']);
@@ -41,7 +43,13 @@ export function previewServer({intake,researchAssets}={}) {
       const file=files.get(url.pathname);
       if(!file) return json(404,{error:'Not found'});
       const body=await readFile(new URL('./public/'+file[0],import.meta.url));
-      res.writeHead(200,{'Content-Type':file[1]});res.end(body);
+      if(file[1].startsWith('text/html')){
+        const lang=requestLanguage(url,req.headers.cookie);
+        res.setHeader('Content-Language',lang);
+        res.setHeader('Vary','Cookie');
+        if(['en','tr'].includes(url.searchParams.get('lang')))res.setHeader('Set-Cookie',`dental-language=${lang}; Path=/; Max-Age=31536000; SameSite=Lax`);
+        res.writeHead(200,{'Content-Type':file[1]});res.end(localizedHTML(body.toString('utf8'),lang));
+      }else{res.writeHead(200,{'Content-Type':file[1]});res.end(body);}
     } catch {json(500,{error:'Preview temporarily unavailable'});}
   });
 }

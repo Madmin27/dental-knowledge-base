@@ -165,3 +165,17 @@ Regression suite (read-only service; failures injected only in the test browser)
 node --experimental-websocket scripts/validate_viewer_recovery_browser.mjs \
   http://127.0.0.1:9226 http://192.168.1.192:3057/ /tmp/dkb-recovery-proof
 ```
+# English and Turkish UI
+
+The public interface defaults to English. The header language selector switches
+between English and Turkish on the atlas, tooth interior, project and contribution
+tracking pages. `?lang=en` and `?lang=tr` override the saved `dental-language`
+preference cookie (one year, site-wide). The server renders the selected language
+and sets `Content-Language`; browser modules share the explicit `public/i18n.js`
+catalog. No translation service or external request is used.
+
+Contributor prose, source identifiers, hashes and view records remain unchanged.
+The anatomical terminology is a UI translation, not expert validation of anatomy.
+Add static and dynamic UI translations to the shared catalog when adding features.
+`npm test` includes localization HTTP tests. The isolated browser check is
+`scripts/validate_localization_browser.mjs CDP_URL PREVIEW_URL OUTPUT_DIRECTORY`.

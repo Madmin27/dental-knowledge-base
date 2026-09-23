@@ -1,9 +1,14 @@
+import {t} from './i18n.js';
 // UI preferences never alter anatomical geometry or versioned review state.
 const root = document.documentElement;
+document.querySelector('#language-select')?.addEventListener('change',event=>{
+  const url=new URL(location.href);url.searchParams.set('lang',event.target.value);
+  location.assign(url.href);
+});
 const themeButton = document.querySelector('#theme-toggle');
 function setTheme(theme) {
   root.dataset.theme = theme;
-  themeButton?.setAttribute('aria-label', theme === 'dark' ? 'Aydınlık temaya geç' : 'Koyu temaya geç');
+  themeButton?.setAttribute('aria-label', theme === 'dark' ? t('Aydınlık temaya geç') : t('Koyu temaya geç'));
   themeButton?.setAttribute('aria-pressed', String(theme === 'dark'));
 }
 let stored;
@@ -20,8 +25,8 @@ let fullscreenTransition = false;
 function syncFullscreen() {
   const expanded = document.fullscreenElement === stage || stage?.classList.contains('is-expanded');
   expandButton?.setAttribute('aria-pressed', String(Boolean(expanded)));
-  expandButton?.setAttribute('aria-label', expanded ? 'Tam ekrandan çık' : 'Tam ekran incele');
-  if (expandButton) expandButton.title = expanded ? 'Tam ekrandan çık' : 'Tam ekran incele';
+  expandButton?.setAttribute('aria-label', expanded ? t('Tam ekrandan çık') : t('Tam ekran incele'));
+  if (expandButton) expandButton.title = expanded ? t('Tam ekrandan çık') : t('Tam ekran incele');
 }
 expandButton?.addEventListener('click', async () => {
   if (fullscreenTransition) return;
@@ -65,16 +70,16 @@ export function showModelError(message, {code,details,graphics=false} = {}) {
   if(code)loading.dataset.errorCode=code;
   loading.setAttribute('role', 'alert');
   loading.replaceChildren();
-  const text = document.createElement('p');text.textContent = message;
-  const retry = document.createElement('button');retry.id = 'retry-model';retry.type = 'button';retry.textContent = 'Yeniden yükle';
+  const text = document.createElement('p');text.textContent = t(message);
+  const retry = document.createElement('button');retry.id = 'retry-model';retry.type = 'button';retry.textContent = t('Yeniden yükle');
   retry.addEventListener('click', () => location.reload());
   loading.append(text, retry);
   if(graphics){
-    const compatible=document.createElement('a');compatible.className='error-compatible';compatible.textContent='Uyumlu grafik modunda dene';
+    const compatible=document.createElement('a');compatible.className='error-compatible';compatible.textContent=t('Uyumlu grafik modunda dene');
     const url=new URL(location.href);url.searchParams.set('graphics','compat');compatible.href=url.href;loading.append(compatible);
   }
   if(code||details){
-    const disclosure=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Hata ayrıntısını göster';
+    const disclosure=document.createElement('details');const summary=document.createElement('summary');summary.textContent=t('Hata ayrıntısını göster');
     const report=document.createElement('pre');report.textContent=[code,details].filter(Boolean).join('\n');
     disclosure.append(summary,report);loading.append(disclosure);
   }

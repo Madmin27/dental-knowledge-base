@@ -35,6 +35,9 @@ small{font-size:12px;color:var(--muted)}
 .app-header nav a:hover{background:var(--soft)}
 .app-header nav a[aria-current=page]{background:var(--accent-soft);color:var(--accent)}
 .header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.language-control{display:flex;align-items:center;gap:6px;font-size:12px;margin:0}
+.language-control select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:36px}
+@media(max-width:760px){.language-label{display:none}.language-control select{max-width:90px;padding:6px}}
 .header-actions button{font-size:12px}
 .primary,#contribute{background:var(--accent);border-color:var(--accent);color:var(--panel);font-weight:650}
 .primary:hover,#contribute:hover{filter:brightness(.92)}
@@ -127,7 +130,7 @@ kbd{display:inline-block;border:1px solid var(--line);border-bottom-width:2px;bo
 .header-actions{gap:5px}
 }
 
-@media(max-width:760px){.app-header{height:auto;min-height:110px;display:grid;grid-template-columns:1fr auto;padding:12px;gap:12px 8px}
+@media(max-width:1000px){.app-header{height:auto;min-height:110px;display:grid;grid-template-columns:1fr auto;padding:12px;gap:12px 8px}
 .app-header nav{grid-column:1/-1;grid-row:2;justify-content:center}
 .app-header nav a{font-size:12px;padding:8px 14px}
 .brand>span:last-child{font-size:14px}

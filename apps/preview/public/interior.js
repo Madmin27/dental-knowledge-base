@@ -1,3 +1,4 @@
+import {t,percent} from './i18n.js';
 import {showModelError} from './studio.js';
 import {createCompatibleRenderer,viewerFailure} from './viewer-runtime.js';
 let loadingPhase='files';
@@ -9,13 +10,13 @@ import {RoomEnvironment} from './vendor/RoomEnvironment.js';
 const $=s=>document.querySelector(s),host=$('#interior-canvas');
 const state={step:'relation',cut:false,axis:'y',position:50,flipped:false,tooth:true,pulp:true,pdl:false,opacity:.22};
 const colors={tooth:0xe7dcc0,pulp:0xb6506c,pdl:0x4a9487};
-const descriptions={tooth:['Dişin dış yüzeyi','Kron ve köklerin birleşik dış yüzeyi. Mine ve dentin ayrı ayrı bölümlenmiş değildir.'],pulp:['Pulpa boşluğu','Bu yüzey pulpanın kapladığı boşluğun araştırma modelidir; doku, damar ve sinir ağını içermez.'],pdl:['Şematik destek katmanı','Kaynak araştırmada oluşturulmuş katman. Ölçülmüş periodontal lifleri veya gerçek doku kalınlığını göstermez.']};
+const descriptions={tooth:[t('Dişin dış yüzeyi'),t('Kron ve köklerin birleşik dış yüzeyi. Mine ve dentin ayrı ayrı bölümlenmiş değildir.')],pulp:[t('Pulpa boşluğu'),t('Bu yüzey pulpanın kapladığı boşluğun araştırma modelidir; doku, damar ve sinir ağını içermez.')],pdl:[t('Şematik destek katmanı'),t('Kaynak araştırmada oluşturulmuş katman. Ölçülmüş periodontal lifleri veya gerçek doku kalınlığını göstermez.')]};
 let selectedStructure='pulp';
 let renderer,scene,camera,controls,bounds,dirty=true,frames=0;const objects=new Map();const plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);const mark=()=>{dirty=true;};
 function sync(){
-  $('#cut').checked=state.cut;$('#cut-position').value=state.position;$('#cut-value').value='%'+state.position;
+  $('#cut').checked=state.cut;$('#cut-position').value=state.position;$('#cut-value').value=percent(state.position);
   for(const id of ['tooth','pulp','pdl'])$('#'+id+'-visible').checked=state[id];
-  $('#tooth-opacity').value=Math.round(state.opacity*100);$('#tooth-value').value='%'+Math.round(state.opacity*100);
+  $('#tooth-opacity').value=Math.round(state.opacity*100);$('#tooth-value').value=percent(Math.round(state.opacity*100));
   $('#tooth-opacity').disabled=!state.tooth;
   document.querySelectorAll('[data-step]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.step===state.step)));
   document.querySelectorAll('[data-axis]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.axis===state.axis)));
@@ -48,7 +49,7 @@ function frame(direction=new THREE.Vector3(.75,.2,1)){
   controls.minDistance=radius*.45;controls.maxDistance=distance*4;controls.update();controls.enableDamping=damping;mark();
 }
 function preset(step){state.step=step;state.tooth=step!=='pulp';state.pulp=true;state.pdl=false;state.cut=step==='section';state.opacity=['surface','section'].includes(step)?1:.22;state.axis='y';state.position=40;state.flipped=false;
-  const titles={surface:['Dış biçimi tanıyın.','Kron yüzeyini ve köklerin dış biçimini döndürerek inceleyin.'],relation:['Birlikte inceleyin.','Saydam dış yüzeyin içinde boşluğun köklere uzanışını izleyin.'],pulp:['Boşluğu takip edin.','Pulpa odası ve köklere uzanan kanal biçimi. Her yan dalı veya apikal açıklığı temsil etmez.'],section:['Aynı düzlemde karşılaştırın.','Kesit konumunu değiştirin. Açık renk dolgu dış diş yüzeyinin kesitidir; ayrı mine/dentin verisi değildir.']};
+  const titles={surface:[t('Dış biçimi tanıyın.'),t('Kron yüzeyini ve köklerin dış biçimini döndürerek inceleyin.')],relation:[t('Birlikte inceleyin.'),t('Saydam dış yüzeyin içinde boşluğun köklere uzanışını izleyin.')],pulp:[t('Boşluğu takip edin.'),t('Pulpa odası ve köklere uzanan kanal biçimi. Her yan dalı veya apikal açıklığı temsil etmez.')],section:[t('Aynı düzlemde karşılaştırın.'),t('Kesit konumunu değiştirin. Açık renk dolgu dış diş yüzeyinin kesitidir; ayrı mine/dentin verisi değildir.')]};
   $('#step-title').textContent=titles[step][0];$('#step-description').textContent=titles[step][1];update();if(step==='section')frame(new THREE.Vector3(.25,-1,.3));
 }
 function createSurface(meta,buffer){
@@ -71,10 +72,10 @@ function addLayer(meta,geometry,index){
   objects.set(meta.id,{mesh,stencil,cap,closed:meta.openEdges===0&&meta.nonManifoldEdges===0});
 }
 async function start(){
-  const response=await fetch('/research/pulp/manifest.json');if(!response.ok)throw Error('Araştırma örneği bu sunucuda etkin değil. Tam ağız atlasını kullanabilirsiniz.');const manifest=await response.json();
-  const buffers=await Promise.all(manifest.models.map(async m=>{const r=await fetch('/research/pulp/'+m.file);if(!r.ok)throw Error('Kaynak yüzey okunamadı.');return r.arrayBuffer();}));
+  const response=await fetch('/research/pulp/manifest.json');if(!response.ok)throw Error(t('Araştırma örneği bu sunucuda etkin değil. Tam ağız atlasını kullanabilirsiniz.'));const manifest=await response.json();
+  const buffers=await Promise.all(manifest.models.map(async m=>{const r=await fetch('/research/pulp/'+m.file);if(!r.ok)throw Error(t('Kaynak yüzey okunamadı.'));return r.arrayBuffer();}));
   loadingPhase='graphics';const graphics=createCompatibleRenderer(THREE.WebGLRenderer,{stencil:true,compatible:new URLSearchParams(location.search).get('graphics')==='compat'});renderer=graphics.renderer;renderer.setPixelRatio(Math.min(devicePixelRatio,graphics.compatible?1:1.8));
-  if(graphics.compatible){const note=document.createElement('p');note.className='graphics-notice';note.textContent='Uyumlu grafik modu · model ayrıntısı korunur';$('.stage-heading').append(note);}
+  if(graphics.compatible){const note=document.createElement('p');note.className='graphics-notice';note.textContent=t('Uyumlu grafik modu · model ayrıntısı korunur');$('.stage-heading').append(note);}
   renderer.localClippingEnabled=true;renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;host.append(renderer.domElement);
   scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(35,1,.1,2000);controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.addEventListener('change',mark);
   if(!graphics.compatible){const pmrem=new THREE.PMREMGenerator(renderer),room=new RoomEnvironment(),environment=pmrem.fromScene(room);scene.environment=environment.texture;room.dispose();pmrem.dispose();}
@@ -91,12 +92,12 @@ async function start(){
   document.querySelectorAll('[data-axis]').forEach(b=>b.onclick=()=>{state.axis=b.dataset.axis;update();});$('#flip').onclick=()=>{state.flipped=!state.flipped;update();};$('#center-cut').onclick=()=>{state.position=50;update();};$('#face-cut').onclick=()=>frame(plane.normal.clone().negate());
   $('#front').onclick=()=>frame(new THREE.Vector3(0,0,1));$('#side').onclick=()=>frame(new THREE.Vector3(1,0,0));$('#top').onclick=()=>frame(new THREE.Vector3(0,1,0));$('#fit').onclick=()=>frame();
   $('#zoom-in').onclick=()=>{controls.dollyIn(1/1.25);controls.update();};$('#zoom-out').onclick=()=>{controls.dollyOut(1/1.25);controls.update();};
-  renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','3B araştırma modeli. Ok tuşlarıyla döndürün, artı ve eksiyle yakınlaştırın, Home ile sığdırın.');
+  renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label',t('3B araştırma modeli. Ok tuşlarıyla döndürün, artı ve eksiyle yakınlaştırın, Home ile sığdırın.'));
   renderer.domElement.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const actions={ArrowLeft:()=>controls.rotateLeft(Math.PI/24),ArrowRight:()=>controls.rotateLeft(-Math.PI/24),ArrowUp:()=>controls.rotateUp(Math.PI/24),ArrowDown:()=>controls.rotateUp(-Math.PI/24),'+':()=>controls.dollyIn(.8),'-':()=>controls.dollyOut(.8),Home:()=>frame()};if(actions[e.key]){e.preventDefault();actions[e.key]();controls.update();}});
   let down;renderer.domElement.addEventListener('pointerdown',e=>{down=[e.clientX,e.clientY];});renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>6)return;const r=host.getBoundingClientRect();const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);const hits=ray.intersectObjects([...objects.values()].map(o=>o.mesh).filter(m=>m.visible));const hit=hits.find(h=>(!state.cut||plane.distanceToPoint(h.point)>=0)&&!(h.object.name==='tooth'&&state.opacity<.5));if(hit){selectedStructure=hit.object.name;const d=descriptions[hit.object.name];$('#selection-title').textContent=d[0];$('#selection-description').textContent=d[1];}});
-  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError('3B görüntü bağlantısı kesildi. Yeniden yükleyin veya uyumlu grafik modunu deneyin.',{code:'GRAPHICS_CONTEXT_LOST',graphics:true});});
+  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();showModelError(t('3B görüntü bağlantısı kesildi. Yeniden yükleyin veya uyumlu grafik modunu deneyin.'),{code:'GRAPHICS_CONTEXT_LOST',graphics:true});});
   const render=()=>{requestAnimationFrame(render);if(document.hidden)return;controls.update();if(dirty){renderer.render(scene,camera);dirty=false;frames++;}};render();
-  const catalog={research:{id:manifest.id,assets:Object.fromEntries(manifest.models.map(m=>[m.id,m.sha256]))},structures:manifest.models.map(m=>({name:m.id,label:m.label}))};
+  const catalog={research:{id:manifest.id,assets:Object.fromEntries(manifest.models.map(m=>[m.id,m.sha256]))},structures:manifest.models.map(m=>({name:m.id,label:t(m.label)}))};
   const captureView=()=>validateInteriorView({kind:'tooth-interior',version:1,source:manifest.id,assets:catalog.research.assets,structure:selectedStructure,state,camera:camera.position.toArray(),target:controls.target.toArray(),up:camera.up.toArray()},catalog);
   const restoreView=value=>{const v=validateInteriorView(value,catalog);if(v.state.step!=='custom')preset(v.state.step);Object.assign(state,v.state);selectedStructure=v.structure;update();controls.enableDamping=false;controls.update();camera.up.fromArray(v.up);camera.position.fromArray(v.camera);controls.target.fromArray(v.target);controls.update();controls.enableDamping=true;const d=descriptions[v.structure];$('#selection-title').textContent=d[0];$('#selection-description').textContent=d[1];mark();};
   installContributions({captureView,restoreView,catalog});
