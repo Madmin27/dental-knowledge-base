@@ -8,7 +8,10 @@ if (!browser)
   throw new Error("Use an isolated fixture with TEST_REVIEW_BROWSER");
 let authenticated = false,
   reviewer = false,
-  recordedDecision = null;
+  recordedDecision = null,
+  membershipManager = false,
+  recordedApplication = null,
+  recordedMembershipDecision = null;
 const pkg = "00000000-0000-4000-8000-000000000003";
 const photo = "00000000-0000-4000-8000-000000000004";
 const server = http.createServer(async (req, res) => {
@@ -22,6 +25,11 @@ const server = http.createServer(async (req, res) => {
               uploadsEnabled: true,
               csrf: "synthetic",
               account: "synthetic",
+              membership: {
+                manager: membershipManager,
+                applications: [],
+                permissions: [],
+              },
               grants: [reviewer ? "privacy_reviewer" : "photo_contributor"],
               reviewFresh: reviewer,
               packages: reviewer
@@ -37,6 +45,43 @@ const server = http.createServer(async (req, res) => {
           : { authenticated: false, uploadsEnabled: false },
       ),
     );
+  }
+  if (req.url === "/review/api/applications" && req.method === "POST") {
+    const chunks = [];
+    for await (const c of req) chunks.push(c);
+    recordedApplication = JSON.parse(Buffer.concat(chunks));
+    res.setHeader("Content-Type", "application/json");
+    return res.end(JSON.stringify({ id: pkg }));
+  }
+  if (req.url.startsWith("/review/api/management?")) {
+    res.setHeader("Content-Type", "application/json");
+    return res.end(
+      JSON.stringify({
+        applications: [
+          {
+            id: pkg,
+            account_id: "other",
+            role: "privacy_reviewer",
+            status: "pending",
+            revision: 1,
+            profile: {
+              name: "Synthetic applicant <img src=x>",
+              institution: "Synthetic university",
+              experience: "Synthetic experience",
+              evidence: "Synthetic reference",
+              motivation: "Synthetic motivation",
+            },
+          },
+        ],
+      }),
+    );
+  }
+  if (req.url === `/review/api/applications/${pkg}/decision`) {
+    const chunks = [];
+    for await (const c of req) chunks.push(c);
+    recordedMembershipDecision = JSON.parse(Buffer.concat(chunks));
+    res.setHeader("Content-Type", "application/json");
+    return res.end('{"ok":true}');
   }
   if (req.url === `/review/api/photos/${photo}/preview`) {
     res.setHeader("Content-Type", "image/png");
@@ -88,11 +133,13 @@ const server = http.createServer(async (req, res) => {
       }),
     );
   }
-  const file = req.url.startsWith("/review/app.js")
-    ? "app.js"
-    : req.url.startsWith("/review/style.css")
-      ? "style.css"
-      : "index.html";
+  const file = req.url.startsWith("/review/membership.js")
+    ? "membership.js"
+    : req.url.startsWith("/review/app.js")
+      ? "app.js"
+      : req.url.startsWith("/review/style.css")
+        ? "style.css"
+        : "index.html";
   res.setHeader(
     "Content-Type",
     file.endsWith(".js")
@@ -264,6 +311,38 @@ try {
     "/scratch/review-mobile.png",
     Buffer.from(png.data, "base64"),
   );
+  await evaluate(
+    `const m=document.querySelector('#membership details');m.open=true;const mf=m.querySelector('form');['name','institution','experience','evidence','motivation'].forEach(k=>mf.elements[k].value='Synthetic application evidence');mf.elements.consent.checked=true;mf.requestSubmit()`,
+  );
+  for (let i = 0; i < 40 && !recordedApplication; i++) await wait(100);
+  assert.equal(recordedApplication?.consent, true);
+  membershipManager = true;
+  await load("http://127.0.0.1:19091/review/?lang=en", 1440, 1050);
+  for (let i = 0; i < 40; i++) {
+    if (await evaluate("!!document.querySelector('.management .history form')"))
+      break;
+    await wait(100);
+  }
+  assert.equal(
+    await evaluate("document.querySelectorAll('.management img').length"),
+    0,
+  );
+  await evaluate(
+    `const af=document.querySelector('.management .history form');af.elements.decision.value='approved';af.elements.verified.checked=true;af.elements.reason.value='Synthetic checked professional reference';af.requestSubmit()`,
+  );
+  for (let i = 0; i < 40 && !recordedMembershipDecision; i++) await wait(100);
+  assert.equal(recordedMembershipDecision?.decision, "approved");
+  assert.equal(recordedMembershipDecision?.verified, true);
+  let mpng = await call(
+    "Page.captureScreenshot",
+    { format: "png", captureBeyondViewport: true },
+    sessionId,
+  );
+  await writeFile(
+    "/scratch/membership-management.png",
+    Buffer.from(mpng.data, "base64"),
+  );
+  membershipManager = false;
   reviewer = true;
   await load("http://127.0.0.1:19091/review/?lang=en", 1440, 1050);
   await evaluate("document.querySelector('.package').click()");
@@ -294,7 +373,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "Browser fixture passed: English landing, Turkish mobile, contributor form, privacy decision form, no overflow, no JS exception.",
+    "Browser fixture passed: English landing, Turkish mobile, contributor form, membership application and management decision, escaped applicant HTML, privacy decision form, no overflow, no JS exception.",
   );
 } finally {
   chrome.kill("SIGKILL");

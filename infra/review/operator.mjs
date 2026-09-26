@@ -30,6 +30,40 @@ try {
       "INSERT INTO audit(actor_id,event,object_id) VALUES($1,'operator_identity_bound',$1)",
       [account],
     );
+  } else if (request.action === "appoint-manager") {
+    requireThat(request.contactVerified === true, "verify_contact_first");
+    const expiry = new Date(request.expiresAt);
+    requireThat(
+      Number.isFinite(+expiry) &&
+        +expiry > Date.now() &&
+        +expiry < Date.now() + 90 * 86400000,
+      "maximum_90_day_grant",
+    );
+    await c.query(
+      `INSERT INTO membership_managers(account_id,expires_at,appointed_by,evidence_ref) VALUES($1,$2,$3,$4)
+      ON CONFLICT(account_id) DO UPDATE SET expires_at=EXCLUDED.expires_at,appointed_by=EXCLUDED.appointed_by,evidence_ref=EXCLUDED.evidence_ref`,
+      [
+        id(request.accountId),
+        expiry,
+        text(request.grantedBy, 200),
+        text(request.evidenceReference, 500),
+      ],
+    );
+    await c.query(
+      "INSERT INTO audit(actor_id,event,object_id) VALUES($1,'operator_manager_appointed',$1)",
+      [request.accountId],
+    );
+  } else if (request.action === "remove-manager") {
+    await c.query("DELETE FROM membership_managers WHERE account_id=$1", [
+      id(request.accountId),
+    ]);
+    await c.query("DELETE FROM sessions WHERE account_id=$1", [
+      request.accountId,
+    ]);
+    await c.query(
+      "INSERT INTO audit(actor_id,event,object_id) VALUES($1,'operator_manager_removed',$1)",
+      [request.accountId],
+    );
   } else if (request.action === "grant") {
     requireThat(
       ["photo_contributor", "privacy_reviewer"].includes(request.role),

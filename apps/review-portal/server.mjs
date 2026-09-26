@@ -8,6 +8,7 @@ import { Vault } from "./vault.mjs";
 import { Repository } from "./repository.mjs";
 import { processor } from "./processor.mjs";
 import { Erasures } from "./erasures.mjs";
+import { Membership } from "./membership.mjs";
 import { Denied, requireThat, equal, LIMITS } from "./policy.mjs";
 
 export async function body(req, limit) {
@@ -44,6 +45,7 @@ export function createServer({
   repo,
   auth,
   origin,
+  membership,
   uploadsEnabled = false,
   publicDir = fileURLToPath(new URL("./public/", import.meta.url)),
 }) {
@@ -97,13 +99,17 @@ export function createServer({
       requireThat(rate.count <= 240, "rate_limit", 429);
       if (
         req.method === "GET" &&
-        ["/review/", "/review/app.js", "/review/style.css"].includes(
-          url.pathname,
-        )
+        [
+          "/review/",
+          "/review/app.js",
+          "/review/membership.js",
+          "/review/style.css",
+        ].includes(url.pathname)
       ) {
         const name = {
           "/review/": "index.html",
           "/review/app.js": "app.js",
+          "/review/membership.js": "membership.js",
           "/review/style.css": "style.css",
         }[url.pathname];
         const content = await readFile(join(publicDir, name));
@@ -116,12 +122,17 @@ export function createServer({
         });
         return res.end(content);
       }
+      if (req.method === "GET" && url.pathname === "/review/register")
+        return await auth.begin(req, res, true);
       if (req.method === "GET" && url.pathname === "/review/login")
         return await auth.begin(req, res);
       if (req.method === "GET" && url.pathname === "/review/callback")
         return await auth.callback(req, res);
+      const intakeEnabled = membership
+        ? await membership.intakeOpen()
+        : uploadsEnabled;
       if (req.method === "GET" && url.pathname === "/review/health")
-        return send(200, { status: "running", uploadsEnabled });
+        return send(200, { status: "running", uploadsEnabled: intakeEnabled });
       const s = await auth.session(req);
       if (req.method === "GET" && url.pathname === "/review/api/session")
         return send(
@@ -130,12 +141,17 @@ export function createServer({
             ? {
                 authenticated: true,
                 csrf: s.csrf,
-                uploadsEnabled,
+                uploadsEnabled: intakeEnabled,
                 account: s.account_id,
                 authAt: s.auth_at,
                 ...(await repo.list(s)),
+                membership: membership ? await membership.status(s) : null,
               }
-            : { authenticated: false, uploadsEnabled },
+            : {
+                authenticated: false,
+                uploadsEnabled: intakeEnabled,
+                registrationEnabled: auth.registrationEnabled === true,
+              },
         );
       requireThat(s, "login_required", 401);
       if (!["GET", "HEAD"].includes(req.method)) {
@@ -154,8 +170,47 @@ export function createServer({
       }
       if (req.method === "POST" && url.pathname === "/review/api/logout")
         return await auth.logout(s, res);
+      if (
+        membership &&
+        url.pathname === "/review/api/management/intake" &&
+        req.method === "POST"
+      )
+        return send(200, await membership.intake(s, await json(req)));
+      if (
+        membership &&
+        url.pathname === "/review/api/applications" &&
+        req.method === "POST"
+      )
+        return send(201, await membership.apply(s, await json(req)));
+      if (
+        membership &&
+        url.pathname === "/review/api/management" &&
+        req.method === "GET"
+      )
+        return send(
+          200,
+          await membership.queue(s, Number(url.searchParams.get("page") ?? 0)),
+        );
+      const memberRoute = url.pathname.match(
+        /^\/review\/api\/applications\/([a-f0-9-]+)\/(withdraw|decision)$/,
+      );
+      if (membership && memberRoute && req.method === "POST")
+        return send(
+          200,
+          memberRoute[2] === "withdraw"
+            ? await membership.withdraw(s, memberRoute[1])
+            : await membership.decide(s, memberRoute[1], await json(req)),
+        );
+      const revokeRoute = url.pathname.match(
+        /^\/review\/api\/grants\/([a-f0-9-]+)\/revoke$/,
+      );
+      if (membership && revokeRoute && req.method === "POST")
+        return send(
+          200,
+          await membership.revoke(s, revokeRoute[1], await json(req)),
+        );
       if (req.method === "POST" && url.pathname === "/review/api/packages") {
-        requireThat(uploadsEnabled, "pilot_not_open", 503);
+        requireThat(intakeEnabled, "pilot_not_open", 503);
         return send(201, await repo.create(s, await json(req)));
       }
       let match = url.pathname.match(/^\/review\/api\/packages\/([a-f0-9-]+)$/);
@@ -167,14 +222,14 @@ export function createServer({
         /^\/review\/api\/packages\/([a-f0-9-]+)\/photos$/,
       );
       if (match && req.method === "POST") {
-        requireThat(uploadsEnabled, "pilot_not_open", 503);
+        requireThat(intakeEnabled, "pilot_not_open", 503);
         return send(201, await repo.reserve(s, match[1], await json(req)));
       }
       match = url.pathname.match(
         /^\/review\/api\/photos\/([a-f0-9-]+)\/chunks\/(\d+)$/,
       );
       if (match && req.method === "PUT") {
-        requireThat(uploadsEnabled, "pilot_not_open", 503);
+        requireThat(intakeEnabled, "pilot_not_open", 503);
         requireThat(
           req.headers["content-type"] === "application/octet-stream",
           "binary_required",
@@ -194,7 +249,7 @@ export function createServer({
         /^\/review\/api\/photos\/([a-f0-9-]+)\/(finalize|preview|decision)$/,
       );
       if (match && req.method === "POST" && match[2] === "finalize") {
-        requireThat(uploadsEnabled, "pilot_not_open", 503);
+        requireThat(intakeEnabled, "pilot_not_open", 503);
         return send(200, await repo.finalize(s, match[1]));
       }
       if (match && req.method === "GET" && match[2] === "preview") {
@@ -269,11 +324,14 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       maintaining = false;
     }
   }, 3600000).unref();
+  const membership = new Membership(repo);
+  repo.intakeGuard = (c) => membership.requireIntake(c);
   const auth = new Auth(pool, config);
   createServer({
     repo,
     auth,
     origin: config.origin,
+    membership,
     uploadsEnabled: process.env.REVIEW_UPLOADS_ENABLED === "true",
   }).listen(Number(process.env.REVIEW_PORT ?? 3059), "127.0.0.1", () =>
     console.log("Private review portal listening on loopback"),

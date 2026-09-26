@@ -40,7 +40,7 @@
       <p id="notice" class="notice" role="status" aria-live="polite"></p>
       <div id="error" class="error" role="alert" hidden></div>
       <section id="signed-out" class="card" hidden>
-        <h2 data-i18n="invite">An invited pilot</h2>
+        <h2 data-i18n="invite">Contributor and reviewer portal</h2>
         <p data-i18n="inviteText">
           Access uses your individual account and an authenticator code. An
           account alone does not give review authority.
@@ -48,12 +48,16 @@
         <a class="button" href="/review/login" data-i18n="login"
           >Sign in securely</a
         >
+        <a class="button" id="registration" href="/review/register" hidden
+          >Create account / Hesap oluştur</a
+        >
         <p class="muted" data-i18n="accountHelp">
-          Accounts are provisioned by the project administrator after contact
-          verification. Public registration is not open.
+          Verify your email, set up your authenticator and apply for a role. All
+          authority applications are reviewed separately.
         </p>
       </section>
       <div id="workspace" hidden>
+        <section id="membership" class="card"></section>
         <div class="toolbar">
           <h2 data-i18n="workspace">Contribution workspace</h2>
           <div>

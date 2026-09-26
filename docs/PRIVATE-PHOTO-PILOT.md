@@ -1,5 +1,7 @@
 # Private photograph pilot
 
+Updated workflow: [Membership and management portal](MEMBERSHIP-PORTAL.md) (2026-09-26). The web panel now handles applications, scoped appointments and intake control; self-registration activation still requires verified email delivery. Earlier invitation-only steps below remain the operator bootstrap path.
+
 Implementation milestone: 2026-09-23. Entry: https://dentalopensource.org/review/.
 English default; Turkish interface available. Contributions are requested in
 English. The interface does not infer the language or translate clinical content

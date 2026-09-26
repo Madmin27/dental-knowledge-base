@@ -1,3 +1,4 @@
+import { renderMembership } from "./membership.js";
 const tr = {
   skip: "İçeriğe geç",
   languageLabel: "Dil",
@@ -12,12 +13,12 @@ const tr = {
   step1: "1 · Doğrulanmış hesap",
   step2: "2 · Özel fotoğraflar",
   step3: "3 · İnsan gizlilik incelemesi",
-  invite: "Davetli pilot",
+  invite: "Katkıcı ve denetleyici paneli",
   inviteText:
     "Kişisel hesabınız ve doğrulayıcı kodunuzla giriş yapın. Hesap sahibi olmak inceleme yetkisi vermez.",
   login: "Güvenli giriş",
   accountHelp:
-    "Hesaplar, iletişim doğrulamasından sonra proje yöneticisi tarafından açılır. Genel kayıt henüz açık değil.",
+    "E-posta doğrulaması ve iki aşamalı girişten sonra görev başvurusu yapabilirsiniz. Yetkiler ayrıca değerlendirilir.",
   workspace: "Katkı çalışma alanı",
   reauth: "Kimliğini yeniden doğrula",
   logout: "Çıkış",
@@ -163,7 +164,15 @@ async function refresh() {
         "Workspace ready. Photo intake is closed until the invited team is provisioned and acceptance checks are complete.",
         "Çalışma alanı hazır. Davetli ekip atanıp kabul kontrolleri tamamlanana kadar fotoğraf kabulü kapalı.",
       );
+  const registration = document.querySelector("#registration");
+  registration.hidden = session.authenticated || !session.registrationEnabled;
+  if (!session.authenticated && !session.registrationEnabled)
+    document.querySelector('[data-i18n="accountHelp"]').textContent = t(
+      "Self-registration is awaiting email delivery setup. Existing invited accounts can sign in.",
+      "Kendi hesabınızı oluşturma, e-posta gönderim kurulumunu bekliyor. Mevcut davetli hesaplar giriş yapabilir.",
+    );
   if (!session.authenticated) return;
+  await renderMembership({ session, api, node, t, refresh, failure });
   $("#new-package").hidden =
     !session.grants.includes("photo_contributor") || !session.uploadsEnabled;
   const list = $("#package-list");

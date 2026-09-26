@@ -11,9 +11,13 @@ test(
   { skip: !issuer },
   async () => {
     const attempts = new Map();
-    let storedSession;
+    let storedSession, enrollment;
     const pool = {
       async query(sql, args = []) {
+        if (sql.startsWith("SELECT enroll_member")) {
+          enrollment = args;
+          return { rowCount: 1 };
+        }
         if (sql.startsWith("SELECT count"))
           return { rows: [{ count: attempts.size }] };
         if (sql.startsWith("INSERT INTO login_attempts")) {
@@ -46,6 +50,7 @@ test(
       issuer,
       clientId: "dental-review",
       clientSecret: "synthetic-oidc-client-only",
+      registrationEnabled: true,
     });
     auth.configuration = await oidc.discovery(
       new URL(issuer),
@@ -131,6 +136,9 @@ test(
     );
     assert.equal(response1.status, 303);
     assert.ok(storedSession);
+    assert.equal(enrollment[1], issuer);
+    assert.equal(enrollment[2], "00000000-0000-4000-8000-000000000001");
+    assert.ok(enrollment[3].includes("@"));
     assert.match(storedSession[0], /^[a-f0-9]{64}$/);
     assert.match(
       response1.headers["Set-Cookie"][0],
@@ -157,5 +165,14 @@ test(
         response(),
       ),
     );
+    const registration = response();
+    await auth.begin({ headers: {} }, registration, true);
+    assert.equal(
+      new URL(registration.headers.Location).searchParams.get("prompt"),
+      "create",
+    );
+    const page = await fetch(registration.headers.Location);
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /name="email"/);
   },
 );

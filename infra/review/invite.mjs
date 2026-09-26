@@ -26,7 +26,7 @@ requireThat(
   "invalid_email",
 );
 requireThat(
-  ["photo_contributor", "privacy_reviewer"].includes(request.role),
+  ["member", "photo_contributor", "privacy_reviewer"].includes(request.role),
   "invalid_role",
 );
 const expires = new Date(request.expiresAt);
@@ -112,10 +112,15 @@ try {
     config.issuer,
     subject,
   ]);
-  await c.query(
-    "INSERT INTO grants(id,account_id,role,scope,expires_at,granted_by,evidence_ref) VALUES($1,$2,$3,'photo_pilot',$4,$5,$6)",
-    [randomUUID(), account, request.role, expires, grantor, evidence],
-  );
+  await c.query("INSERT INTO member_profiles(account_id,email) VALUES($1,$2)", [
+    account,
+    request.email,
+  ]);
+  if (request.role !== "member")
+    await c.query(
+      "INSERT INTO grants(id,account_id,role,scope,expires_at,granted_by,evidence_ref) VALUES($1,$2,$3,'photo_pilot',$4,$5,$6)",
+      [randomUUID(), account, request.role, expires, grantor, evidence],
+    );
   await c.query(
     "INSERT INTO audit(actor_id,event,object_id) VALUES($1,'operator_verified_invitation',$1)",
     [account],

@@ -1,5 +1,5 @@
 import * as oidc from "openid-client";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { digest, assurance, requireThat } from "./policy.mjs";
 
 const secret = () => randomBytes(32).toString("hex");
@@ -13,8 +13,18 @@ export function cookie(req, name) {
 const setCookie = (name, value, seconds) =>
   `${name}=${value}; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=${seconds}`;
 export class Auth {
-  constructor(pool, { origin, issuer, clientId, clientSecret }) {
-    Object.assign(this, { pool, origin, issuer, clientId, clientSecret });
+  constructor(
+    pool,
+    { origin, issuer, clientId, clientSecret, registrationEnabled = false },
+  ) {
+    Object.assign(this, {
+      pool,
+      origin,
+      issuer,
+      clientId,
+      clientSecret,
+      registrationEnabled,
+    });
   }
   async config() {
     if (!this.configuration)
@@ -27,7 +37,12 @@ export class Auth {
       );
     return this.configuration;
   }
-  async begin(req, res) {
+  async begin(req, res, register = false) {
+    requireThat(
+      !register || this.registrationEnabled,
+      "registration_not_open",
+      503,
+    );
     const config = await this.config(),
       token = secret(),
       verifier = oidc.randomPKCECodeVerifier(),
@@ -47,7 +62,7 @@ export class Auth {
       code_challenge_method: "S256",
       state,
       nonce,
-      prompt: "login",
+      prompt: register ? "create" : "login",
       max_age: "0",
       ui_locales: cookie(req, "dental-language") === "tr" ? "tr" : "en",
     });
@@ -78,6 +93,19 @@ export class Auth {
     );
     const claims = result.claims();
     assurance(claims);
+    if (this.registrationEnabled) {
+      requireThat(
+        typeof claims.email === "string" && claims.email.length <= 254,
+        "verified_email_required",
+        403,
+      );
+      await this.pool.query("SELECT enroll_member($1,$2,$3,$4)", [
+        randomUUID(),
+        this.issuer,
+        claims.sub,
+        claims.email,
+      ]);
+    }
     const account = await this.pool.query(
       "SELECT id FROM accounts WHERE issuer=$1 AND subject=$2 AND enabled",
       [this.issuer, claims.sub],

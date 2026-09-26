@@ -137,6 +137,7 @@ export class Repository {
     const metadata = packageInput(input),
       packageId = id(input.id);
     return this.tx(async (c) => {
+      await this.intakeGuard?.(c);
       await this.grant(c, s, "photo_contributor");
       await c.query("SELECT id FROM quota_lock WHERE id=1 FOR UPDATE");
       requireThat(
@@ -210,6 +211,7 @@ export class Repository {
       photoId = id(input.id);
     await this.vault.space();
     return this.tx(async (c) => {
+      await this.intakeGuard?.(c);
       await c.query("SELECT id FROM quota_lock WHERE id=1 FOR UPDATE");
       await this.access(c, s, packageId, { owner: true });
       const old = (await c.query("SELECT * FROM photos WHERE id=$1", [photoId]))
@@ -275,6 +277,7 @@ export class Repository {
     );
     await this.vault.space();
     return this.tx(async (c) => {
+      await this.intakeGuard?.(c);
       const { f } = await this.photo(c, s, photoId, { owner: true });
       requireThat(f.state === "uploading", "upload_closed", 409);
       const hash = digest(bytes);
@@ -307,6 +310,7 @@ export class Repository {
   async finalizePhoto(s, photoId) {
     const lease = randomUUID();
     const f = await this.tx(async (c) => {
+      await this.intakeGuard?.(c);
       const { f } = await this.photo(c, s, photoId, { owner: true });
       if (
         [
@@ -368,6 +372,7 @@ export class Repository {
       );
     }
     const result = await this.tx(async (c) => {
+      await this.intakeGuard?.(c);
       const { f: current } = await this.photo(c, s, photoId, { owner: true });
       requireThat(
         current.lease === lease && current.state === "processing",
