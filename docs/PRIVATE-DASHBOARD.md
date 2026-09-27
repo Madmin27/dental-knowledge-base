@@ -68,7 +68,8 @@ regular Google account password. Once the owner authorizes a concrete test
 message and confirms delivery, record evidence and use the existing registration
 activation procedure in [Membership portal](MEMBERSHIP-PORTAL.md).
 
-The first manager still needs a securely provisioned individual identity. An email
-address by itself is not a verified login and does not authorize fabricating an
-MFA session. Manager identity can remain nonpublic; there is no public roster in
-this change. No manager or clinical acceptance is invented during deployment.
+The first owner bootstrap and durable application notifications are documented in
+[Application notifications](APPLICATION-NOTIFICATIONS.md). The prepared identity
+still requires password change, OTP setup and mailbox verification; an address
+alone is not a verified login. Manager identity remains nonpublic. No scientific
+or photo-review authority follows from the manager appointment.

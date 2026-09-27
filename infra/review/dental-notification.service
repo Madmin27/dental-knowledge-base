@@ -1,0 +1,29 @@
+[Unit]
+Description=Dental membership owner notification queue
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+DynamicUser=yes
+WorkingDirectory=/srv/dental-notification
+BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/apps/review-portal:/srv/dental-notification/apps/review-portal
+BindReadOnlyPaths=/root/projeler/DentalKnowledgeBase/node_modules:/srv/dental-notification/node_modules
+ExecStart=/usr/bin/node /srv/dental-notification/apps/review-portal/notification-worker.mjs
+LoadCredential=notification.json:/etc/dental-review/notification.json
+LoadCredential=mail.json:/etc/dental-review/mail-setup.json
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=192M
+TasksMax=24
+CPUQuota=25%
+LimitNOFILE=128
+TimeoutStartSec=180
+UMask=0077

@@ -26,6 +26,12 @@ GRANT SELECT,INSERT,UPDATE ON membership_applications TO dental_runtime;
 GRANT SELECT,INSERT ON membership_events TO dental_runtime;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO dental_runtime;
 GRANT EXECUTE ON FUNCTION enroll_member(uuid,text,text,text),membership_decide(text,uuid,integer,text,text,integer,boolean),membership_revoke(text,uuid,text),membership_intake(text,boolean,text) TO dental_runtime;`);
+  await pool.query(
+    await readFile(
+      new URL("../../apps/review-portal/notifications.sql", import.meta.url),
+      "utf8",
+    ),
+  );
   console.log("Private portal schema and restricted runtime grants installed.");
 } finally {
   await pool.end();

@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 import pg from "pg";
 import { Repository } from "../apps/review-portal/repository.mjs";
 import { Membership } from "../apps/review-portal/membership.mjs";
+import { dispatchOne } from "../apps/review-portal/notifications.mjs";
 import { statistics } from "../apps/review-portal/statistics.mjs";
 import { createServer } from "../apps/review-portal/server.mjs";
 const config = process.env.TEST_REVIEW_DATABASE_URL
@@ -47,6 +48,17 @@ test("membership authority lifecycle", { skip: !config }, async (t) => {
    GRANT INSERT,UPDATE ON membership_applications TO ${role};GRANT INSERT ON membership_events TO ${role};
    GRANT USAGE ON ALL SEQUENCES IN SCHEMA ${schema} TO ${role};
    GRANT EXECUTE ON FUNCTION enroll_member(uuid,text,text,text),membership_decide(text,uuid,integer,text,text,integer,boolean),membership_revoke(text,uuid,text),membership_intake(text,boolean,text) TO ${role};`);
+    await owner.query(
+      (
+        await readFile(
+          new URL("../apps/review-portal/notifications.sql", import.meta.url),
+          "utf8",
+        )
+      ).replaceAll(
+        "search_path=public,pg_temp",
+        `search_path=${schema},pg_temp`,
+      ),
+    );
     runtime = new pg.Pool({
       ...config,
       options: `-c search_path=${schema} -c role=${role}`,
@@ -356,6 +368,80 @@ test("membership authority lifecycle", { skip: !config }, async (t) => {
         } finally {
           await new Promise((r) => server.close(r));
         }
+      },
+    );
+    await t.test(
+      "outbox is atomic, private, retried and serialized across workers",
+      async () => {
+        const existing = await owner.query(
+          "SELECT count(*)::int AS n FROM membership_applications",
+        );
+        assert.equal(
+          (
+            await owner.query(
+              "SELECT count(*)::int AS n FROM membership_mail_outbox",
+            )
+          ).rows[0].n,
+          existing.rows[0].n,
+        );
+        await assert.rejects(
+          runtime.query("SELECT * FROM membership_mail_outbox"),
+          /permission denied/,
+        );
+        await assert.rejects(
+          runtime.query("UPDATE membership_mail_outbox SET sent_at=now()"),
+          /permission denied/,
+        );
+        const c = await owner.connect();
+        try {
+          await c.query("BEGIN");
+          await c.query(
+            "INSERT INTO membership_applications(id,account_id,role,profile) VALUES($1,$2,'anatomy_reviewer','{}')",
+            [randomUUID(), other.account_id],
+          );
+          await c.query("ROLLBACK");
+        } finally {
+          c.release();
+        }
+        assert.equal(
+          (
+            await owner.query(
+              "SELECT count(*)::int AS n FROM membership_mail_outbox",
+            )
+          ).rows[0].n,
+          existing.rows[0].n,
+        );
+        await dispatchOne(owner, async () => {
+          throw Error("secret SMTP detail");
+        });
+        const failed = (
+          await owner.query(
+            "SELECT * FROM membership_mail_outbox WHERE attempts=1",
+          )
+        ).rows[0];
+        assert.equal(failed.last_error, "smtp_failed");
+        assert.equal(failed.sent_at, null);
+        assert.ok(failed.next_attempt_at > new Date());
+        await owner.query(
+          "UPDATE membership_mail_outbox SET next_attempt_at=now()",
+        );
+        const delivered = [];
+        const send = async (id) => {
+          await new Promise((r) => setTimeout(r, 20));
+          delivered.push(id);
+        };
+        await Promise.all([dispatchOne(owner, send), dispatchOne(owner, send)]);
+        while (await dispatchOne(owner, send)) {}
+        assert.equal(new Set(delivered).size, delivered.length);
+        assert.equal(delivered.length, existing.rows[0].n);
+        assert.equal(
+          (
+            await owner.query(
+              "SELECT count(*)::int AS n FROM membership_mail_outbox WHERE sent_at IS NULL",
+            )
+          ).rows[0].n,
+          0,
+        );
       },
     );
     await t.test(
