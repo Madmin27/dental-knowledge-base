@@ -6,6 +6,8 @@ import { readFile } from "node:fs/promises";
 import pg from "pg";
 import { Repository } from "../apps/review-portal/repository.mjs";
 import { Membership } from "../apps/review-portal/membership.mjs";
+import { statistics } from "../apps/review-portal/statistics.mjs";
+import { createServer } from "../apps/review-portal/server.mjs";
 const config = process.env.TEST_REVIEW_DATABASE_URL
   ? { connectionString: process.env.TEST_REVIEW_DATABASE_URL }
   : process.env.TEST_REVIEW_PG_HOST
@@ -268,6 +270,92 @@ test("membership authority lifecycle", { skip: !config }, async (t) => {
         );
         assert.equal(await members.intakeOpen(), false);
         await assert.rejects(members.status(other), /login_required/);
+      },
+    );
+    await t.test(
+      "private statistics exclude erased records and reject non-managers over HTTP",
+      async () => {
+        const kept = randomUUID(),
+          erased = randomUUID();
+        await owner.query(
+          "INSERT INTO packages(id,owner_id,metadata,deleted_at) VALUES($1,$3,'{}',NULL),($2,$3,'{}',now())",
+          [kept, erased, applicant.account_id],
+        );
+        await owner.query(
+          "INSERT INTO photos(id,package_id,media_type,size,view_name,state) VALUES($1,$2,'image/jpeg',100,'unknown','privacy_review'),($3,$4,'image/jpeg',900,'unknown','privacy_review')",
+          [randomUUID(), kept, randomUUID(), erased],
+        );
+        const stats = await statistics(members, manager, 7);
+        assert.equal(stats.photoQueue.pending, 1);
+        assert.equal(stats.photos[0].bytes, "100");
+        assert.equal(stats.timeline.length, 7);
+        assert.equal(stats.usage.available, false);
+        const encoded = JSON.stringify(stats);
+        assert.ok(!encoded.includes(applicant.account_id));
+        assert.ok(!encoded.includes("Synthetic Applicant"));
+        await assert.rejects(
+          statistics(members, applicant, 7),
+          /manager_required/,
+        );
+        await assert.rejects(
+          statistics(members, manager, 1000),
+          /invalid_period/,
+        );
+        const auth = {
+          session: async (req) =>
+            req.headers.cookie === "manager"
+              ? manager
+              : req.headers.cookie === "member"
+                ? applicant
+                : null,
+        };
+        const server = createServer({
+          repo,
+          auth,
+          membership: members,
+          origin: "http://127.0.0.1:19092",
+        });
+        await new Promise((r) => server.listen(19092, "127.0.0.1", r));
+        const base = "http://127.0.0.1:" + server.address().port;
+        async function get(path, cookie) {
+          return fetch(base + path, {
+            redirect: "manual",
+            headers: cookie ? { cookie } : {},
+          });
+        }
+        try {
+          assert.equal(
+            (await get("/review/api/management/statistics")).status,
+            401,
+          );
+          assert.equal((await get("/review/admin")).status, 303);
+          assert.equal((await get("/review/admin", "member")).status, 403);
+          assert.equal(
+            (await get("/review/api/management/statistics", "member")).status,
+            403,
+          );
+          const response = await get(
+            "/review/api/management/statistics?days=7",
+            "manager",
+          );
+          assert.equal(response.status, 200);
+          assert.equal(response.headers.get("cache-control"), "no-store");
+          assert.equal((await get("/review/admin", "manager")).status, 200);
+          await owner.query(
+            "UPDATE sessions SET expires_at=now()-interval '1 second' WHERE token_hash=$1",
+            [manager.token_hash],
+          );
+          assert.equal(
+            (await get("/review/api/management/statistics", "manager")).status,
+            401,
+          );
+          await owner.query(
+            "UPDATE sessions SET expires_at=now()+interval '1 hour' WHERE token_hash=$1",
+            [manager.token_hash],
+          );
+        } finally {
+          await new Promise((r) => server.close(r));
+        }
       },
     );
     await t.test(

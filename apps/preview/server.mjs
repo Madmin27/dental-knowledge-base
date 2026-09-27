@@ -1,4 +1,5 @@
 import {isIP} from 'node:net';
+import {DailyUsage} from './usage.mjs';
 import {createHash} from 'node:crypto';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -25,7 +26,7 @@ for(const name of ['contributions.js','contributions.css','view-contract.js']) f
 files.set('/contributions',['contributions.html','text/html; charset=utf-8']);
 files.set('/tooth-interior',['interior.html','text/html; charset=utf-8']);
 for(const name of ['interior.js','interior.css'])files.set('/'+name,[name,name.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8']);
-export function previewServer({intake,researchAssets}={}) {
+export function previewServer({intake,researchAssets,usage}={}) {
   return createServer(async(req,res)=>{
     res.setHeader('X-Content-Type-Options','nosniff');
     res.setHeader('Referrer-Policy','no-referrer');
@@ -57,6 +58,7 @@ export function previewServer({intake,researchAssets}={}) {
       const body=await readFile(new URL('./public/'+file[0],import.meta.url));
       if(url.pathname.startsWith('/models/')){model(body,file[1]);return;}
       if(file[1].startsWith('text/html')){
+        if(usage)res.once('finish',()=>{if(res.statusCode===200)usage.record(url.pathname);});
         const lang=requestLanguage(url,req.headers.cookie);
         res.setHeader('Content-Language',lang);
         res.setHeader('Vary','Cookie');
@@ -74,5 +76,7 @@ if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const researchAssets=process.env.RESEARCH_ASSET_DIR?await loadResearchAssets(process.env.RESEARCH_ASSET_DIR):undefined;
   const researchManifest=researchAssets?JSON.parse(researchAssets.get('/research/pulp/manifest.json').body):undefined;
   const intake=process.env.CONTRIBUTIONS_DIR?await createIntake({directory:process.env.CONTRIBUTIONS_DIR,origin:process.env.PREVIEW_ORIGIN,adminKey:(await readFile(process.env.CREDENTIALS_DIRECTORY+'/moderator.key','utf8')).trim(),catalog:await loadCatalog({researchManifest}),trustedProxy:process.env.PREVIEW_TRUSTED_PROXY}):undefined;
-  previewServer({intake,researchAssets}).listen(port,host,()=>console.log(`Dental preview http://${host}:${port}`));
+  const usage=process.env.PREVIEW_USAGE_PATH?await new DailyUsage(process.env.PREVIEW_USAGE_PATH).init():undefined;
+  if(usage)await usage.flush();
+  previewServer({intake,researchAssets,usage}).listen(port,host,()=>console.log(`Dental preview http://${host}:${port}`));
 }

@@ -181,6 +181,13 @@ export async function renderMembership({
       ),
     );
   if (!state.manager) return;
+  const adminLink = node(
+    "a",
+    t("Private statistics dashboard", "Gizli istatistik paneli"),
+    "button",
+  );
+  adminLink.href = "/review/admin";
+  root.append(adminLink);
   const management = node("section", null, "management");
   root.append(management);
   management.append(

@@ -9,6 +9,7 @@ import { Repository } from "./repository.mjs";
 import { processor } from "./processor.mjs";
 import { Erasures } from "./erasures.mjs";
 import { Membership } from "./membership.mjs";
+import { statistics } from "./statistics.mjs";
 import { Denied, requireThat, equal, LIMITS } from "./policy.mjs";
 
 export async function body(req, limit) {
@@ -46,6 +47,7 @@ export function createServer({
   auth,
   origin,
   membership,
+  usagePath,
   uploadsEnabled = false,
   publicDir = fileURLToPath(new URL("./public/", import.meta.url)),
 }) {
@@ -103,6 +105,7 @@ export function createServer({
           "/review/",
           "/review/app.js",
           "/review/membership.js",
+          "/review/admin.js",
           "/review/style.css",
         ].includes(url.pathname)
       ) {
@@ -110,6 +113,7 @@ export function createServer({
           "/review/": "index.html",
           "/review/app.js": "app.js",
           "/review/membership.js": "membership.js",
+          "/review/admin.js": "admin.js",
           "/review/style.css": "style.css",
         }[url.pathname];
         const content = await readFile(join(publicDir, name));
@@ -153,7 +157,35 @@ export function createServer({
                 registrationEnabled: auth.registrationEnabled === true,
               },
         );
+      if (req.method === "GET" && url.pathname === "/review/admin" && !s) {
+        res.writeHead(303, { Location: "/review/login" });
+        return res.end();
+      }
       requireThat(s, "login_required", 401);
+      if (
+        req.method === "GET" &&
+        url.pathname === "/review/admin" &&
+        membership
+      ) {
+        await membership.repo.tx((c) => membership.manager(c, s));
+        res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        return res.end(await readFile(join(publicDir, "admin.html")));
+      }
+      if (
+        req.method === "GET" &&
+        url.pathname === "/review/api/management/statistics" &&
+        membership
+      )
+        return send(
+          200,
+          await statistics(
+            membership,
+            s,
+            Number(url.searchParams.get("days") ?? 30),
+            usagePath,
+          ),
+        );
       if (!["GET", "HEAD"].includes(req.method)) {
         requireThat(
           req.headers.origin === origin &&
@@ -332,6 +364,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     auth,
     origin: config.origin,
     membership,
+    usagePath: process.env.REVIEW_USAGE_PATH,
     uploadsEnabled: process.env.REVIEW_UPLOADS_ENABLED === "true",
   }).listen(Number(process.env.REVIEW_PORT ?? 3059), "127.0.0.1", () =>
     console.log("Private review portal listening on loopback"),
