@@ -23,12 +23,19 @@ const submit=node('button',t('Send feedback','Geri bildirim gönder'),form);subm
 const status=node('p','',dialog);status.setAttribute('role','status');
 const receipt=node('div',undefined,dialog);
 let section='page',pending,sending=false,done=false;
-const sectionNames={page:t('Page','Sayfa'),navigation:t('Navigation','Gezinme'),section:t('Page section','Sayfa bölümü')};
+const sectionNames={page:t('Page','Sayfa'),navigation:t('Navigation','Gezinme'),section:t('Page section','Sayfa bölümü'),controls:t('Atlas controls','Atlas kontrol paneli'),viewer:t('3D model viewport','3B model görüntü alanı'),structure:t('Tooth and structure information','Diş ve yapı bilgisi')};
 function show(area){if(!pending&&!description.value&&!done)section=area;context.textContent=t('Area: ','Alan: ')+pageNames[page]+' / '+sectionNames[section];dialog.showModal();}
-function trigger(parent,area,floating=false){const b=node('button','✎',parent);b.type='button';b.className=floating?'pf-launcher':'pf-inline';b.setAttribute('aria-label',t('Give platform feedback','Platform hakkında geri bildirim ver'));b.title=t('Feedback — help improve this area','Geri bildirim — bu alanı iyileştirelim');if(floating)node('span',t('Feedback','Geri bildirim'),b);b.onclick=()=>show(area);}
-trigger(document.body,'page',true);
+function trigger(parent,area,floating=false){const b=node('button','✎',parent);b.type='button';b.dataset.feedbackArea=area;b.className=floating?'pf-launcher':'pf-inline';const name=t('Feedback: ','Geri bildirim: ')+pageNames[page]+' / '+sectionNames[area];b.setAttribute('aria-label',name);b.title=name;if(floating)node('span',t('Feedback','Geri bildirim'),b);b.onclick=()=>show(area);return b;}
 const nav=document.querySelector('header nav');if(nav)trigger(nav,'navigation');
-for(const h of Array.from(document.querySelectorAll('main h2, main h3')).filter(e=>!e.closest('dialog')).slice(0,2))trigger(h,'section');
+const controls=document.querySelector('.controls'),stage=document.querySelector('.stage-actions'),inspector=document.querySelector('.inspector');
+if(page==='anatomy'&&controls&&stage&&inspector){
+  trigger(controls.querySelector('.eyebrow')??controls,'controls');
+  stage.prepend(trigger(stage,'viewer'));
+  trigger(inspector.querySelector('.eyebrow')??inspector,'structure');
+}else{
+  trigger(document.body,'page',true);
+  const heading=document.querySelector('main h1');if(heading)trigger(heading,'section');
+}
 form.onsubmit=async e=>{
  e.preventDefault();if(sending||done)return;
  if(!pending)pending={key:hex(32),body:{id:hex(16),category:'feedback',role:'other',alias:'',description:description.value,expected:expected.value,evidence:[],consent:consent.checked,view:{kind:'platform-feedback',version:1,page,section,topic:topic.value}}};

@@ -57,7 +57,7 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
       if(url.pathname==='/api/contributions'&&req.method==='GET'){
         if(!admin)problem(404,'Bildirim bulunamadı veya erişim anahtarı yanlış.');
         const live=(await readdir(directory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f));const archived=(await readdir(archiveDirectory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f));
-        const rows=[];for(const f of (url.searchParams.get('archived')==='1'?archived:live)){const r=publicRecord(await read(f.slice(0,-5)));rows.push({id:r.id,createdAt:r.createdAt,status:r.status,revision:r.revision,task:r.events.findLast(e=>e.task)?.task??null,archivedAt:r.archivedAt,category:r.submission.category,structure:r.submission.view.structure,...(r.submission.category==='feedback'?{page:r.submission.view.page,topic:r.submission.view.topic}:{})});}
+        const rows=[];for(const f of (url.searchParams.get('archived')==='1'?archived:live)){const r=publicRecord(await read(f.slice(0,-5)));rows.push({id:r.id,createdAt:r.createdAt,status:r.status,revision:r.revision,task:r.events.findLast(e=>e.task)?.task??null,archivedAt:r.archivedAt,category:r.submission.category,structure:r.submission.view.structure,...(r.submission.category==='feedback'?{page:r.submission.view.page,section:r.submission.view.section,topic:r.submission.view.topic}:{})});}
         json(200,{records:rows.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),capacity:{active:live.length,archived:archived.length,maxActive:maxRecords,maxStored:maxStoredRecords}});return true;
       }
       if(url.pathname==='/api/contributions'&&req.method==='POST'){

@@ -41,6 +41,7 @@ const n = (tag, text, parent) => {
   if (parent) parent.append(e);
   return e;
 };
+const feedbackArea = area => ({page:t('Page','Sayfa'),navigation:t('Navigation','Gezinme'),section:t('Page section','Sayfa bölümü'),controls:t('Atlas controls','Atlas kontrol paneli'),viewer:t('3D model viewport','3B model görüntü alanı'),structure:t('Tooth and structure information','Diş ve yapı bilgisi')})[area] ?? area;
 const stateNames = {
   received: t("Received", "Alındı"),
   triage: t("Triage", "Ön inceleme"),
@@ -124,7 +125,7 @@ async function open(id) {
   message.textContent = "";
   n("h2", stateNames[r.status] + " · " + r.submission.category, root);
   n("p", t("Private reference: ", "Özel kayıt: ") + r.id, root);
-  if(r.submission.category==='feedback') n("p", t("Area / topic: ","Alan / konu: ")+r.submission.view.page+' · '+r.submission.view.section+' · '+r.submission.view.topic,root);
+  if(r.submission.category==='feedback') n("p", t("Area / topic: ","Alan / konu: ")+r.submission.view.page+' · '+feedbackArea(r.submission.view.section)+' · '+r.submission.view.topic,root);
   n("p", r.submission.description, root).style.whiteSpace = "pre-wrap";
   n("p", r.submission.expected, root);
   for (const link of r.submission.evidence) {
@@ -438,7 +439,7 @@ async function load() {
           " · " +
           row.category +
           " · " +
-          (row.page ? row.page+" / "+row.topic : row.structure) +
+          (row.page ? row.page+" / "+feedbackArea(row.section??"page")+" / "+row.topic : row.structure) +
           " · " +
           new Date(row.createdAt).toLocaleDateString() +
           (row.task
