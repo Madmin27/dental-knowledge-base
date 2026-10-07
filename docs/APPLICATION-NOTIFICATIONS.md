@@ -1,5 +1,29 @@
 # Private owner notifications and first login
 
+## Current mail deployment — 7 October 2026
+
+Remote mail is now used instead of Gmail SMTP. `notifications@dentalopensource.org`
+sends identity verification and membership notices through
+`mail.dentalopensource.org:587` with certificate-verified STARTTLS. Replies go to
+`contact@dentalopensource.org`; the owner notice recipient is set separately in
+root-only configuration. No applicant input controls recipients or headers.
+Both accounts passed authenticated SMTP test sends and TLS/IMAP checks. SMTP
+acceptance is not inbox delivery; owner confirmation is recorded separately.
+
+The source `.env` is Git-ignored and mode0600. Its `contact` and `notifications`
+values were copied into `/etc/dental-review/contact-mail.json` and
+`/etc/dental-review/mail-setup.json`, respectively, both mode0600. Updating `.env`
+alone does not rotate live credentials: update these private configurations and
+the Keycloak SMTP settings together, then test. Public registration stays closed
+until real onboarding/delivery verification; no emailVerified flag was bypassed.
+
+The notification timer sends membership notices only. IMAP access was verified
+read-only; continuous inbox polling and automatic correspondence are not configured.
+Do not describe these mailboxes as continuously monitored by an AI.
+
+## Notification behavior
+
+
 New membership applications enter a PostgreSQL outbox in the same transaction as
 submission, through an INSERT trigger. Rejected/rolled-back submissions do not
 queue mail. Existing applications are not backfilled. Withdrawing or deciding an
@@ -15,7 +39,7 @@ search path. Mail configuration is a root-only systemd credential, not a public
 asset. No notification endpoint or new WAN port is opened.
 
 Messages contain only a fixed new-application notice and the HTTPS workspace link.
-The recipient is the configured owner Gmail sender itself; applicant text never
+The recipient is the separately configured owner address (legacy Gmail setups default to the sender); applicant text never
 sets headers, recipient, links or content. SMTP requires verified STARTTLS before
 authentication. No applicant names, contact details, attachments or review findings
 are sent. A stable Message-ID includes the opaque application UUID. Notification
@@ -53,7 +77,7 @@ a failure requires checking the role and private file, not blindly rerunning or
 printing the credential. Install the supplied systemd service/timer and their
 read-only bind destinations. The timer reloads mail credentials each invocation.
 
-Enter the Gmail application password with `infra/review/gmail-password.py`, as
+For the historical Gmail setup only, enter its application password with `infra/review/gmail-password.py`, as
 explained in [private dashboard](PRIVATE-DASHBOARD.md). The owner requested mail
 notifications, but no password is inferred from that authorization. Normal Gmail
 passwords are not used. Once configured, send a clearly identified test notice to
@@ -63,7 +87,7 @@ registration through `infra/review/registration.mjs`. Do not mark
 `deliveryVerified=true` solely on SMTP acceptance.
 
 The current encrypted DB snapshot includes outbox rows. Its configuration allowlist
-**does not include** `notification.json`, `mail-setup.json` or the initial-password
+**does not include** `notification.json`, `mail-setup.json` , `contact-mail.json` or the initial-password
 file, and pg_dump does not back up global login roles. Preserve/recreate these
 credentials separately in a private recovery workflow; do not assume a DB restore
 makes mail work. Disable mail during a restore rehearsal.

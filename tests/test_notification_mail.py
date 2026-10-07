@@ -42,6 +42,42 @@ class NotificationMailTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 mail.send(self.config, self.id)
 
+    def test_project_sender_separate_owner_and_reply_address(self):
+        self.config['recipient'] = 'owner@example.org'
+        self.config['smtp'].update(host='mail.dentalopensource.org',
+            user='notifications@dentalopensource.org',
+            **{'from': 'notifications@dentalopensource.org'},
+            replyTo='contact@dentalopensource.org', port=587, security='starttls')
+        msg = mail.message(self.config, self.id)
+        self.assertEqual(msg['To'], 'owner@example.org')
+        self.assertEqual(msg['Reply-To'], 'contact@dentalopensource.org')
+        client = MagicMock()
+        client.send_message.return_value = {}
+        with patch.object(mail.smtplib, 'SMTP') as smtp:
+            smtp.return_value.__enter__.return_value = client
+            mail.send(self.config, self.id)
+            smtp.assert_called_once_with('mail.dentalopensource.org', 587, timeout=15)
+
+    def test_invalid_recipient_host_or_transport_never_connect(self):
+        for key, value in [('recipient', 'owner@example.org\r\nBcc: x@example.org'),
+                           ('host', 'attacker.example.org'), ('port', 25),
+                           ('security', 'plain'), ('replyTo', 'a@example.org\nBcc:x@example.org')]:
+            import copy
+            config = copy.deepcopy(self.config)
+            (config if key == 'recipient' else config['smtp'])[key] = value
+            with patch.object(mail.smtplib, 'SMTP') as smtp:
+                with self.assertRaises(ValueError): mail.send(config, self.id)
+                smtp.assert_not_called()
+
+    def test_tls_failure_never_authenticates(self):
+        client = MagicMock()
+        client.starttls.side_effect = mail.ssl.SSLError('synthetic TLS failure')
+        with patch.object(mail.smtplib, 'SMTP') as smtp:
+            smtp.return_value.__enter__.return_value = client
+            with self.assertRaises(mail.ssl.SSLError): mail.send(self.config, self.id)
+            client.login.assert_not_called()
+            client.send_message.assert_not_called()
+
     def test_missing_credentials_never_connect(self):
         self.config['smtp'].pop('password')
         with patch.object(mail.smtplib, 'SMTP') as smtp:

@@ -46,7 +46,11 @@ for raw counter storage. To disable collection, remove the preview drop-in and
 restart it; the manager UI will mark any existing snapshot stale. Preserve or
 remove that nonclinical aggregate file according to the owner's preference.
 
-## Gmail setup, still pending authentication and delivery
+## Historical Gmail setup (superseded by remote SMTP on 7 October 2026)
+
+Current project mail uses notifications/contact at dentalopensource.org; see
+[mail deployment](APPLICATION-NOTIFICATIONS.md). The instructions below are
+retained for the previous Gmail option, not the active setup.
 
 The chosen mailbox is held only in `/etc/dental-review/mail-setup.json`, mode0600,
 not in public source, HTML or GitHub. That private draft uses smtp.gmail.com,
