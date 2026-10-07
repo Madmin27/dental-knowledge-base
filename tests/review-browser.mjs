@@ -15,7 +15,7 @@ let authenticated = false,
   recordedMembershipDecision = null;
 const pkg = "00000000-0000-4000-8000-000000000003";
 const photo = "00000000-0000-4000-8000-000000000004";
-let feedbackPayload, feedbackAttempts=0;
+let feedbackPayload, feedbackAttempts=0, lastDeskAction;
 let deskDenied = false,
   deskDraft = null;
 const deskRecord = {
@@ -33,7 +33,14 @@ const deskRecord = {
   events: [],
 };
 const server = http.createServer(async (req, res) => {
-  if(req.url==='/feedback-widget.js'||req.url==='/feedback-widget.css'){
+  if(req.url.startsWith('/api/contributions-public')){
+    res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({cards:[{id:'public-one',title:'Synthetic navigation improvement',body:'An anonymous summary and development response.',status:'deferred'},{id:'public-two',title:'<img src=x onerror=alert(1)>',body:'Synthetic planned change.',status:'planned'}],nextOffset:null}));
+  }
+  if(['/feedback?lang=tr','/feedback?lang=en','/feedback-board.js','/feedback-board.css'].includes(req.url)){
+    const file=req.url.startsWith('/feedback?')?'feedback.html':req.url.slice(1);
+    res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html');return res.end(await readFile(new URL('../apps/preview/public/'+file,import.meta.url)));
+  }
+  if(req.url==='/feedback-widget.js' ||req.url==='/feedback-widget.css'){
     res.setHeader('Content-Type',req.url.endsWith('.js')?'text/javascript':'text/css');
     return res.end(await readFile(new URL('../apps/preview/public'+req.url,import.meta.url)));
   }
@@ -53,7 +60,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST") {
       let data = "";
       for await (const c of req) data += c;
-      const input = JSON.parse(data);
+      const input = JSON.parse(data);lastDeskAction=input;
       if (req.url.endsWith("/publication")) {
         deskDraft = input;
         deskRecord.publication = {
@@ -72,7 +79,7 @@ const server = http.createServer(async (req, res) => {
         req.url === "/review/api/desk"
           ? {
               records: [
-                { ...deskRecord, category: "technical", structure: "viewer" },
+                { ...deskRecord, category: deskRecord.submission.category, structure: "viewer" },
               ],
             }
           : deskRecord,
@@ -388,7 +395,29 @@ try {
         JSON.stringify(errors),
     );
   }
-  if (process.env.TEST_DESK_ONLY) {
+  if(process.env.TEST_BOARD_ONLY){
+    await call('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true},sessionId);
+    await call('Page.navigate',{url:'http://127.0.0.1:19091/feedback?lang=tr'},sessionId);
+    for(let i=0;i<50;i++){if(await evaluate("document.querySelectorAll('#board-cards article').length===2"))break;await wait(100);}
+    assert.equal(await evaluate("document.querySelectorAll('#board-cards article').length"),2);
+    assert.equal(await evaluate("document.querySelectorAll('#board-cards img').length"),0);
+    await evaluate("document.querySelector('[data-filter=deferred]').click()");
+    assert.equal(await evaluate("document.querySelectorAll('#board-cards article').length"),1);
+    assert.equal(await evaluate("document.documentElement.scrollWidth<=innerWidth"),true);
+    await writeFile('/scratch/feedback-board-mobile.png',Buffer.from((await call('Page.captureScreenshot',{format:'png'},sessionId)).data,'base64'));
+    await evaluate("document.querySelector('#new-feedback').click()");
+    assert.equal(await evaluate("document.querySelector('#platform-feedback-dialog').open"),true);
+    authenticated=true;membershipManager=true;
+    deskRecord.submission.category='feedback';deskRecord.submission.view={kind:'platform-feedback',page:'admin',section:'page',topic:'idea',structure:'platform'};
+    deskRecord.publication={title:'Synthetic public summary',body:'A sanitized example for a board approval.',digest:'a'.repeat(64),publicStatus:'deferred',destination:'platform',contributorApproved:true,editorApproved:false,stale:false,withdrawn:false,ready:false};
+    await load('http://127.0.0.1:19091/review/contributions?lang=en',1440,1000);
+    await evaluate("document.querySelector('#queue-filter').value='feedback';document.querySelector('#queue-filter').dispatchEvent(new Event('change'))");await wait(300);
+    await evaluate("document.querySelector('#desk-content button').click()");await wait(300);
+    await evaluate("(()=>{const f=Array.from(document.querySelectorAll('#desk-content form')).find(f=>f.querySelector('button')?.textContent.includes('Publish on'));f.querySelector('input[type=checkbox]').checked=true;f.requestSubmit();})()");
+    for(let i=0;i<30&&!lastDeskAction;i++)await wait(100);
+    assert.equal(lastDeskAction.action,'approve');assert.equal(lastDeskAction.checked,true);
+    assert.deepEqual(errors,[]);console.log('Public board fixture passed: mobile filter, escaped content, feedback dialog and named-editor publish action.');
+  } else if (process.env.TEST_DESK_ONLY) {
     authenticated = true;
     membershipManager = true;
     await load("http://127.0.0.1:19091/review/contributions", 1440, 1100);

@@ -1,4 +1,4 @@
-import {publicationState,publicationEvent,publicationExport} from './publication.mjs';
+import {publicationState,publicationEvent,publicationExport,platformCard} from './publication.mjs';
 import {mkdir,readFile,readdir,open,rename,unlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash,timingSafeEqual,randomUUID} from 'node:crypto';
@@ -27,12 +27,13 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
     if(JSON.stringify(JSON.parse(live))!==JSON.stringify(archived))throw Error('Conflicting archive copies; operator recovery required');
     await unlink(join(directory,name));
   }
-  let queue=Promise.resolve();const rates=new Map();
+  let queue=Promise.resolve();const rates=new Map();const publishedFeedback=new Map();
   const serial=fn=>{const job=queue.then(fn);queue=job.catch(()=>{});return job;};
   function limit(key,budget=rateLimit){const now=Date.now();let entry=rates.get(key);if(!entry||entry.until<now){entry={until:now+600000,count:0};if(rates.size>=4096)rates.delete(rates.keys().next().value);rates.set(key,entry);}if(++entry.count>budget)problem(429,'Çok fazla istek. 10 dakika sonra yeniden deneyin.');}
   const path=id=>join(directory,id+'.json');
   async function read(id){if(!ID.test(id))return null;for(const filename of [path(id),join(archiveDirectory,id+'.json')]){try{return JSON.parse(await readFile(filename,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}}return null;}
-  async function save(record){const encoded=JSON.stringify(record);if(Buffer.byteLength(encoded)>262144)problem(413,'Bildirim geçmişi boyut sınırına ulaştı.');const tmp=join(directory,'.'+randomUUID()+'.tmp');let file;try{file=await open(tmp,'wx',0o600);await file.writeFile(encoded);await file.sync();await file.close();file=null;await rename(tmp,record.archivedAt?join(archiveDirectory,record.id+'.json'):path(record.id));const dir=await open(record.archivedAt?archiveDirectory:directory,'r');try{await dir.sync();}finally{await dir.close();}}finally{if(file)await file.close();await unlink(tmp).catch(e=>{if(e.code!=='ENOENT')throw e;});}}
+  async function save(record){const encoded=JSON.stringify(record);if(Buffer.byteLength(encoded)>262144)problem(413,'Bildirim geçmişi boyut sınırına ulaştı.');const tmp=join(directory,'.'+randomUUID()+'.tmp');let file;try{file=await open(tmp,'wx',0o600);await file.writeFile(encoded);await file.sync();await file.close();file=null;await rename(tmp,record.archivedAt?join(archiveDirectory,record.id+'.json'):path(record.id));const dir=await open(record.archivedAt?archiveDirectory:directory,'r');try{await dir.sync();}finally{await dir.close();}const card=platformCard(record);if(card)publishedFeedback.set(record.id,card);else publishedFeedback.delete(record.id);}finally{if(file)await file.close();await unlink(tmp).catch(e=>{if(e.code!=='ENOENT')throw e;});}}
+  for(const f of (await readdir(directory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f))){const r=await read(f.slice(0,-5));const card=platformCard(r);if(card)publishedFeedback.set(r.id,card);}
   const publicRecord=(r,admin=false)=>{
     const state=publicationState(r);
     const publication=state&&!admin?(({author,reviewer,...visible})=>visible)(state):state;
@@ -54,6 +55,14 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
       }
       limit((admin?'admin:':'ip:')+(admin&&actorId?actorId:client),admin&&actorId?120:rateLimit);
       if(req.method==='POST'&&!admin&&req.headers.origin!==expected.origin)problem(403,'İstek kaynağı gerekli.');
+      if(url.pathname==='/api/contributions-public'&&req.method==='GET'){
+        await serial(async()=>{
+          const cards=Array.from(publishedFeedback.values()).sort((a,b)=>a.id.localeCompare(b.id));
+          const offset=Number(url.searchParams.get('offset')??0);
+          if(!Number.isSafeInteger(offset)||offset<0)problem(422,'Invalid offset.');
+          json(200,{cards:cards.slice(offset,offset+50),nextOffset:offset+50<cards.length?offset+50:null});
+        });return true;
+      }
       if(url.pathname==='/api/contributions'&&req.method==='GET'){
         if(!admin)problem(404,'Bildirim bulunamadı veya erişim anahtarı yanlış.');
         const live=(await readdir(directory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f));const archived=(await readdir(archiveDirectory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f));

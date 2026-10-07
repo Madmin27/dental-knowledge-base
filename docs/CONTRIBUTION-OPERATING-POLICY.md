@@ -166,8 +166,9 @@ Persistence, rate limits, backups, private bearer tracking, editorial replies an
 follow-up reuse the existing intake service. Records carry category `feedback`
 and strict `platform-feedback` context. The editor desk presents a separate queue
 filter. These reports are not scientific acceptance or a live AI chat and are not
-automatically sent to external AI, email or GitHub. They currently cannot use the
-technical-publication export gate. A human developer/editor decides which items to
+automatically sent to external AI, email or GitHub. They cannot use the
+technical GitHub export gate. Separately consented summaries can use the platform
+board described below. A human developer/editor decides which items to
 implement; anatomical proposals still require qualified human review.
 
 Tracking is link-based and is not yet associated with the signed-in member account.
@@ -175,3 +176,38 @@ The user must save the private link; losing it means losing self-service access.
 Drafts and pending retry identifiers live only in the current tab. Retry reuses the
 same submission ID; a timeout is not displayed as successful delivery. No automated
 AI task runner or continuous review schedule was added.
+
+
+## Public feedback board (7 October 2026)
+
+The frontend lower-right **Feedback board / Geri bildirimler** link opens
+`/feedback`. This is a public list of explicitly approved, separately written
+anonymous summaries and development responses, not an index of private reports.
+It supports reviewing, planned, resolved and deferred labels. No demonstration
+records are published in production.
+
+The named editor prepares a title, summary/response and status in the private
+feedback queue. The submitter previews that exact card through their existing
+private tracking link and consents. An active named editor then approves publication;
+for this platform-only pilot the draft author may also be that editor. GitHub's
+separate second-editor rule is unchanged. This is software triage, not scientific
+acceptance. Refusing publicity does not exclude the feedback from consideration.
+
+Text and status are bound into the draft digest. Normal record updates make a
+published draft stale and hide it; a changed draft requires fresh consent. Resolved
+requires the internal addressed state, whose existing transition requires an
+implementation/evidence link. The public card includes only an opaque digest ID,
+title, body and status. Original records, aliases, source references, tracking keys,
+account identifiers, internal tasks and conversation history are never projected.
+Editors must manually remove personal information from draft text; the software
+cannot prove that free text is anonymous. The submitter and editor can withdraw
+publication. Withdrawal, redaction or archive removes the card from subsequent
+requests, but cannot recall copies already downloaded or seen.
+
+The in-memory public projection is rebuilt from durable active records on startup
+and updated only after successful durable saves in the intake's serial queue.
+Public reads are paginated in batches of 50 and retain no-store and existing IP
+rate limits. Page changes during pagination can shift offsets; Refresh reloads the
+current list. This is not a public discussion/comment feed or automatic AI agent.
+AI-assisted development may examine authorized feedback during active work; there
+is no always-running model that receives messages or changes code automatically.

@@ -172,5 +172,31 @@ test('platform feedback has separate typed context, private tracking and no anat
  const again=await s.call('',key,p);assert.equal(again.status,200);
  const rows=await s.call('',s.adminKey);assert.equal(rows.data.records[0].category,'feedback');assert.equal(rows.data.records[0].page,'admin');
  for(const change of [{category:'anatomy'},{view:payload().view},{view:{...p.view,page:'https://example.org/?token=secret'}},{view:{...p.view,topic:'clinical'}}])assert.equal((await s.call('',key,{...p,...change,id:hex(16)})).status,422);
- assert.equal((await s.call('/'+p.id+'/publication',s.adminKey,{action:'draft',revision:0,title:'Synthetic feedback export',body:'Synthetic platform feedback must not silently become a public task.'},'00000000-0000-4000-8000-000000000001')).status,409);
+ assert.equal((await s.call('/'+p.id+'/publication',s.adminKey,{action:'draft',revision:0,title:'Synthetic feedback export',body:'Synthetic platform feedback must not silently become a public task.'},{'X-Dental-Editor':'00000000-0000-4000-8000-000000000001'})).status,422);
+});
+
+test('public platform board requires exact sender consent and editor approval, exposes no private record, supports removal',async t=>{
+ const s=await setup(t,{rateLimit:200}),key=hex(32),editor={'X-Dental-Editor':'00000000-0000-4000-8000-000000000001'};
+ const p={...payload(),category:'feedback',view:{kind:'platform-feedback',version:1,page:'admin',section:'page',topic:'idea'}};
+ await s.call('',key,p);const path='/'+p.id+'/publication';
+ const board=()=>s.call('-public',hex(32));assert.deepEqual((await board()).data.cards,[]);
+ const draft={action:'draft',revision:0,title:'A clearer synthetic navigation',body:'A sanitized summary and response: this improvement will be considered in a future iteration.',publicStatus:'deferred'};
+ assert.equal((await s.call(path,key,draft)).status,403);
+ assert.equal((await s.call(path,s.adminKey,{...draft,publicStatus:'resolved'},editor)).status,409);
+ let r=await s.call(path,s.adminKey,draft,editor);assert.equal(r.status,200);const digest=r.data.publication.digest;
+ assert.deepEqual((await board()).data.cards,[]);
+ assert.equal((await s.call(path,s.adminKey,{revision:1,action:'consent',digest},editor)).status,403);
+ r=await s.call(path,key,{revision:1,action:'consent',digest});assert.equal(r.status,200);
+ assert.deepEqual((await board()).data.cards,[]);
+ r=await s.call(path,s.adminKey,{revision:2,action:'approve',digest,checked:true},editor);assert.equal(r.status,200);
+ await s.restart();
+ const published=(await board()).data.cards;assert.equal(published.length,1);assert.deepEqual(Object.keys(published[0]).sort(),['body','id','status','title']);assert.equal(published[0].status,'deferred');
+ const encoded=JSON.stringify(published);for(const secret of [key,p.id,p.alias,p.description,editor['X-Dental-Editor']])assert.ok(!encoded.includes(secret));
+ assert.equal((await s.call('/'+p.id+'/export?digest='+digest,s.adminKey)).status,403);
+ assert.equal((await s.call(path,s.adminKey,{revision:3,action:'linked',digest,issueUrl:'https://github.com/Madmin27/dental-knowledge-base/issues/7'},editor)).status,403);
+ r=await s.call(path,key,{revision:3,action:'withdraw',digest});assert.equal(r.status,200);assert.deepEqual((await board()).data.cards,[]);
+ r=await s.call(path,s.adminKey,{...draft,revision:4,publicStatus:'planned'},editor);const second=r.data.publication.digest;assert.notEqual(second,digest);
+ await s.call(path,key,{revision:5,action:'consent',digest:second});await s.call(path,s.adminKey,{revision:6,action:'approve',digest:second,checked:true},editor);
+ assert.equal((await board()).data.cards.length,1);
+ await s.call(path,s.adminKey,{revision:7,action:'withdraw',digest:second},editor);assert.deepEqual((await board()).data.cards,[]);
 });

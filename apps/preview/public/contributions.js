@@ -85,8 +85,10 @@ async function trackingPage(){
       const events=node('ol',undefined,body);for(const event of r.events){const li=node('li',undefined,events);node('b',(event.actor==='maintainer'?t('Bakımcı'):t('Katkı sahibi'))+' · '+labels[event.status]+' · '+new Date(event.at).toLocaleString(dateLocale),li);node('p',event.note,li).className='contribution-text';for(const url of event.evidence){const a=node('a',url,li);a.href=url;a.target='_blank';a.rel='noreferrer';}}
       const publication=r.publication;
       if(publication&&!r.redactedAt){
-        const box=node('section',undefined,body);node('h3',t('GitHub için önerilen herkese açık metin'),box);
-        node('p',t('Asıl katkınız özel kalır. Yalnız aşağıdaki İngilizce teknik özet için izin isteniyor. İzin vermemek katkınızın incelenmesini engellemez.'),box);
+        const platform=r.submission.category==='feedback',pt=(en,tr)=>document.documentElement.lang==='tr'?tr:en;
+        const box=node('section',undefined,body);node('h3',platform?pt('Proposed public feedback card','Önerilen herkese açık geri bildirim kartı'):t('GitHub için önerilen herkese açık metin'),box);
+        node('p',platform?pt('Only the summary below and its status may appear on this site. Your original report stays private. You may refuse without affecting review.','Yalnız aşağıdaki özet ve durumu bu sitede yayımlanabilir. Asıl bildiriminiz özel kalır. İzin vermemek değerlendirmeyi engellemez.'):t('Asıl katkınız özel kalır. Yalnız aşağıdaki İngilizce teknik özet için izin isteniyor. İzin vermemek katkınızın incelenmesini engellemez.'),box);
+        if(platform)node('p',pt('Status: ','Durum: ')+({reviewing:pt('Under review','Değerlendiriliyor'),planned:pt('Planned','Planlandı'),resolved:pt('Resolved','Çözüldü'),deferred:pt('For future consideration','İleride değerlendirilecek')})[publication.publicStatus],box);
         node('h4',publication.title,box);node('pre',publication.body,box).className='contribution-text';
         node('p',t('Metin parmak izi: ')+publication.digest,box);
         if(publication.stale)node('p',t('Katkı değişti; yeni yayın taslağı gerekiyor.'),box);
@@ -94,9 +96,9 @@ async function trackingPage(){
         for(const [action,label] of [['consent','Bu metnin GitHub üzerinde yayımlanmasına izin ver'],['withdraw','Yayın iznini geri çek']]){
           if(action==='consent'&&(publication.stale||publication.withdrawn||publication.contributorApproved||r.archivedAt))continue;
           if(action==='withdraw'&&publication.withdrawn)continue;
-          const button=node('button',t(label),box);button.type='button';button.onclick=async()=>{if(!confirm(t('Bu yayın kararını kaydetmek istiyor musunuz?')))return;button.disabled=true;try{await request('/'+id+'/publication',key,{revision:r.revision,action,digest:publication.digest});await load();}catch(e){message.textContent=t(e.message);button.disabled=false;}};
+          const button=node('button',platform?(action==='consent'?pt('Allow this exact card on the feedback board','Bu kartın geri bildirimler sayfasında yayımlanmasına izin ver'):pt('Withdraw publication permission','Yayın iznini geri çek')):t(label),box);button.type='button';button.onclick=async()=>{if(!confirm(t('Bu yayın kararını kaydetmek istiyor musunuz?')))return;button.disabled=true;try{await request('/'+id+'/publication',key,{revision:r.revision,action,digest:publication.digest});await load();}catch(e){message.textContent=t(e.message);button.disabled=false;}};
         }
-        node('p',t('İzni geri çekmek yeni dışa aktarımları durdurur. GitHub’a daha önce gönderilmiş kopyaların kaldırılması ayrıca bakımcı takibi gerektirir.'),box);
+        node('p',platform?pt('Withdrawal removes this card from future board requests. Copies already downloaded cannot be recalled.','İzni geri çekmek kartı sonraki sayfa isteklerinden kaldırır. Önceden indirilmiş kopyalar geri alınamaz.'):t('İzni geri çekmek yeni dışa aktarımları durdurur. GitHub’a daha önce gönderilmiş kopyaların kaldırılması ayrıca bakımcı takibi gerektirir.'),box);
         if(publication.issueUrl){const a=node('a',t('Kaydedilmiş GitHub işi'),box);a.href=publication.issueUrl;a.target='_blank';a.rel='noreferrer noopener';}
       }
       if(r.archivedAt){node('p',t('Arşivlenmiş bildirimler salt okunurdur.'),body);return;}

@@ -1,7 +1,7 @@
 // Shared, strict snapshot contract. Surface coordinates are deliberately not invented.
 export function validateView(v, catalog) {
   if(v?.kind==='platform-feedback'){
-    if(v.version!==1||!['anatomy','interior','overview','contributions','report','review','admin','desk','other'].includes(v.page)||!['bug','usability','idea'].includes(v.topic)||!['page','navigation','section','controls','viewer','structure'].includes(v.section))throw Error('Invalid platform feedback context');
+    if(v.version!==1||!['anatomy','interior','overview','contributions','report','review','admin','desk','feedback-board','other'].includes(v.page)||!['bug','usability','idea'].includes(v.topic)||!['page','navigation','section','controls','viewer','structure'].includes(v.section))throw Error('Invalid platform feedback context');
     return {kind:'platform-feedback',version:1,page:v.page,topic:v.topic,section:v.section,structure:'platform'};
   }
   if(v?.kind==='technical'){

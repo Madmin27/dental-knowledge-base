@@ -237,6 +237,27 @@ async function open(id) {
       eventId: crypto.randomUUID().replaceAll("-", ""),
     }),
   );
+  if(r.submission.category==='feedback'){
+    n('h3',t('Public feedback board','Herkese açık geri bildirimler'),root);
+    n('p',t('Prepare a separate anonymous summary and response. The sender must approve the exact text and status; an editor then publishes it. No private record or conversation is copied automatically.','Ayrı, isimsiz bir özet ve yanıt hazırlayın. Gönderen tam metni ve durumu onaylar; ardından editör yayımlar. Özel kayıt veya yazışma otomatik kopyalanmaz.'),root);
+    const states={reviewing:t('Under review','Değerlendiriliyor'),planned:t('Planned','Planlandı'),resolved:t('Resolved','Çözüldü'),deferred:t('For future consideration','İleride değerlendirilecek')};
+    const p=r.publication;
+    if(p){
+      n('h4',p.title,root);n('p',p.body,root).style.whiteSpace='pre-wrap';
+      n('p',(states[p.publicStatus]??'')+' · '+(p.ready?t('Public','Yayında'):p.withdrawn?t('Removed','Kaldırıldı'):p.stale?t('Outdated; new draft required','Güncel değil; yeni taslak gerekli'):p.contributorApproved?t('Sender approved; editor decision pending','Gönderen onayladı; editör kararı bekliyor'):t('Waiting for sender consent via their private tracking link','Gönderenin özel takip bağlantısından onayı bekleniyor')),root);
+      if(p.contributorApproved&&!p.ready&&!p.stale&&!p.withdrawn){
+        const approve=n('form',undefined,root);const check=field(approve,t('I checked the anonymous text, response, rights and status.','İsimsiz metni, yanıtı, hakları ve durumu kontrol ettim.'));check.type='checkbox';
+        action(approve,t('Publish on the feedback board','Geri bildirimler sayfasında yayımla'),()=>api('/'+id+'/publication',{revision:r.revision,action:'approve',digest:p.digest,checked:check.checked}));
+      }
+      if(!p.withdrawn){const remove=n('form',undefined,root);action(remove,t('Remove / withhold public card','Yayından kaldır / yayını durdur'),()=>api('/'+id+'/publication',{revision:r.revision,action:'withdraw',digest:p.digest}));}
+    }
+    const draft=n('form',undefined,root);const title=field(draft,t('Public title','Herkese açık başlık'));title.minLength=10;title.maxLength=160;
+    const body=field(draft,t('Anonymous summary and development response','İsimsiz özet ve geliştirme yanıtı'),'textarea');body.minLength=30;body.maxLength=6000;
+    const status=field(draft,t('Public status','Yayın durumu'),'select');for(const [v,label]of Object.entries(states)){const o=n('option',label,status);o.value=v;}
+    n('p',t('Resolved requires an implementation link and addressed internal status first. Text or status edits require fresh sender consent.','Çözüldü için önce uygulama bağlantısı ve iç kayıtta Uygulama bildirildi durumu gerekir. Metin veya durum değişirse gönderenin yeniden izni alınır.'),draft);
+    action(draft,t('Prepare draft for sender consent','Gönderenin onayı için taslak hazırla'),()=>api('/'+id+'/publication',{revision:r.revision,action:'draft',title:title.value,body:body.value,publicStatus:status.value}));
+    return;
+  }
   if (r.submission.category !== "technical") {
     n(
       "p",

@@ -1,10 +1,11 @@
 // Product feedback only. Never capture DOM contents, account data, query strings or fragments.
 const tr=(new URL(location.href).searchParams.get('lang')??document.cookie.match(/(?:^|;\s*)dental-language=(en|tr)/)?.[1]??document.documentElement.lang)==='tr';
 const t=(en,turkish)=>tr?turkish:en;
-const page=({'/':'anatomy','/anatomy':'anatomy','/tooth-interior':'interior','/overview':'overview','/contributions':'contributions','/report':'report','/review/':'review','/review/admin':'admin','/review/contributions':'desk'})[location.pathname]??'other';
-const pageNames={anatomy:t('3D atlas','3B atlas'),interior:t('Tooth interior','Dişin içi'),overview:t('Project overview','Proje tanıtımı'),contributions:t('Contribution tracking','Katkı takibi'),report:t('Report','Bildirim'),review:t('Member workspace','Üye çalışma alanı'),admin:t('Administration','Yönetim'),desk:t('Editorial desk','İnceleme masası'),other:t('Information page','Bilgi sayfası')};
+const page=({'/':'anatomy','/anatomy':'anatomy','/tooth-interior':'interior','/overview':'overview','/contributions':'contributions','/report':'report','/feedback':'feedback-board','/review/':'review','/review/admin':'admin','/review/contributions':'desk'})[location.pathname]??'other';
+const pageNames={'feedback-board':t('Feedback board','Geri bildirimler'),anatomy:t('3D atlas','3B atlas'),interior:t('Tooth interior','Dişin içi'),overview:t('Project overview','Proje tanıtımı'),contributions:t('Contribution tracking','Katkı takibi'),report:t('Report','Bildirim'),review:t('Member workspace','Üye çalışma alanı'),admin:t('Administration','Yönetim'),desk:t('Editorial desk','İnceleme masası'),other:t('Information page','Bilgi sayfası')};
 function node(tag,text,parent){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;parent?.append(e);return e;}
 const hex=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),v=>v.toString(16).padStart(2,'0')).join('');
+const boardLink=node('a',t('Feedback board','Geri bildirimler'),document.body);boardLink.href='/feedback?lang='+(tr?'tr':'en');boardLink.className='pf-board-link';
 const dialog=node('dialog',undefined,document.body);dialog.id='platform-feedback-dialog';dialog.setAttribute('aria-labelledby','platform-feedback-title');
 const close=node('button',t('Close ×','Kapat ×'),dialog);close.type='button';close.className='pf-close';close.onclick=()=>dialog.close();
 node('h2',t('Help improve the platform','Platformu birlikte iyileştirelim'),dialog).id='platform-feedback-title';

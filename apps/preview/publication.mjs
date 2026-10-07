@@ -45,15 +45,16 @@ export function publicationState(r) {
   return result;
 }
 export function publicationEvent(r, b, admin, actorId) {
+  const platform=r.submission.category === "feedback";
   if (
     r.redactedAt ||
     (r.archivedAt && b.action !== "withdraw") ||
-    r.submission.category !== "technical"
+    !["technical","feedback"].includes(r.submission.category)
   )
     fail(409, "Only active technical reports can prepare a GitHub task.");
   const previous = publicationState(r);
   if (
-    !admin &&
+    (!admin || platform) &&
     b.action === "withdraw" &&
     previous?.withdrawn &&
     b.digest === previous.digest
@@ -83,15 +84,19 @@ export function publicationEvent(r, b, admin, actorId) {
     // This is a manual summary, never automatic copying of the private submission.
     const title = b.title.trim(),
       body = b.body.trim();
+    const publicText=title+"\n"+body;
     if (
-      body.includes(r.id) ||
-      /[#?&](?:key|token)=/i.test(body) ||
-      /\/api\/contributions\//i.test(body)
+      publicText.includes(r.id) ||
+      /[#?&](?:key|token)=/i.test(publicText) ||
+      /\/api\/contributions\//i.test(publicText)
     )
       fail(422, "Private tracking references cannot be exported.");
+    if(platform && !['reviewing','planned','resolved','deferred'].includes(b.publicStatus))fail(422,'Choose a platform publication status.');
+    if(platform && b.publicStatus==='resolved' && r.events.at(-1)?.status!=='addressed')fail(409,'Record implementation evidence and addressed status before publishing as resolved.');
+    const platformFields=platform?{destination:'platform',publicStatus:b.publicStatus}:{};
     const digest = createHash("sha256")
       .update(
-        JSON.stringify({ repository, title, body, revision: r.events.length }),
+        JSON.stringify({ repository, title, body, revision: r.events.length, ...platformFields }),
       )
       .digest("hex");
     data = {
@@ -101,13 +106,14 @@ export function publicationEvent(r, b, admin, actorId) {
       digest,
       repository,
       sourceRevision: r.events.length,
+      ...platformFields,
     };
   } else {
     if (!p || b.digest !== p.digest || (p.stale && action !== "withdraw"))
       fail(409, "Draft is missing or outdated. Prepare a new draft.");
     if (action === "consent" || action === "withdraw") {
-      if (action === "withdraw" && p.withdrawn && !admin) return null;
-      if (admin)
+      if (action === "withdraw" && p.withdrawn && (!admin || platform)) return null;
+      if (admin && !(platform && action==="withdraw"))
         fail(
           403,
           "Only the contributor can give or withdraw publication consent.",
@@ -115,12 +121,13 @@ export function publicationEvent(r, b, admin, actorId) {
       if (action === "consent" && p.withdrawn)
         fail(409, "Withdrawn draft cannot be reapproved; prepare a new draft.");
     } else if (action === "approve") {
-      if (!admin || actorId === p.author || b.checked !== true || p.withdrawn)
+      if (!admin || (!platform && actorId === p.author) || b.checked !== true || p.withdrawn)
         fail(
           403,
           "A second editor must check privacy, rights and technical scope.",
         );
     } else if (action === "linked") {
+      if(platform)fail(403,"Platform feedback cannot be linked to GitHub through this gate.");
       if (
         !admin ||
         !p.ready ||
@@ -144,7 +151,7 @@ export function publicationEvent(r, b, admin, actorId) {
     actor: admin ? "maintainer" : "contributor",
     ...(admin ? { actorId } : {}),
     status: r.events.at(-1)?.status ?? "received",
-    note: {
+    note: platform ? ({draft:"Platform board draft prepared; not public until contributor consent and editor approval.",consent:"Contributor approved this exact platform summary and status.",approve:"Editor approved this platform summary for publication after consent.",withdraw:admin?"Editor removed the public platform card.":"Contributor withdrew consent; platform card is no longer public."}[action]) : {
       draft: "Technical publication draft prepared; nothing sent to GitHub.",
       consent: "Contributor approved this exact public draft.",
       withdraw:
@@ -159,6 +166,7 @@ export function publicationEvent(r, b, admin, actorId) {
   };
 }
 export function publicationExport(r) {
+  if(r.submission.category!=="technical")fail(403,"Only technical GitHub drafts can be exported.");
   const p = publicationState(r);
   if (!p?.ready)
     fail(
@@ -171,4 +179,11 @@ export function publicationExport(r) {
     digest: p.digest,
     repository,
   };
+}
+
+// Explicit allowlist: never expose private record IDs, actor IDs, tokens or history.
+export function platformCard(r){
+  const p=publicationState(r);
+  if(r.submission.category!=='feedback'||p?.destination!=='platform'||!p.ready)return null;
+  return {id:p.digest,title:p.title,body:p.body,status:p.publicStatus};
 }
