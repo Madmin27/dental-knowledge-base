@@ -32,6 +32,7 @@ dig @1.1.1.1 _acme-challenge.dentalopensource.org NS +short
 certbot renew --cert-name dentalopensource.org --dry-run --run-deploy-hooks --no-random-sleep-on-renew
 ```
 
+The 7 October 2026 dry run succeeded, including the deploy hook.
 A successful dry run tests staging issuance and the Nginx deploy hook; it does
 not replace the current production certificate. Keep normal `certbot.timer`
 enabled. A single ACME nameserver is not redundant.
