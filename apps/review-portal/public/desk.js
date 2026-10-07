@@ -26,6 +26,9 @@ $("#boundary").textContent = t(
 );
 $("#refresh").textContent = t("Refresh", "Yenile");
 $("#login").textContent = t("Sign in again", "Yeniden giriş");
+$("#queue-label").textContent=t("Queue", "Kuyruk");
+$("#queue-filter").options[0].textContent=t("Atlas / content contributions", "Atlas / içerik katkıları");
+$("#queue-filter").options[1].textContent=t("Platform feedback", "Platform geri bildirimleri");
 const root = $("#desk-content"),
   message = $("#message");
 let csrf,
@@ -121,6 +124,7 @@ async function open(id) {
   message.textContent = "";
   n("h2", stateNames[r.status] + " · " + r.submission.category, root);
   n("p", t("Private reference: ", "Özel kayıt: ") + r.id, root);
+  if(r.submission.category==='feedback') n("p", t("Area / topic: ","Alan / konu: ")+r.submission.view.page+' · '+r.submission.view.section+' · '+r.submission.view.topic,root);
   n("p", r.submission.description, root).style.whiteSpace = "pre-wrap";
   n("p", r.submission.expected, root);
   for (const link of r.submission.evidence) {
@@ -421,8 +425,9 @@ async function load() {
       );
     }, ms);
     const data = await api();
+    data.records=data.records.filter(row => (row.category==='feedback')===($("#queue-filter").value==='feedback'));
     root.hidden = false;
-    n("h2", t("Private intake queue", "Özel katkı kuyruğu"), root);
+    n("h2", $("#queue-filter").selectedOptions[0].textContent, root);
     n("p", data.records.length + t(" active records", " aktif kayıt"), root);
     if (!data.records.length)
       n("p", t("No active contributions.", "Aktif katkı yok."), root);
@@ -433,7 +438,7 @@ async function load() {
           " · " +
           row.category +
           " · " +
-          row.structure +
+          (row.page ? row.page+" / "+row.topic : row.structure) +
           " · " +
           new Date(row.createdAt).toLocaleDateString() +
           (row.task
@@ -455,6 +460,7 @@ async function load() {
   }
 }
 $("#refresh").onclick = load;
+$("#queue-filter").onchange = load;
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     clear();

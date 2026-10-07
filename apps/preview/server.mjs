@@ -9,6 +9,8 @@ import {createIntake,loadCatalog} from './contributions.mjs';
 import {scenarios,evaluateScenario} from './scenarios.mjs';
 import {requestLanguage,localizedHTML} from './localization.mjs';
 const files=new Map([['/',['anatomy.html','text/html; charset=utf-8']],['/style.css',['style.css','text/css; charset=utf-8']],['/app.js',['app.js','text/javascript; charset=utf-8']]]);
+files.set('/feedback-widget.js',['feedback-widget.js','text/javascript; charset=utf-8']);
+files.set('/feedback-widget.css',['feedback-widget.css','text/css; charset=utf-8']);
 files.set('/favicon.svg',['favicon.svg','image/svg+xml']);
 files.set('/i18n.js',['i18n.js','text/javascript; charset=utf-8']);
 files.set('/viewer-boot.js',['viewer-boot.js','text/javascript; charset=utf-8']);

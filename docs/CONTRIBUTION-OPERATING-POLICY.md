@@ -151,3 +151,27 @@ adopted by the human panel, not current platform capabilities or measured accura
   security-sensitive details should not become a public issue by default.
 
 These references inspire local policy; none certifies this project or its anatomy.
+
+## Platform feedback (7 October 2026)
+
+Small labelled pencil controls open a separate feedback dialog on public pages,
+the member workspace, administration and editorial desk. Bug/usability/idea reports
+are distinct from anatomical/content contributions and accept English or Turkish.
+Only an allowlisted page area, generic section and topic are recorded with the
+submitted text; no DOM contents, URL queries/fragments, account identity, model
+snapshot or screenshot are collected automatically. Users are asked not to include
+private or clinical information. Anyone may submit without gaining review rights.
+
+Persistence, rate limits, backups, private bearer tracking, editorial replies and
+follow-up reuse the existing intake service. Records carry category `feedback`
+and strict `platform-feedback` context. The editor desk presents a separate queue
+filter. These reports are not scientific acceptance or a live AI chat and are not
+automatically sent to external AI, email or GitHub. They currently cannot use the
+technical-publication export gate. A human developer/editor decides which items to
+implement; anatomical proposals still require qualified human review.
+
+Tracking is link-based and is not yet associated with the signed-in member account.
+The user must save the private link; losing it means losing self-service access.
+Drafts and pending retry identifiers live only in the current tab. Retry reuses the
+same submission ID; a timeout is not displayed as successful delivery. No automated
+AI task runner or continuous review schedule was added.

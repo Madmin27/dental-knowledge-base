@@ -15,6 +15,7 @@ let authenticated = false,
   recordedMembershipDecision = null;
 const pkg = "00000000-0000-4000-8000-000000000003";
 const photo = "00000000-0000-4000-8000-000000000004";
+let feedbackPayload, feedbackAttempts=0;
 let deskDenied = false,
   deskDraft = null;
 const deskRecord = {
@@ -32,6 +33,17 @@ const deskRecord = {
   events: [],
 };
 const server = http.createServer(async (req, res) => {
+  if(req.url==='/feedback-widget.js'||req.url==='/feedback-widget.css'){
+    res.setHeader('Content-Type',req.url.endsWith('.js')?'text/javascript':'text/css');
+    return res.end(await readFile(new URL('../apps/preview/public'+req.url,import.meta.url)));
+  }
+  if(req.url==='/api/contributions'&&req.method==='POST'){
+    assert.equal(req.headers.referer,undefined);assert.equal(req.headers.cookie,undefined);
+    let raw='';for await(const part of req)raw+=part;
+    const input=JSON.parse(raw);res.setHeader('Content-Type','application/json');
+    if(!feedbackAttempts++){feedbackPayload=input;res.statusCode=503;return res.end('{}');}
+    assert.deepEqual(input,feedbackPayload);return res.end(JSON.stringify({id:input.id}));
+  }
   if (req.url.startsWith("/review/api/desk")) {
     res.setHeader("Content-Type", "application/json");
     if (deskDenied) {
@@ -422,6 +434,26 @@ try {
       await evaluate("document.documentElement.scrollWidth<=innerWidth"),
       true,
     );
+    await evaluate("document.querySelector('.pf-launcher').click()");
+    assert.equal(await evaluate("document.querySelector('#platform-feedback-dialog').open"),true);
+    await evaluate("(()=>{const d=document.querySelector('#platform-feedback-dialog');d.querySelector('textarea').value='Synthetic usability feedback for the private portal.';d.querySelector('input[type=checkbox]').checked=true;d.querySelector('form').requestSubmit();})()");
+    for(let i=0;i<30&&!feedbackAttempts;i++)await wait(100);
+    await wait(100);
+    await writeFile('/scratch/platform-feedback-mobile.png',Buffer.from((await call('Page.captureScreenshot',{format:'png'},sessionId)).data,'base64'));
+    assert.equal(feedbackPayload.category,'feedback');assert.equal(feedbackPayload.view.page,'desk');
+    assert.equal(feedbackPayload.view.kind,'platform-feedback');assert.equal(feedbackPayload.alias,'');
+    await evaluate("document.querySelector('#platform-feedback-dialog form').requestSubmit()");
+    for(let i=0;i<30;i++){if(await evaluate("document.querySelector('#platform-feedback-dialog form').hidden"))break;await wait(100);}
+    assert.equal(await evaluate("document.querySelector('#platform-feedback-dialog form').hidden"),true);
+    assert.ok(await evaluate("document.querySelector('#platform-feedback-dialog a').hash.includes('key=')"));
+    assert.equal(await evaluate("document.querySelector('#platform-feedback-dialog').scrollWidth<=document.querySelector('#platform-feedback-dialog').clientWidth"),true);
+    await evaluate("Array.from(document.querySelectorAll('#platform-feedback-dialog button')).at(-1).click()");
+    assert.equal(await evaluate("document.querySelector('#platform-feedback-dialog form').hidden"),false);
+    assert.equal(await evaluate("document.querySelector('#platform-feedback-dialog textarea').value"),'');
+    await evaluate("document.querySelector('#platform-feedback-dialog').close()");
+    await evaluate("document.querySelector('#queue-filter').value='feedback';document.querySelector('#queue-filter').dispatchEvent(new Event('change'))");
+    await wait(300);
+    assert.equal(await evaluate("document.querySelectorAll('#desk-content button').length"),0);
     deskDenied = true;
     await evaluate("document.querySelector('#refresh').click()");
     await wait(300);

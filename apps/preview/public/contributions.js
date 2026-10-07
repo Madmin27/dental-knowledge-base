@@ -2,7 +2,7 @@ import {t,dateLocale} from './i18n.js';
 import {watchDraft,guardDraft} from './drafts.js';
 const $=s=>document.querySelector(s);
 const labels={received:t('Alındı'),triage:t('Ön incelemede'),needs_evidence:t('Ek kaynak bekleniyor'),change_planned:t('Düzeltme planlandı'),addressed:t('Uygulama sonucu bildirildi'),closed:t('Kapatıldı')};
-const categories={anatomy:t('Anatomik ilişki / doğruluk'),missing:t('Eksik yapı veya içerik'),label:t('Adlandırma / diş numarası'),source:t('Kaynak / lisans'),technical:t('Görüntüleme / teknik sorun'),suggestion:t('Eğitim önerisi')};
+const categories={feedback:document.documentElement.lang==='tr'?'Platform geri bildirimi':'Platform feedback',anatomy:t('Anatomik ilişki / doğruluk'),missing:t('Eksik yapı veya içerik'),label:t('Adlandırma / diş numarası'),source:t('Kaynak / lisans'),technical:t('Görüntüleme / teknik sorun'),suggestion:t('Eğitim önerisi')};
 const hex=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),v=>v.toString(16).padStart(2,'0')).join('');
 const links=value=>value.split('\n').map(x=>x.trim()).filter(Boolean);
 function node(tag,text,parent){const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(parent)parent.append(el);return el;}
@@ -79,7 +79,7 @@ async function trackingPage(){
     try{const r=await request('/'+id,key);body.replaceChildren();message.textContent='';node('h2',labels[r.status],body);node('p',t('Alınma: ')+new Date(r.createdAt).toLocaleString(dateLocale)+t(' · Sürüm: ')+r.revision,body);
       node('h3',categories[r.submission.category]+' · '+r.submission.view.structure,body);node('p',r.submission.description,body).className='contribution-text';if(r.submission.expected)node('p',t('Beklenti: ')+r.submission.expected,body).className='contribution-text';
       for(const url of r.submission.evidence){const a=node('a',url,body);a.href=url;a.target='_blank';a.rel='noreferrer';a.className='contribution-source';}
-      if(r.submission.view.kind!=='technical'){const replay=node('a',t('Kaydedilen 3B görünümü aç →'),body);replay.id='replay-view';replay.href=(r.submission.view.kind==='tooth-interior'?'/tooth-interior':'/')+'#view='+id+'&key='+key;replay.className='contribution-source';}
+      if(!['technical','platform-feedback'].includes(r.submission.view.kind)){const replay=node('a',t('Kaydedilen 3B görünümü aç →'),body);replay.id='replay-view';replay.href=(r.submission.view.kind==='tooth-interior'?'/tooth-interior':'/')+'#view='+id+'&key='+key;replay.className='contribution-source';}
       node('h3',t('İşlem geçmişi'),body);if(!r.events.length)node('p',t('Bildirim alındı; bakımcı değerlendirmesi bekleniyor.'),body);
       const events=node('ol',undefined,body);for(const event of r.events){const li=node('li',undefined,events);node('b',(event.actor==='maintainer'?t('Bakımcı'):t('Katkı sahibi'))+' · '+labels[event.status]+' · '+new Date(event.at).toLocaleString(dateLocale),li);node('p',event.note,li).className='contribution-text';for(const url of event.evidence){const a=node('a',url,li);a.href=url;a.target='_blank';a.rel='noreferrer';}}
       const publication=r.publication;

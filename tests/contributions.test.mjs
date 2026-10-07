@@ -164,3 +164,13 @@ test('publication withdrawal remains possible after archive and history cap',asy
  r=await s.call('/'+p.id+'/publication',key,{revision:200,action:'withdraw',digest});assert.equal(r.status,200);assert.equal(r.data.publication.withdrawn,true);
  assert.equal((await s.call('/'+p.id+'/publication',key,{revision:200,action:'withdraw',digest})).status,200);
 });
+
+test('platform feedback has separate typed context, private tracking and no anatomical/publication authority',async t=>{
+ const s=await setup(t),key=hex(32),p={...payload(),category:'feedback',role:'other',alias:'',evidence:[],view:{kind:'platform-feedback',version:1,page:'admin',section:'navigation',topic:'usability',url:'https://example.org/?secret=private',account:'private'}};
+ const r=await s.call('',key,p);assert.equal(r.status,201);assert.deepEqual(r.data.submission.view,{kind:'platform-feedback',version:1,page:'admin',section:'navigation',topic:'usability',structure:'platform'});
+ assert.equal((await s.call('/'+p.id,hex(32))).status,404);
+ const again=await s.call('',key,p);assert.equal(again.status,200);
+ const rows=await s.call('',s.adminKey);assert.equal(rows.data.records[0].category,'feedback');assert.equal(rows.data.records[0].page,'admin');
+ for(const change of [{category:'anatomy'},{view:payload().view},{view:{...p.view,page:'https://example.org/?token=secret'}},{view:{...p.view,topic:'clinical'}}])assert.equal((await s.call('',key,{...p,...change,id:hex(16)})).status,422);
+ assert.equal((await s.call('/'+p.id+'/publication',s.adminKey,{action:'draft',revision:0,title:'Synthetic feedback export',body:'Synthetic platform feedback must not silently become a public task.'},'00000000-0000-4000-8000-000000000001')).status,409);
+});

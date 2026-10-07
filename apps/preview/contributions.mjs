@@ -7,7 +7,7 @@ import {validateView} from './public/view-contract.js';
 const hash=v=>createHash('sha256').update(v).digest('hex');
 const equal=(a,b)=>typeof a==='string'&&typeof b==='string'&&timingSafeEqual(Buffer.from(hash(a)),Buffer.from(hash(b)));
 const ID=/^[a-f0-9]{32}$/;const KEY=/^[a-f0-9]{64}$/;
-export const categories=['anatomy','missing','label','source','technical','suggestion'];
+export const categories=['anatomy','missing','label','source','technical','suggestion','feedback'];
 const transitions={received:['triage','needs_evidence','closed'],triage:['needs_evidence','change_planned','closed'],needs_evidence:['triage','closed'],change_planned:['triage','addressed','closed'],addressed:['triage','closed'],closed:['triage']};
 function problem(code,message){const e=Error(message);e.status=code;throw e;}
 function text(v,max,min=0){if(typeof v!=='string'||v.trim().length<min||v.length>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v))problem(422,'Metin uzunluğu veya içeriği geçersiz.');return v.trim();}
@@ -57,7 +57,7 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
       if(url.pathname==='/api/contributions'&&req.method==='GET'){
         if(!admin)problem(404,'Bildirim bulunamadı veya erişim anahtarı yanlış.');
         const live=(await readdir(directory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f));const archived=(await readdir(archiveDirectory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f));
-        const rows=[];for(const f of (url.searchParams.get('archived')==='1'?archived:live)){const r=publicRecord(await read(f.slice(0,-5)));rows.push({id:r.id,createdAt:r.createdAt,status:r.status,revision:r.revision,task:r.events.findLast(e=>e.task)?.task??null,archivedAt:r.archivedAt,category:r.submission.category,structure:r.submission.view.structure});}
+        const rows=[];for(const f of (url.searchParams.get('archived')==='1'?archived:live)){const r=publicRecord(await read(f.slice(0,-5)));rows.push({id:r.id,createdAt:r.createdAt,status:r.status,revision:r.revision,task:r.events.findLast(e=>e.task)?.task??null,archivedAt:r.archivedAt,category:r.submission.category,structure:r.submission.view.structure,...(r.submission.category==='feedback'?{page:r.submission.view.page,topic:r.submission.view.topic}:{})});}
         json(200,{records:rows.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),capacity:{active:live.length,archived:archived.length,maxActive:maxRecords,maxStored:maxStoredRecords}});return true;
       }
       if(url.pathname==='/api/contributions'&&req.method==='POST'){
@@ -65,6 +65,7 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
         if(b.consent!==true||!categories.includes(b.category)||!['student','educator','dentist','researcher','other'].includes(b.role))problem(422,'Kategori, rol ve onay gerekli.');
         let view;try{view=validateView(b.view,catalog);}catch(e){problem(422,e.message);}
         if(view.kind==='technical'&&b.category!=='technical')problem(422,'Teknik bildirim için teknik kategori gerekli.');
+        if((b.category==='feedback')!==(view.kind==='platform-feedback'))problem(422,'Platform feedback requires its own context.');
         const submission={category:b.category,role:b.role,alias:text(b.alias,80),description:text(b.description,4000,15),expected:text(b.expected,2000),evidence:evidence(b.evidence??[]),consent:true,view};
         const digest=hash(JSON.stringify(submission));
         await serial(async()=>{
