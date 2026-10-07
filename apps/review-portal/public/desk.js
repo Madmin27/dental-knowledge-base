@@ -209,8 +209,8 @@ async function open(id) {
   const note = field(
     form,
     t(
-      "Response in English · visible to the contributor",
-      "İngilizce yanıt · katkı sahibine görünür",
+      r.submission.category === "feedback" ? "Response in English or Turkish · visible to the sender" : "Response in English · visible to the contributor",
+      r.submission.category === "feedback" ? "Türkçe veya İngilizce yanıt · gönderene görünür" : "İngilizce yanıt · katkı sahibine görünür",
     ),
     "textarea",
   );

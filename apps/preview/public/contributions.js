@@ -37,7 +37,7 @@ export async function installContributions({captureView=()=>({kind:'technical',v
     const discard=node('button',t('Taslağı sil'),form);discard.type='button';discard.onclick=()=>{if(!confirm(t('Bu taslağı silmek istediğinizden emin misiniz?')))return;draft.clear();activeForm=false;content.replaceChildren();dialog.close();};
     node('p',view.kind==='technical'?t('Teknik bildirim: 3B görünüm eklenmez.'):t('Bu anın kamera ve katman ayarları eklenecek. Aşağıdan ilgili yapıyı seçebilirsiniz; yüzey üzerinde nokta işaretleme değildir.'),form);
     const structure=field(form,t('İlgili yapı'),'structure',{options:Object.fromEntries(catalog.structures.map(s=>[s.name,s.fdi?s.fdi+' · '+s.label:s.label]))});structure.value=view.structure;
-    field(form,t('Katkı türü'),'category',{options:view.kind==='technical'?{technical:categories.technical}:categories});
+    field(form,t('Katkı türü'),'category',{options:view.kind==='technical'?{technical:categories.technical}:Object.fromEntries(Object.entries(categories).filter(([key])=>key!=='feedback'))});
     field(form,t('Ne gözlemlediniz?'),'description',{type:'textarea',required:true});
     field(form,t('Nasıl olmasını bekliyorsunuz?'),'expected',{type:'textarea',max:2000,rows:2});
     field(form,t('Kaynak bağlantıları (her satıra bir http/https bağlantısı, en fazla 8)'),'evidence',{type:'textarea',max:8000,rows:2});
@@ -77,6 +77,7 @@ async function trackingPage(){
   guardDraft(()=>Boolean(noteDraft||refsDraft||pendingEvent));
   async function load(){
     try{const r=await request('/'+id,key);body.replaceChildren();message.textContent='';node('h2',labels[r.status],body);node('p',t('Alınma: ')+new Date(r.createdAt).toLocaleString(dateLocale)+t(' · Sürüm: ')+r.revision,body);
+      if(r.submission.category==='feedback'){root.querySelector('h1').textContent=document.documentElement.lang==='tr'?'Platform geri bildirimi takibi':'Platform feedback tracking';root.querySelector('.contribution-language').textContent=document.documentElement.lang==='tr'?'Platform geri bildirimlerini ve yanıtlarınızı Türkçe veya İngilizce yazabilirsiniz.':'Platform feedback and replies may be written in English or Turkish.';}
       node('h3',categories[r.submission.category]+' · '+r.submission.view.structure,body);node('p',r.submission.description,body).className='contribution-text';if(r.submission.expected)node('p',t('Beklenti: ')+r.submission.expected,body).className='contribution-text';
       for(const url of r.submission.evidence){const a=node('a',url,body);a.href=url;a.target='_blank';a.rel='noreferrer';a.className='contribution-source';}
       if(!['technical','platform-feedback'].includes(r.submission.view.kind)){const replay=node('a',t('Kaydedilen 3B görünümü aç →'),body);replay.id='replay-view';replay.href=(r.submission.view.kind==='tooth-interior'?'/tooth-interior':'/')+'#view='+id+'&key='+key;replay.className='contribution-source';}
