@@ -30,7 +30,9 @@ try {
       "INSERT INTO audit(actor_id,event,object_id) VALUES($1,'operator_identity_bound',$1)",
       [account],
     );
-  } else if (request.action === "appoint-manager") {
+  } else if (
+    ["appoint-manager", "appoint-intake-editor"].includes(request.action)
+  ) {
     requireThat(request.contactVerified === true, "verify_contact_first");
     const expiry = new Date(request.expiresAt);
     requireThat(
@@ -40,7 +42,7 @@ try {
       "maximum_90_day_grant",
     );
     await c.query(
-      `INSERT INTO membership_managers(account_id,expires_at,appointed_by,evidence_ref) VALUES($1,$2,$3,$4)
+      `INSERT INTO ${request.action === "appoint-manager" ? "membership_managers" : "intake_editors"}(account_id,expires_at,appointed_by,evidence_ref) VALUES($1,$2,$3,$4)
       ON CONFLICT(account_id) DO UPDATE SET expires_at=EXCLUDED.expires_at,appointed_by=EXCLUDED.appointed_by,evidence_ref=EXCLUDED.evidence_ref`,
       [
         id(request.accountId),
@@ -50,7 +52,23 @@ try {
       ],
     );
     await c.query(
-      "INSERT INTO audit(actor_id,event,object_id) VALUES($1,'operator_manager_appointed',$1)",
+      "INSERT INTO audit(actor_id,event,object_id) VALUES($1,$2,$1)",
+      [
+        request.accountId,
+        request.action === "appoint-manager"
+          ? "operator_manager_appointed"
+          : "operator_intake_editor_appointed",
+      ],
+    );
+  } else if (request.action === "remove-intake-editor") {
+    await c.query("DELETE FROM intake_editors WHERE account_id=$1", [
+      id(request.accountId),
+    ]);
+    await c.query("DELETE FROM sessions WHERE account_id=$1", [
+      request.accountId,
+    ]);
+    await c.query(
+      "INSERT INTO audit(actor_id,event,object_id) VALUES($1,'operator_intake_editor_removed',$1)",
       [request.accountId],
     );
   } else if (request.action === "remove-manager") {

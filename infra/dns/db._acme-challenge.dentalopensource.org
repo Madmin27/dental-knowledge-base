@@ -1,0 +1,5 @@
+; Initial seed only: never overwrite a live journaled zone.
+$TTL 300
+@ IN SOA ns1-acme.minen.com.tr. hostmaster.dentalopensource.org. (
+ 2026100701 3600 600 1209600 300 )
+@ IN NS ns1-acme.minen.com.tr.

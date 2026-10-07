@@ -103,3 +103,11 @@ BEGIN
  INSERT INTO membership_events(actor_id,event,reason) VALUES(actor,CASE WHEN p_enabled THEN 'intake_opened' ELSE 'intake_paused' END,p_reason);
 END $$;
 REVOKE ALL ON FUNCTION membership_intake(text,boolean,text) FROM PUBLIC;
+
+-- Separate limited editorial appointment; does not grant member management or photo access.
+CREATE TABLE IF NOT EXISTS intake_editors (
+ account_id uuid PRIMARY KEY REFERENCES accounts(id),
+ expires_at timestamptz NOT NULL,
+ appointed_by text NOT NULL,
+ evidence_ref text NOT NULL
+);

@@ -112,3 +112,13 @@ not autonomous scientific authority. After expert handover, the team can request
 such jobs; resulting models always require their review and remain challengeable.
 No AI job or image submission was authorized to bypass privacy/rights safeguards,
 and no external clinical-data transfer is inferred from the design request.
+
+## 7 October 2026 — approved technical task summaries
+
+The owner requested a disciplined contribution workflow with possible issue export
+after approval. The private contribution remains canonical on this platform. A
+separate technical-only summary may be manually posted to GitHub after exact-text
+contributor consent and a different current editor's privacy/rights/scope review.
+No private record, clinical attachment or scientific ballot is exported. This
+changes neither independent-finding closure nor scientific acceptance authority.
+See [operating policy](CONTRIBUTION-OPERATING-POLICY.md).

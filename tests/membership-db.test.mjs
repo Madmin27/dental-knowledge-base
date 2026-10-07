@@ -8,6 +8,8 @@ import { Repository } from "../apps/review-portal/repository.mjs";
 import { Membership } from "../apps/review-portal/membership.mjs";
 import { dispatchOne } from "../apps/review-portal/notifications.mjs";
 import { statistics } from "../apps/review-portal/statistics.mjs";
+import { ContributionDesk } from "../apps/review-portal/contribution-desk.mjs";
+import http from "node:http";
 import { createServer } from "../apps/review-portal/server.mjs";
 const config = process.env.TEST_REVIEW_DATABASE_URL
   ? { connectionString: process.env.TEST_REVIEW_DATABASE_URL }
@@ -325,6 +327,10 @@ test("membership authority lifecycle", { skip: !config }, async (t) => {
           repo,
           auth,
           membership: members,
+          desk: new ContributionDesk(members, {
+            origin: "http://127.0.0.1:19092",
+            key: "a".repeat(64),
+          }),
           origin: "http://127.0.0.1:19092",
         });
         await new Promise((r) => server.listen(19092, "127.0.0.1", r));
@@ -341,6 +347,15 @@ test("membership authority lifecycle", { skip: !config }, async (t) => {
             401,
           );
           assert.equal((await get("/review/admin")).status, 303);
+          assert.equal((await get("/review/contributions")).status, 303);
+          assert.equal(
+            (await get("/review/contributions", "member")).status,
+            403,
+          );
+          assert.equal(
+            (await get("/review/contributions", "manager")).status,
+            200,
+          );
           assert.equal((await get("/review/admin", "member")).status, 403);
           assert.equal(
             (await get("/review/api/management/statistics", "member")).status,
@@ -367,6 +382,76 @@ test("membership authority lifecycle", { skip: !config }, async (t) => {
           );
         } finally {
           await new Promise((r) => server.close(r));
+        }
+      },
+    );
+    await t.test(
+      "editor desk enforces manager scope, server actor and live co-approver authority",
+      async () => {
+        const reviewer = await actor();
+        await owner.query(
+          "INSERT INTO intake_editors VALUES($1,now()+interval '1 day','synthetic','synthetic verification')",
+          [reviewer.account_id],
+        );
+        let calls = 0,
+          actorHeader;
+        const upstream = http.createServer((req, res) => {
+          calls++;
+          actorHeader = req.headers["x-dental-editor"];
+          res.setHeader("Content-Type", "application/json");
+          res.end(
+            JSON.stringify({
+              publication: {
+                ready: true,
+                author: manager.account_id,
+                reviewer: reviewer.account_id,
+                digest: "a".repeat(64),
+              },
+              records: [],
+            }),
+          );
+        });
+        await new Promise((r) => upstream.listen(0, "127.0.0.1", r));
+        const desk = new ContributionDesk(members, {
+          origin: "https://synthetic.invalid",
+          key: "b".repeat(64),
+          endpoint: "http://127.0.0.1:" + upstream.address().port,
+        });
+        try {
+          await assert.rejects(desk.request(applicant), /editor_required/);
+          assert.equal(calls, 0);
+          await desk.request(reviewer);
+          await assert.rejects(members.queue(reviewer), /manager_required/);
+          await desk.request(manager);
+          assert.equal(actorHeader, manager.account_id);
+          await desk.request(manager, "a".repeat(32), "export");
+          await owner.query(
+            "UPDATE intake_editors SET expires_at=now()-interval '1 second' WHERE account_id=$1",
+            [reviewer.account_id],
+          );
+          await assert.rejects(
+            desk.request(manager, "a".repeat(32), "export"),
+            /editor_authority_expired/,
+          );
+          await assert.rejects(
+            desk.request(manager, "../private"),
+            /invalid_report/,
+          );
+          await owner.query(
+            "UPDATE sessions SET expires_at=now()-interval '1 second' WHERE token_hash=$1",
+            [manager.token_hash],
+          );
+          await assert.rejects(
+            desk.request(manager),
+            /session_expired|account_unavailable|login_required/,
+          );
+          await owner.query(
+            "UPDATE sessions SET expires_at=now()+interval '1 hour' WHERE token_hash=$1",
+            [manager.token_hash],
+          );
+        } finally {
+          upstream.closeAllConnections();
+          await new Promise((r) => upstream.close(r));
         }
       },
     );

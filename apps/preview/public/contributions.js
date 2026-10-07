@@ -21,7 +21,9 @@ export async function installContributions({captureView=()=>({kind:'technical',v
   node('h2',t('Atlası birlikte geliştirelim'),dialog).id='contribution-title';
   node('p',t('Anatomik bir sorun bildirin, kaynak önerin veya eğitim deneyimini iyileştirin. Bildirim önce bakımcı tarafından değerlendirilir; bilimsel değişiklikler ayrıca uzman incelemesi gerektirir.'),dialog);
   node('p',notice,dialog).className='contribution-notice';
+  node('p',t('Katkınız özel inceleme kuyruğuna gider. Yetkili editörler ve özel takip bağlantısına sahip kişiler görebilir; tüm üyeler göremez. GitHub’a otomatik gönderilmez. Teknik bir özet yayımlanacaksa metni görerek ayrıca izin verebilirsiniz.'),dialog);
   node('p',languageNotice,dialog).className='contribution-language';
+  const processLink=node('a',t('Katkılar nasıl değerlendirilir?'),dialog);processLink.href='/contribution-process';processLink.target='_blank';processLink.rel='noopener noreferrer';
   const mediaGuide=node('a',t('Görsel katkı rehberi'),dialog);mediaGuide.href='/media-guide';mediaGuide.target='_blank';mediaGuide.rel='noopener noreferrer';
   const content=node('div',undefined,dialog);const info=errorBox(content);
   try{const health=await(await fetch('/health',{signal:AbortSignal.timeout(15000)})).json();if(!health.contributionsEnabled){button.disabled=false;button.onclick=()=>{info.textContent=t('Katkı kuyruğu bu sunucuda etkin değil.');dialog.showModal();};return;}}catch{button.disabled=false;button.onclick=()=>{info.textContent=t('Katkı hizmetine ulaşılamıyor. Sayfayı yenileyin.');dialog.showModal();};return;}
@@ -80,6 +82,22 @@ async function trackingPage(){
       if(r.submission.view.kind!=='technical'){const replay=node('a',t('Kaydedilen 3B görünümü aç →'),body);replay.id='replay-view';replay.href=(r.submission.view.kind==='tooth-interior'?'/tooth-interior':'/')+'#view='+id+'&key='+key;replay.className='contribution-source';}
       node('h3',t('İşlem geçmişi'),body);if(!r.events.length)node('p',t('Bildirim alındı; bakımcı değerlendirmesi bekleniyor.'),body);
       const events=node('ol',undefined,body);for(const event of r.events){const li=node('li',undefined,events);node('b',(event.actor==='maintainer'?t('Bakımcı'):t('Katkı sahibi'))+' · '+labels[event.status]+' · '+new Date(event.at).toLocaleString(dateLocale),li);node('p',event.note,li).className='contribution-text';for(const url of event.evidence){const a=node('a',url,li);a.href=url;a.target='_blank';a.rel='noreferrer';}}
+      const publication=r.publication;
+      if(publication&&!r.redactedAt){
+        const box=node('section',undefined,body);node('h3',t('GitHub için önerilen herkese açık metin'),box);
+        node('p',t('Asıl katkınız özel kalır. Yalnız aşağıdaki İngilizce teknik özet için izin isteniyor. İzin vermemek katkınızın incelenmesini engellemez.'),box);
+        node('h4',publication.title,box);node('pre',publication.body,box).className='contribution-text';
+        node('p',t('Metin parmak izi: ')+publication.digest,box);
+        if(publication.stale)node('p',t('Katkı değişti; yeni yayın taslağı gerekiyor.'),box);
+        if(publication.withdrawn)node('p',t('Yayın izni geri çekildi.'),box);
+        for(const [action,label] of [['consent','Bu metnin GitHub üzerinde yayımlanmasına izin ver'],['withdraw','Yayın iznini geri çek']]){
+          if(action==='consent'&&(publication.stale||publication.withdrawn||publication.contributorApproved||r.archivedAt))continue;
+          if(action==='withdraw'&&publication.withdrawn)continue;
+          const button=node('button',t(label),box);button.type='button';button.onclick=async()=>{if(!confirm(t('Bu yayın kararını kaydetmek istiyor musunuz?')))return;button.disabled=true;try{await request('/'+id+'/publication',key,{revision:r.revision,action,digest:publication.digest});await load();}catch(e){message.textContent=t(e.message);button.disabled=false;}};
+        }
+        node('p',t('İzni geri çekmek yeni dışa aktarımları durdurur. GitHub’a daha önce gönderilmiş kopyaların kaldırılması ayrıca bakımcı takibi gerektirir.'),box);
+        if(publication.issueUrl){const a=node('a',t('Kaydedilmiş GitHub işi'),box);a.href=publication.issueUrl;a.target='_blank';a.rel='noreferrer noopener';}
+      }
       if(r.archivedAt){node('p',t('Arşivlenmiş bildirimler salt okunurdur.'),body);return;}
       if(r.redactedAt){node('p',t('İçerik kaldırıldığı için yeni açıklama eklenemez.'),body);return;}
       const form=node('form',undefined,body);const note=field(form,t('Ek açıklama / silme talebi'),'note',{type:'textarea',required:true});const refs=field(form,t('Ek kaynak bağlantıları'),'evidence',{type:'textarea',max:8000,rows:2});note.value=noteDraft;refs.value=refsDraft;note.disabled=Boolean(pendingEvent);refs.disabled=Boolean(pendingEvent);note.oninput=()=>{noteDraft=note.value;};refs.oninput=()=>{refsDraft=refs.value;};

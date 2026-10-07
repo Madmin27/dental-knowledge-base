@@ -69,7 +69,14 @@ export class Membership {
           [s.account_id],
         )
       ).rows;
-      return { manager, applications, permissions };
+      const intakeEditor =
+        (
+          await c.query(
+            "SELECT 1 FROM intake_editors WHERE account_id=$1 AND expires_at>now()",
+            [s.account_id],
+          )
+        ).rowCount > 0;
+      return { manager, intakeEditor, applications, permissions };
     });
   }
   async apply(s, input) {

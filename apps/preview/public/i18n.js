@@ -1,5 +1,38 @@
 // Explicit UI catalog. Source records, identifiers and contributor prose are never translated.
 export const english = Object.fromEntries(`
+Katkılar nasıl değerlendirilir?|How contributions are reviewed
+Görüşünüzden izlenebilir bir karara|From your observation to a traceable decision
+Katkı göndermek için GitHub hesabı gerekmez. Başvuru, tartışma ve bilimsel değerlendirme kayıtlarının asıl yeri bu platformdur.|You do not need a GitHub account to contribute. This platform is the primary home for submissions, discussions and scientific decisions.
+1 · Özel başvuru|1 · Private submission
+Metninizi ve ilgili model görünümünü kaydederiz. Özel takip bağlantısını saklayın: bağlantıya sahip kişiler kaydı okuyabilir ve yanıt verebilir. Hasta bilgisi veya klinik dosya eklemeyin.|We retain your text and the relevant model view. Save the private tracking link: anyone holding it can read the record and respond. Do not include patient information or clinical files.
+2 · Sorumlu editör ve ön inceleme|2 · Responsible editor and triage
+Yetkili editör kuyruğu inceler, takip sorumluluğunu ve tarihini kaydeder. Yanıt, ek kaynak talebi ve gerekçe takip ekranınızda görünür. Öğrenci, üye veya denetmen olmak bütün özel katkılara erişim sağlamaz.|An authorised editor reviews the queue and records responsibility and a follow-up date. Responses, evidence requests and reasons appear on your tracking page. Being a student, member or reviewer does not grant access to all private contributions.
+3 · Konuya uygun değerlendirme|3 · Appropriate review
+Teknik sorunlarda yeniden üretim adımları ve düzeltme kanıtı gerekir. Anatomik iddialar için ilgili alanda doğrulanmış insan uzman gerekir. Ön inceleme, oy sayısı veya çalışan yazılım anatomik doğruluk onayı değildir.|Technical reports require reproduction steps and evidence of a fix. Anatomical claims require qualified human experts in the relevant field. Triage, vote counts and working software do not establish anatomical correctness.
+4 · Sonuç ve itiraz|4 · Outcome and challenge
+Durum değişiklikleri gerekçeli kaydedilir. “Uygulama sonucu bildirildi” bir değişikliğin yapıldığını, “Kapatıldı” ön incelemenin bittiğini gösterir. İkisi de bilimsel kabul değildir. Takip ekranında ek kanıt sunabilir, yeniden inceleme veya silme isteyebilirsiniz.|State changes retain their reasons. “Implementation reported” records a change; “Closed” ends triage. Neither means scientific acceptance. Use your tracking page to add evidence or request reconsideration or deletion.
+Kim neyi görebilir?|Who can see what?
+Özel katkı: bağlantı sahibi, süreli yetki verilmiş editörler ve proje yöneticisi. Genel üyeler veya ziyaretçiler göremez. Fotoğraf ve gizlilik inceleme izinleri ayrıdır.|Private submission: holders of its link, editors with a current appointment and the project manager. General members and visitors cannot read it. Photo and privacy-review permissions are separate.
+Editör yanıtları katkı sahibine açıktır. Bu masada gizli iç yazışma alanı bulunmaz.|Editor responses are visible to the contributor. This desk has no separate confidential internal discussion area.
+GitHub’a ne aktarılır?|What can go to GitHub?
+Yalnız teknik kategoride, editörün ayrıca hazırladığı İngilizce iş özeti. Özgün katkı, kimlik, özel takip bağlantısı, fotoğraf ve klinik içerik otomatik aktarılmaz.|Only a separately prepared English task summary for a technical report. The original submission, identity, private tracking link, photos and clinical material are not automatically transferred.
+Önce metni görüp izin verirsiniz; sonra farklı bir editör gizlilik, haklar ve kapsamı kontrol eder. Onaylı metin indirilip GitHub’da elle issue açılır ve bağlantısı burada kaydedilir. Metin veya katkı değişirse yeniden onay gerekir.|You first see and approve the text; a different editor then checks privacy, rights and scope. The approved text can be downloaded, manually posted as a GitHub issue and linked here. Changes to the text or contribution require renewed approval.
+GitHub iznini reddetmeniz katkınızın incelenmesini engellemez. İzni geri çekmek yeni aktarımları durdurur; daha önce yayımlanan kopyalar için ayrıca kaldırma takibi gerekir.|Declining GitHub permission does not prevent review. Withdrawal blocks new exports; already published copies require separate removal follow-up.
+Şu anda çalışanlar ve sonraki aşama|Available now and next stage
+Özel kayıt ve takip, editör masası, sorumlu/takip tarihi, gerekçeli yanıtlar ve onaylı teknik özet indirme çalışır. E-posta teslimatı ayrıca yapılandırma ve doğrulama gerektirir.|Private intake and tracking, the editorial desk, responsibility and follow-up dates, reasoned responses and approved technical-summary downloads are implemented. Email delivery requires separate configuration and verification.
+Alan bazlı uzman heyetleri, çıkar çatışması kayıtları, sürüme bağlı gerekçeli oylama, şerhler ve bağımsız itiraz kurulu henüz bu masanın işlevi değildir. Bunlar tamamlanmadan burada akademik kabul ilan edilmez.|Field-specific expert panels, conflict-of-interest records, reasoned version-bound ballots, dissent and independent appeals are not yet functions of this desk. Academic acceptance is not declared here before those controls exist.
+Teknik sorun bildir|Report a technical issue
+GitHub için önerilen herkese açık metin|Proposed public text for GitHub
+Asıl katkınız özel kalır. Yalnız aşağıdaki İngilizce teknik özet için izin isteniyor. İzin vermemek katkınızın incelenmesini engellemez.|Your original contribution stays private. Permission is requested only for the English technical summary below. Declining does not prevent review of your contribution.
+Metin parmak izi: |Text fingerprint:
+Katkı değişti; yeni yayın taslağı gerekiyor.|The contribution changed; a new publication draft is required.
+Yayın izni geri çekildi.|Publication consent was withdrawn.
+Bu metnin GitHub üzerinde yayımlanmasına izin ver|Allow publication of this text on GitHub
+Yayın iznini geri çek|Withdraw publication consent
+Bu yayın kararını kaydetmek istiyor musunuz?|Record this publication decision?
+İzni geri çekmek yeni dışa aktarımları durdurur. GitHub’a daha önce gönderilmiş kopyaların kaldırılması ayrıca bakımcı takibi gerektirir.|Withdrawal blocks new exports. Removing copies already posted to GitHub requires separate maintainer follow-up.
+Kaydedilmiş GitHub işi|Recorded GitHub task
+Katkınız özel inceleme kuyruğuna gider. Yetkili editörler ve özel takip bağlantısına sahip kişiler görebilir; tüm üyeler göremez. GitHub’a otomatik gönderilmez. Teknik bir özet yayımlanacaksa metni görerek ayrıca izin verebilirsiniz.|Your contribution enters a private review queue. Authorised editors and holders of the private tracking link can read it; other members cannot. Nothing is sent automatically to GitHub. You can separately approve the exact text of a proposed public technical summary.
 Model sınıfları ve yayın sınırı|Candidate classes and publication limits
 Adaylar kanıt türüne göre ayrı sınıflanır. Hiçbir sınıf tek başına bilimsel kabul anlamına gelmez.|Candidates are classified by their evidence basis. No class alone constitutes scientific acceptance.
 Gözlemden türetilmiş; kalibrasyonu henüz doğrulanmamış aday.|Observation-derived candidate with calibration not yet verified.

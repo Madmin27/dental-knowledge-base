@@ -1,4 +1,43 @@
-# Dental Open Source authoritative DNS
+# Dental Open Source DNS and certificate renewal
+
+## Current deployment — 7 October 2026
+
+The public parent zone is hosted at `ns1.megapanel.org` / `ns2.megapanel.org`.
+Web traffic still targets this server (`85.96.191.197`). Mailbox provisioning
+and application SMTP are separate operations; a DNS migration does not enable
+application email delivery.
+
+The remote DNS panel delegates only certificate validation:
+
+```
+_acme-challenge.dentalopensource.org. 300 IN NS ns1-acme.minen.com.tr.
+```
+
+Do not add a CNAME at that same owner. The existing ACME nameserver resolves to
+`85.96.191.197`; existing public TCP/UDP 53 routing is required. Public TCP 80
+is not required for this DNS-01 renewal route.
+
+Local BIND serves the child zone using `named.conf.dental-acme`; its dynamic
+file lives at `/var/lib/bind/acme-challenge-dental/`. The TSIG key remains outside
+Git in `/etc/bind/keys/dentalopensource-acme.key`. It is currently defined by the
+older `named.conf.dentalopensource` include. If retiring that local parent zone,
+preserve exactly one key include before the child zone; never copy the key here.
+The hook scripts now update the child zone, with permission for its exact TXT
+owner only. Seed zone files must not overwrite a journaled live zone.
+
+Verify delegation and renewal after any DNS move:
+
+```sh
+dig @1.1.1.1 _acme-challenge.dentalopensource.org NS +short
+certbot renew --cert-name dentalopensource.org --dry-run --run-deploy-hooks --no-random-sleep-on-renew
+```
+
+A successful dry run tests staging issuance and the Nginx deploy hook; it does
+not replace the current production certificate. Keep normal `certbot.timer`
+enabled. A single ACME nameserver is not redundant.
+
+## Historical installation notes (23 September 2026)
+
 
 ## DNS-01 certificate automation (2026-09-23)
 

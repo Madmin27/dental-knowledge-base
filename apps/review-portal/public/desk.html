@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <title>Contribution desk · Dental Open Source</title>
+    <link rel="stylesheet" href="/review/style.css" />
+    <script type="module" src="/review/desk.js"></script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">Dental <span>Open Source</span></a>
+      <nav>
+        <a href="/review/admin">Dashboard / Panel</a
+        ><a href="/review/">Workspace / Çalışma alanı</a
+        ><select id="language" aria-label="Language">
+          <option value="en">English</option>
+          <option value="tr">Türkçe</option>
+        </select>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <p id="eyebrow">PRIVATE · EDITORIAL OPERATIONS</p>
+        <h1 id="title">Contribution desk</h1>
+        <p id="intro"></p>
+        <button id="refresh" type="button">Refresh</button
+        ><a href="/review/login" id="login">Sign in again</a>
+      </section>
+      <p id="message" role="status"></p>
+      <div id="desk-content" hidden></div>
+    </main>
+    <footer><span>Dental Open Source</span><span id="boundary"></span></footer>
+  </body>
+</html>

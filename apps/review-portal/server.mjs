@@ -9,6 +9,7 @@ import { Repository } from "./repository.mjs";
 import { processor } from "./processor.mjs";
 import { Erasures } from "./erasures.mjs";
 import { Membership } from "./membership.mjs";
+import { ContributionDesk } from "./contribution-desk.mjs";
 import { statistics } from "./statistics.mjs";
 import { Denied, requireThat, equal, LIMITS } from "./policy.mjs";
 
@@ -48,6 +49,7 @@ export function createServer({
   origin,
   membership,
   usagePath,
+  desk,
   uploadsEnabled = false,
   publicDir = fileURLToPath(new URL("./public/", import.meta.url)),
 }) {
@@ -106,6 +108,7 @@ export function createServer({
           "/review/app.js",
           "/review/membership.js",
           "/review/admin.js",
+          "/review/desk.js",
           "/review/style.css",
         ].includes(url.pathname)
       ) {
@@ -114,6 +117,7 @@ export function createServer({
           "/review/app.js": "app.js",
           "/review/membership.js": "membership.js",
           "/review/admin.js": "admin.js",
+          "/review/desk.js": "desk.js",
           "/review/style.css": "style.css",
         }[url.pathname];
         const content = await readFile(join(publicDir, name));
@@ -157,20 +161,34 @@ export function createServer({
                 registrationEnabled: auth.registrationEnabled === true,
               },
         );
-      if (req.method === "GET" && url.pathname === "/review/admin" && !s) {
+      if (
+        req.method === "GET" &&
+        ["/review/admin", "/review/contributions"].includes(url.pathname) &&
+        !s
+      ) {
         res.writeHead(303, { Location: "/review/login" });
         return res.end();
       }
       requireThat(s, "login_required", 401);
       if (
         req.method === "GET" &&
-        url.pathname === "/review/admin" &&
+        ["/review/admin", "/review/contributions"].includes(url.pathname) &&
         membership
       ) {
-        await membership.repo.tx((c) => membership.manager(c, s));
+        if (url.pathname === "/review/contributions") {
+          requireThat(desk, "desk_unavailable", 503);
+          await membership.repo.tx((c) => desk.authorize(c, s));
+        } else await membership.repo.tx((c) => membership.manager(c, s));
         res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-        return res.end(await readFile(join(publicDir, "admin.html")));
+        return res.end(
+          await readFile(
+            join(
+              publicDir,
+              url.pathname === "/review/admin" ? "admin.html" : "desk.html",
+            ),
+          ),
+        );
       }
       if (
         req.method === "GET" &&
@@ -198,6 +216,28 @@ export function createServer({
             req.headers["sec-fetch-site"] === "same-origin",
           "csrf_failed",
           403,
+        );
+      }
+      const deskRoute = url.pathname.match(
+        /^\/review\/api\/desk(?:\/([a-f0-9]{32})(?:\/(events|publication|export))?)?$/,
+      );
+      if (desk && deskRoute) {
+        const [, id, action] = deskRoute;
+        requireThat(
+          (req.method === "GET" && (!action || action === "export")) ||
+            (req.method === "POST" &&
+              ["events", "publication"].includes(action)),
+          "method_not_allowed",
+          405,
+        );
+        return send(
+          200,
+          await desk.request(
+            s,
+            id,
+            action,
+            req.method === "POST" ? await json(req) : undefined,
+          ),
         );
       }
       if (req.method === "POST" && url.pathname === "/review/api/logout")
@@ -365,6 +405,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     origin: config.origin,
     membership,
     usagePath: process.env.REVIEW_USAGE_PATH,
+    desk:
+      process.env.REVIEW_DESK_ENABLED === "true"
+        ? new ContributionDesk(membership, {
+            origin: config.origin,
+            key: (
+              await readFile(
+                process.env.CREDENTIALS_DIRECTORY + "/intake.key",
+                "utf8",
+              )
+            ).trim(),
+          })
+        : undefined,
     uploadsEnabled: process.env.REVIEW_UPLOADS_ENABLED === "true",
   }).listen(Number(process.env.REVIEW_PORT ?? 3059), "127.0.0.1", () =>
     console.log("Private review portal listening on loopback"),

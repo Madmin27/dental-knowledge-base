@@ -1,0 +1,9 @@
+// TSIG key is defined once in named.conf.dentalopensource.
+zone "_acme-challenge.dentalopensource.org" {
+ type master;
+ file "/var/lib/bind/acme-challenge-dental/db._acme-challenge.dentalopensource.org";
+ allow-query { any; };
+ allow-transfer { none; };
+ update-policy { grant dentalopensource-acme name _acme-challenge.dentalopensource.org. TXT; };
+ notify no;
+};

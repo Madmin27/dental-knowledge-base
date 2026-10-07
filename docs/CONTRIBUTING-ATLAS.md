@@ -1,6 +1,12 @@
 # Atlas katkıları
 
-23 Eylül kararı: GitHub yalnız kod yönetimi içindir. Katkı/tartışma/oy/karar
+7 Ekim güncellemesi: tarayıcıdaki özel [editör masası](https://dentalopensource.org/review/contributions)
+artık katkıları listeler, sorumluluk/takip tarihi ve gerekçeli yanıt kaydeder.
+Yalnız teknik iş özeti, katkı sahibinin tam metin izni ve farklı editör onayıyla
+indirilebilir; GitHub’a otomatik gönderim yok. Roller, görünürlük ve kalan aşamalar:
+[Katkı işletim politikası](CONTRIBUTION-OPERATING-POLICY.md).
+
+Tarihsel 23 Eylül kararı: GitHub yalnız kod yönetimi içindir. Katkı/tartışma/oy/karar
 kayıtları kendi sunucumuzda kalır. Profesyonel portalın tasarımı ve uygulama
 aşamaları [ADR0007](adr/0007-self-hosted-academic-governance.md) içindedir;
 aşağıdaki mevcut özel katkı/CLI akışı henüz yeni portal değildir.

@@ -21,7 +21,7 @@ GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO dental_runtime;`);
       "utf8",
     ),
   );
-  await pool.query(`GRANT SELECT ON membership_settings,member_profiles,membership_managers,membership_applications,membership_events TO dental_runtime;
+  await pool.query(`GRANT SELECT ON intake_editors,membership_settings,member_profiles,membership_managers,membership_applications,membership_events TO dental_runtime;
 GRANT SELECT,INSERT,UPDATE ON membership_applications TO dental_runtime;
 GRANT SELECT,INSERT ON membership_events TO dental_runtime;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO dental_runtime;

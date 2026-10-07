@@ -29,6 +29,15 @@ See [preview setup](apps/preview/README.md),
 [product quality roadmap](docs/PRODUCT-QUALITY-ROADMAP.md), and
 [contribution guide](docs/CONTRIBUTING-ATLAS.md).
 
+The private editorial desk is `/review/contributions` (current editor appointment
+and fresh verified login required). The public `/contribution-process` page
+explains visibility and follow-up in English/Turkish. The
+[contribution operating policy](docs/CONTRIBUTION-OPERATING-POLICY.md) specifies
+triage responsibility and separately approved technical summaries for manual
+GitHub export. Scientific ballots and automatic GitHub posting are not implemented.
+See [DNS-01 renewal](infra/dns/README.md) for the remote-DNS deployment.
+
+
 ## Visual contributions and candidate models
 
 [Photo and radiograph preparation guide](docs/MEDIA-CAPTURE-GUIDE.md), also available

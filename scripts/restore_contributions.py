@@ -12,7 +12,7 @@ def validate(name,data):
     record=json.loads(data)
     if record.get('id')+'.json'!=Path(name).name or record.get('schemaVersion')!=1:raise ValueError('Invalid record identity')
     if not re.fullmatch('[a-f0-9]{64}',record.get('keyHash','')):raise ValueError('Invalid capability digest')
-    if not isinstance(record.get('events'),list) or len(record['events'])>201:raise ValueError('Invalid history')
+    if not isinstance(record.get('events'),list) or len(record['events'])>202:raise ValueError('Invalid history')
     return record
 
 def reconcile(backup,current):

@@ -109,3 +109,58 @@ test('archive reclaims active capacity, preserves access and anti-replay, redact
  await s.restart();assert.equal((await s.call('',key,p)).status,409);
  const archived=await readFile(join(s.directory,'archive',p.id+'.json'),'utf8');assert.ok(!archived.includes(p.description));
 });
+
+test('technical public draft requires contributor and independent named editor, clears on withdrawal/change/redaction',async t=>{
+ const s=await setup(t,{rateLimit:200}),key=hex(32),p={...payload(),category:'technical'};
+ await s.call('',key,p);
+ const id='/'+p.id;
+ const editor={'X-Dental-Editor':'11111111-1111-4111-8111-111111111111'},second={'X-Dental-Editor':'22222222-2222-4222-8222-222222222222'};
+ const make=(revision)=>s.call(id+'/publication',s.adminKey,{action:'draft',revision,title:'Synthetic viewer navigation defect',body:'Synthetic public technical steps, expected behavior and a reproducible result.'},editor);
+ assert.equal((await s.call(id+'/publication',key,{action:'draft',revision:0,title:'forged',body:'forged'})).status,403);
+ assert.equal((await s.call(id+'/publication',s.adminKey,{action:'draft',revision:0,title:'forged',body:'forged'})).status,403);
+ let r=await make(0);assert.equal(r.status,200);let digest=r.data.publication.digest;
+ assert.equal((await s.call(id+'/export?digest='+digest,s.adminKey)).status,409);
+ const author=await s.call(id,key);assert.equal(author.data.publication.author,undefined);assert.equal(author.data.events[0].actorId,undefined);
+ assert.equal((await s.call(id+'/publication',s.adminKey,{revision:1,action:'consent',digest},editor)).status,403);
+ r=await s.call(id+'/publication',key,{revision:1,action:'consent',digest});assert.equal(r.status,200);
+ assert.equal((await s.call(id+'/publication',s.adminKey,{revision:2,action:'approve',digest,checked:true},editor)).status,403);
+ r=await s.call(id+'/publication',s.adminKey,{revision:2,action:'approve',digest,checked:true},second);assert.equal(r.status,200);
+ assert.equal((await s.call(id+'/export?digest='+digest,key)).status,403);
+ assert.equal((await s.call(id+'/export?digest='+hex(32),s.adminKey)).status,409);
+ const exported=await s.call(id+'/export?digest='+digest,s.adminKey);assert.equal(exported.status,200);assert.equal(exported.data.body,'Synthetic public technical steps, expected behavior and a reproducible result.');assert.ok(!exported.data.body.includes(p.id));assert.ok(!exported.data.body.includes(key));
+ await s.restart();assert.equal((await s.call(id+'/export?digest='+digest,s.adminKey)).status,200);
+ await s.call(id+'/events',key,{revision:3,note:'Additional synthetic source changes invalidate the approval.'});
+ assert.equal((await s.call(id+'/export?digest='+digest,s.adminKey)).status,409);
+ r=await make(4);digest=r.data.publication.digest;
+ await s.call(id+'/publication',key,{revision:5,action:'consent',digest});
+ await s.call(id+'/publication',s.adminKey,{revision:6,action:'approve',digest,checked:true},second);
+ r=await s.call(id+'/publication',key,{revision:7,action:'withdraw',digest});assert.equal(r.status,200);
+ assert.equal((await s.call(id+'/export?digest='+digest,s.adminKey)).status,409);
+ assert.equal((await s.call(id+'/publication',key,{revision:8,action:'consent',digest})).status,409);
+ await s.call(id+'/redact',s.adminKey,{revision:8});
+ const raw=await readFile(join(s.directory,p.id+'.json'),'utf8');assert.ok(!raw.includes('Synthetic viewer navigation defect'));assert.ok(!raw.includes('Synthetic public technical steps'));
+ assert.equal((await s.call(id,key)).data.publication,null);
+});
+test('academic report cannot be exported; assignment cannot be forged by contributor',async t=>{
+ const s=await setup(t),p=payload(),key=hex(32);await s.call('',key,p);
+ const editor={'X-Dental-Editor':'11111111-1111-4111-8111-111111111111'};
+ assert.equal((await s.call('/'+p.id+'/publication',s.adminKey,{action:'draft',revision:0,title:'Synthetic scientific change',body:'Synthetic scientific text should stay off the public technical bridge.'},editor)).status,409);
+ const task={priority:'normal',dueAt:new Date(Date.now()+86400000).toISOString()};
+ assert.equal((await s.call('/'+p.id+'/events',key,{revision:0,note:'Forged assignment attempt',task},editor)).status,403);
+ const r=await s.call('/'+p.id+'/events',s.adminKey,{revision:0,note:'Named editor accepted triage responsibility.',task},editor);assert.equal(r.status,200);assert.equal(r.data.events[0].task.owner,editor['X-Dental-Editor']);
+ assert.equal((await s.call('/'+p.id,key)).data.events[0].task.owner,undefined);
+});
+test('publication withdrawal remains possible after archive and history cap',async t=>{
+ const s=await setup(t,{rateLimit:200}),p={...payload(),category:'technical'},key=hex(32);await s.call('',key,p);
+ const editor={'X-Dental-Editor':'11111111-1111-4111-8111-111111111111'};
+ let r=await s.call('/'+p.id+'/publication',s.adminKey,{action:'draft',revision:0,title:'Synthetic technical summary',body:'Only synthetic reproduction steps and expected result are in this draft.'},editor);
+ const digest=r.data.publication.digest;
+ await s.call('/'+p.id+'/events',s.adminKey,{revision:1,status:'closed',note:'Synthetic triage closure.'},editor);
+ await s.call('/'+p.id+'/archive',s.adminKey,{revision:2});
+ // Synthetic fixture fills the retained history without hundreds of HTTP requests.
+ const file=join(s.directory,'archive',p.id+'.json'),raw=JSON.parse(await readFile(file,'utf8'));
+ while(raw.events.length<200)raw.events.push({at:new Date().toISOString(),actor:'maintainer',status:'closed',note:'Synthetic retained event',evidence:[]});
+ await writeFile(file,JSON.stringify(raw));
+ r=await s.call('/'+p.id+'/publication',key,{revision:200,action:'withdraw',digest});assert.equal(r.status,200);assert.equal(r.data.publication.withdrawn,true);
+ assert.equal((await s.call('/'+p.id+'/publication',key,{revision:200,action:'withdraw',digest})).status,200);
+});

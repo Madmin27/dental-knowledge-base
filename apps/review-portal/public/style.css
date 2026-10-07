@@ -388,3 +388,10 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* Private contribution desk: readable long evidence and publication fingerprints. */
+#desk-content { overflow-wrap: anywhere; }
+#desk-content pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; background: var(--surface, #f2f6f8); padding: 1rem; border-radius: 12px; }
+#desk-content form { margin-block: 1.5rem; padding: 1.25rem; border: 1px solid #d8e2eb; border-radius: 14px; }
+#desk-content section { padding-block: .75rem; border-bottom: 1px solid #d8e2eb; }
+#desk-content button { max-width: 100%; white-space: normal; text-align: start; }

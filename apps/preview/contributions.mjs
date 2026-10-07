@@ -1,3 +1,4 @@
+import {publicationState,publicationEvent,publicationExport} from './publication.mjs';
 import {mkdir,readFile,readdir,open,rename,unlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash,timingSafeEqual,randomUUID} from 'node:crypto';
@@ -28,11 +29,15 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
   }
   let queue=Promise.resolve();const rates=new Map();
   const serial=fn=>{const job=queue.then(fn);queue=job.catch(()=>{});return job;};
-  function limit(key){const now=Date.now();let entry=rates.get(key);if(!entry||entry.until<now){entry={until:now+600000,count:0};if(rates.size>=4096)rates.delete(rates.keys().next().value);rates.set(key,entry);}if(++entry.count>rateLimit)problem(429,'Çok fazla istek. 10 dakika sonra yeniden deneyin.');}
+  function limit(key,budget=rateLimit){const now=Date.now();let entry=rates.get(key);if(!entry||entry.until<now){entry={until:now+600000,count:0};if(rates.size>=4096)rates.delete(rates.keys().next().value);rates.set(key,entry);}if(++entry.count>budget)problem(429,'Çok fazla istek. 10 dakika sonra yeniden deneyin.');}
   const path=id=>join(directory,id+'.json');
   async function read(id){if(!ID.test(id))return null;for(const filename of [path(id),join(archiveDirectory,id+'.json')]){try{return JSON.parse(await readFile(filename,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;}}return null;}
   async function save(record){const encoded=JSON.stringify(record);if(Buffer.byteLength(encoded)>262144)problem(413,'Bildirim geçmişi boyut sınırına ulaştı.');const tmp=join(directory,'.'+randomUUID()+'.tmp');let file;try{file=await open(tmp,'wx',0o600);await file.writeFile(encoded);await file.sync();await file.close();file=null;await rename(tmp,record.archivedAt?join(archiveDirectory,record.id+'.json'):path(record.id));const dir=await open(record.archivedAt?archiveDirectory:directory,'r');try{await dir.sync();}finally{await dir.close();}}finally{if(file)await file.close();await unlink(tmp).catch(e=>{if(e.code!=='ENOENT')throw e;});}}
-  const publicRecord=r=>({schemaVersion:r.schemaVersion,id:r.id,createdAt:r.createdAt,submission:r.submission,events:r.events.map(({eventKeyHash,eventPayloadHash,...event})=>event),revision:r.events.length,archivedAt:r.archivedAt??null,redactedAt:r.redactedAt??null,status:r.events.at(-1)?.status??'received'});
+  const publicRecord=(r,admin=false)=>{
+    const state=publicationState(r);
+    const publication=state&&!admin?(({author,reviewer,...visible})=>visible)(state):state;
+    return {schemaVersion:r.schemaVersion,id:r.id,createdAt:r.createdAt,submission:r.submission,events:r.events.map(({eventKeyHash,eventPayloadHash,actorId,task,...event})=>({...event,...(task?{task:admin?task:{priority:task.priority,dueAt:task.dueAt}}:{}),...(admin&&actorId?{actorId}:{})})),publication,revision:r.events.length,archivedAt:r.archivedAt??null,redactedAt:r.redactedAt??null,status:r.events.at(-1)?.status??'received'};
+  };
   return {enabled:true, async handle(req,url,json){
     if(!url.pathname.startsWith('/api/contributions'))return false;
     try{
@@ -40,17 +45,19 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
       if(!['GET','POST'].includes(req.method))problem(405,'Yöntem desteklenmiyor.');
       const token=req.headers.authorization?.replace(/^Bearer /,'')??'';
       const admin=equal(token,adminKey);
+      const actorId=admin?req.headers['x-dental-editor']:undefined;
+      if(actorId!==undefined&&!/^[a-f0-9-]{36}$/.test(actorId))problem(403,'Invalid editor identity.');
       let client=req.socket.remoteAddress;
       if(trustedProxy){
         if(client!==trustedProxy||!isIP(req.headers['x-dental-client']??''))problem(403,'Güvenilmeyen ağ geçidi.');
         client=req.headers['x-dental-client'];
       }
-      limit((admin?'admin:':'ip:')+client);
+      limit((admin?'admin:':'ip:')+(admin&&actorId?actorId:client),admin&&actorId?120:rateLimit);
       if(req.method==='POST'&&!admin&&req.headers.origin!==expected.origin)problem(403,'İstek kaynağı gerekli.');
       if(url.pathname==='/api/contributions'&&req.method==='GET'){
         if(!admin)problem(404,'Bildirim bulunamadı veya erişim anahtarı yanlış.');
         const live=(await readdir(directory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f));const archived=(await readdir(archiveDirectory)).filter(f=>/^[a-f0-9]{32}\.json$/.test(f));
-        const rows=[];for(const f of (url.searchParams.get('archived')==='1'?archived:live)){const r=publicRecord(await read(f.slice(0,-5)));rows.push({id:r.id,createdAt:r.createdAt,status:r.status,revision:r.revision,archivedAt:r.archivedAt,category:r.submission.category,structure:r.submission.view.structure});}
+        const rows=[];for(const f of (url.searchParams.get('archived')==='1'?archived:live)){const r=publicRecord(await read(f.slice(0,-5)));rows.push({id:r.id,createdAt:r.createdAt,status:r.status,revision:r.revision,task:r.events.findLast(e=>e.task)?.task??null,archivedAt:r.archivedAt,category:r.submission.category,structure:r.submission.view.structure});}
         json(200,{records:rows.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)),capacity:{active:live.length,archived:archived.length,maxActive:maxRecords,maxStored:maxStoredRecords}});return true;
       }
       if(url.pathname==='/api/contributions'&&req.method==='POST'){
@@ -62,45 +69,47 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
         const digest=hash(JSON.stringify(submission));
         await serial(async()=>{
           const previous=await read(b.id);
-          if(previous){if(previous.redactedAt)problem(409,'İçeriği kaldırılmış bildirim yeniden gönderilemez.');if(!equal(previous.keyHash,hash(token))||previous.payloadHash!==digest)problem(409,'Aynı bildirim numarası farklı içerikle kullanılamaz.');const dir=await open(directory,'r');try{await dir.sync();}finally{await dir.close();}json(200,publicRecord(previous));return;}
+          if(previous){if(previous.redactedAt)problem(409,'İçeriği kaldırılmış bildirim yeniden gönderilemez.');if(!equal(previous.keyHash,hash(token))||previous.payloadHash!==digest)problem(409,'Aynı bildirim numarası farklı içerikle kullanılamaz.');const dir=await open(directory,'r');try{await dir.sync();}finally{await dir.close();}json(200,publicRecord(previous,admin));return;}
           const count=(await readdir(directory)).filter(x=>/^[a-f0-9]{32}\.json$/.test(x)).length;
           const archived=(await readdir(archiveDirectory)).filter(x=>/^[a-f0-9]{32}\.json$/.test(x)).length;
           if(count>=maxRecords||count+archived>=maxStoredRecords)problem(503,'Katkı kuyruğu dolu; bakımcıya bildirin.');
-          const r={schemaVersion:1,id:b.id,keyHash:hash(token),payloadHash:digest,createdAt:new Date().toISOString(),submission,events:[]};await save(r);json(201,publicRecord(r));
+          const r={schemaVersion:1,id:b.id,keyHash:hash(token),payloadHash:digest,createdAt:new Date().toISOString(),submission,events:[]};await save(r);json(201,publicRecord(r,admin));
         });return true;
       }
-      const match=url.pathname.match(/^\/api\/contributions\/([a-f0-9]{32})(?:\/(events|redact|archive))?$/);
+      const match=url.pathname.match(/^\/api\/contributions\/([a-f0-9]{32})(?:\/(events|redact|archive|publication|export))?$/);
       if(!match)problem(404,'Bildirim bulunamadı veya erişim anahtarı yanlış.');
       const id=match[1];
       const authorize=r=>{if(!r||(!admin&&!equal(r.keyHash,hash(token))))problem(404,'Bildirim bulunamadı veya erişim anahtarı yanlış.');};
-      if(req.method==='GET'&&!match[2]){const r=await read(id);authorize(r);json(200,publicRecord(r));return true;}
+      if(req.method==='GET'&&match[2]==='export'){await serial(async()=>{const r=await read(id);authorize(r);if(!admin)problem(403,'Editor required.');const result=publicationExport(r);if(url.searchParams.get('digest')!==result.digest)problem(409,'Draft changed.');json(200,result);});return true;}
+      if(req.method==='GET'&&!match[2]){const r=await read(id);authorize(r);json(200,publicRecord(r,admin));return true;}
       if(req.method!=='POST'||!match[2])problem(405,'Yöntem desteklenmiyor.');
       const b=await body(req);
       await serial(async()=>{
         const r=await read(id);authorize(r);limit('record:'+(admin?'admin:':'contributor:')+id);
+        if(match[2]==='publication'){const event=publicationEvent(r,b,admin,actorId);if(event){r.events.push(event);if(b.action!=='withdraw'&&Buffer.byteLength(JSON.stringify(r))>245760)problem(413,'Publication capacity reached.');await save(r);}json(200,publicRecord(r,admin));return;}
         if(match[2]==='archive'){
           if(!admin)problem(404,'Bildirim bulunamadı veya erişim anahtarı yanlış.');
-          if(r.archivedAt){json(200,publicRecord(r));return;}
+          if(r.archivedAt){json(200,publicRecord(r,admin));return;}
           if(b.revision!==r.events.length)problem(409,'Bildirim güncellendi.');
           if((r.events.at(-1)?.status??'received')!=='closed')problem(409,'Yalnız kapatılmış bildirimler arşivlenebilir.');
           r.archivedAt=new Date().toISOString();await save(r);await unlink(path(id));
           for(const d of [directory,archiveDirectory]){const fd=await open(d,'r');try{await fd.sync();}finally{await fd.close();}}
-          json(200,publicRecord(r));return;
+          json(200,publicRecord(r,admin));return;
         }
         if(match[2]==='redact'){
           if(!admin)problem(404,'Bildirim bulunamadı veya erişim anahtarı yanlış.');
-          if(r.redactedAt){json(200,publicRecord(r));return;}
+          if(r.redactedAt){json(200,publicRecord(r,admin));return;}
           if(b.revision!==r.events.length)problem(409,'Bildirim güncellendi.');
           r.submission={...r.submission,alias:'',description:'İçerik gizlilik nedeniyle kaldırıldı.',expected:'',evidence:[]};
-          r.events=r.events.map(e=>({...e,note:'İçerik gizlilik nedeniyle kaldırıldı.',evidence:[]}));
+          r.events=r.events.map(({publication,...e})=>({...e,note:'İçerik gizlilik nedeniyle kaldırıldı.',evidence:[]}));
           r.redactedAt=new Date().toISOString();r.events.push({at:r.redactedAt,actor:'maintainer',status:'closed',note:'Metin ve kaynak bağlantıları gizlilik/saklama süresi nedeniyle kaldırıldı.',evidence:[]});
-          await save(r);json(200,publicRecord(r));return;
+          await save(r);json(200,publicRecord(r,admin));return;
         }
         if(r.redactedAt)problem(409,'İçeriği kaldırılmış bildirim değiştirilemez.');
         if(b.eventId!==undefined&&!ID.test(b.eventId))problem(422,'Geçersiz işlem kimliği.');
-        const eventPayloadHash=hash(JSON.stringify({note:b.note,evidence:b.evidence??[],status:b.status??null}));
+        const eventPayloadHash=hash(JSON.stringify({note:b.note,evidence:b.evidence??[],status:b.status??null,...(b.task?{task:b.task}:{})}));
         const previous=b.eventId&&r.events.find(e=>e.eventId===b.eventId);
-        if(previous){if(previous.eventKeyHash!==hash(token)||previous.eventPayloadHash!==eventPayloadHash)problem(409,'İşlem kimliği farklı içerikle kullanılmış.');json(200,publicRecord(r));return;}
+        if(previous){if(previous.eventKeyHash!==hash(token)||previous.eventPayloadHash!==eventPayloadHash)problem(409,'İşlem kimliği farklı içerikle kullanılmış.');json(200,publicRecord(r,admin));return;}
         if(r.archivedAt)problem(409,'Arşivlenmiş bildirimler salt okunurdur.');
         if(b.revision!==r.events.length)problem(409,'Bildirim güncellendi. Yenileyip yeniden deneyin.');
         if((!admin&&r.events.filter(e=>e.actor==='contributor').length>=100)||r.events.length>=200)problem(409,'Bu bildirim için olay sınırına ulaşıldı.');
@@ -110,9 +119,16 @@ export async function createIntake({directory,origin,adminKey,catalog,maxRecords
         if(!admin&&b.status!==undefined)problem(403,'Durum değiştirme yetkiniz yok.');
         const links=evidence(b.evidence??[]);
         if(next==='addressed'&&next!==status&&admin&&links.length===0)problem(422,'Uygulama sonucu için değişiklik veya doğrulama bağlantısı gerekli.');
-        r.events.push({at:new Date().toISOString(),actor:admin?'maintainer':'contributor',status:next,note:text(b.note,4000,5),evidence:links,...(b.eventId?{eventId:b.eventId,eventKeyHash:hash(token),eventPayloadHash}:{})});
+        let task;
+        if(b.task!==undefined){
+          if(!admin||!actorId)problem(403,'Named editor required for assignment.');
+          if(!['normal','high'].includes(b.task.priority)||!Number.isFinite(Date.parse(b.task.dueAt))||Date.parse(b.task.dueAt)<=Date.now()||Date.parse(b.task.dueAt)>Date.now()+30*86400000)problem(422,'A priority and a deadline within 30 days are required.');
+          task={owner:actorId,priority:b.task.priority,dueAt:new Date(b.task.dueAt).toISOString()};
+        }
+        r.events.push({at:new Date().toISOString(),actor:admin?'maintainer':'contributor',...(admin&&actorId?{actorId}:{}),...(task?{task}:{}),status:next,note:text(b.note,4000,5),evidence:links,...(b.eventId?{eventId:b.eventId,eventKeyHash:hash(token),eventPayloadHash}:{})});
+        if(Buffer.byteLength(JSON.stringify(r))>245760)problem(413,'History capacity reached; privacy reserve retained.');
         if(!admin&&Buffer.byteLength(JSON.stringify(r))>196608)problem(413,'Yorum kapasitesine ulaşıldı; bakımcı işlemleri için yer ayrılmıştır.');
-        await save(r);json(200,publicRecord(r));
+        await save(r);json(200,publicRecord(r,admin));
       });return true;
     }catch(e){json(e.status??503,{error:e.status?e.message:'Katkı kaydedilemedi. Takip anahtarınızı koruyup yeniden deneyin.'});return true;}
   }};
